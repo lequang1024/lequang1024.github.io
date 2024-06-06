@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Support Code Scraper Tool</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+
+</head>
+
+<body>
+    <div class="container">
+        <h1>Support Code Scraper Tool</h1>
+        <textarea id="inputText" rows="20" cols="50" onchange="generateNcalcExpression()"></textarea><br>
+        <textarea id="outputText" rows="20" cols="50"></textarea>
+    </div>
+    <script>
+        let inputText = document.getElementById("inputText");
+        let outputText = document.getElementById("outputText");
+        let lastValue = inputText.value;
+        setInterval(function () {
+            if (inputText.value !== lastValue) {
+                lastValue = inputText.value;
+                let supportCodes = lastValue.match(/\b[A-Z0-9]{6}\b/g);
+                if (supportCodes) {
+                    supportCodes = [...new Set(supportCodes)]; // Remove duplicates
+                    let ncalcExpression = supportCodes.map(code => "SupportCode = '" + code + "'").join(" OR ");
+                    outputText.value = ncalcExpression;
+                }
+            }
+        }, 1000);
+    </script>
+</body>
+
+</html>
