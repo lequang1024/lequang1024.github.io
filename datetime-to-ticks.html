@@ -3,28 +3,57 @@
 
 <head>
     <title>Datetime to Ticks Converter</title>
-    <link rel="stylesheet" type="text/css" href="styles.css">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
 </head>
 
 <body>
-    <div class="container">
-        <h1>.NET Datetime to Ticks Converter</h1>
-        <p class="note">
-            Note: .NET ticks represent the number of 100-nanosecond intervals that have elapsed since 12:00:00 midnight
-            on January 1, 0001, while Unix time represents the number of seconds that have elapsed since 00:00:00
-            Coordinated Universal Time (UTC), Thursday, 1 January 1970, not counting leap seconds.
-        </p>
-        <label for="startDatetime">Start datetime (UTC):</label>
-        <input type="text" id="startDatetime" placeholder="YYYY-MM-DDTHH:MM:SS" oninput="convertToTicks()">
-        <label for="endDatetime">End datetime (UTC):</label>
-        <input type="text" id="endDatetime" placeholder="YYYY-MM-DDTHH:MM:SS" oninput="convertToTicks()">
-        <label for="expression">NCalc expression:</label>
-        <textarea id="expression" readonly></textarea>
-        <div class="back-button">
-            <button onclick="goBack()">Back to Tools Index</button>
+    <nav class="navbar" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="#">
+                <h1 class="title">Tools Index</h1>
+            </a>
         </div>
-    </div>
+        <div id="navbarBasicExample" class="navbar-menu">
+            <div class="navbar-start">
+                <a href="datetime-to-ticks.html" class="navbar-item">Datetime to Ticks Converter</a>
+                <a href="support-code-scraper-tool.html" class="navbar-item">SC scraper Tool</a>
+                <!-- Add more tools as needed -->
+            </div>
+        </div>
+    </nav>
+    <section class="section">
+        <div class="container">
+            <h1 class="title">.NET Datetime to Ticks Converter</h1>
+            <p class="subtitle">
+                Note: .NET ticks represent the number of 100-nanosecond intervals that have elapsed since 12:00:00 midnight
+                on January 1, 0001, while Unix time represents the number of seconds that have elapsed since 00:00:00
+                Coordinated Universal Time (UTC), Thursday, 1 January 1970, not counting leap seconds.
+            </p>
+            <div class="field">
+                <label class="label" for="startDatetime">Start datetime (UTC):</label>
+                <div class="control">
+                    <input class="input" type="text" id="startDatetime" placeholder="YYYY-MM-DDTHH:MM:SS" oninput="convertToTicks()">
+                </div>
+            </div>
+            <div class="field">
+                <label class="label" for="endDatetime">End datetime (UTC):</label>
+                <div class="control">
+                    <input class="input" type="text" id="endDatetime" placeholder="YYYY-MM-DDTHH:MM:SS" oninput="convertToTicks()">
+                </div>
+            </div>
+            <div class="field">
+                <label class="label" for="expression">NCalc expression:</label>
+                <div class="control">
+                    <textarea class="textarea" id="expression" readonly></textarea>
+                </div>
+            </div>
+            <div class="field is-grouped">
+                <div class="control">
+                    <button class="button is-link" onclick="goBack()">Back to Tools Index</button>
+                </div>
+            </div>
+        </div>
+    </section>
     <script>
         const TICKS_AT_EPOCH = 621355968000000000; // Ticks at Unix epoch (January 1, 1970)
 

@@ -3,16 +3,39 @@
 
 <head>
     <title>Support Code Scraper Tool</title>
-    <link rel="stylesheet" type="text/css" href="styles.css">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
 </head>
 
 <body>
-    <div class="container">
-        <h1>Support Code Scraper Tool</h1>
-        <textarea id="inputText" rows="20" cols="50" onchange="generateNcalcExpression()"></textarea><br>
-        <textarea id="outputText" rows="20" cols="50"></textarea>
-    </div>
+    <nav class="navbar" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="#">
+                <h1 class="title">Tools Index</h1>
+            </a>
+        </div>
+        <div id="navbarBasicExample" class="navbar-menu">
+            <div class="navbar-start">
+                <a href="datetime-to-ticks.html" class="navbar-item">Datetime to Ticks Converter</a>
+                <a href="support-code-scraper-tool.html" class="navbar-item">SC scraper Tool</a>
+                <!-- Add more tools as needed -->
+            </div>
+        </div>
+    </nav>
+    <section class="section">
+        <div class="container">
+            <h1 class="title">Support Code Scraper Tool</h1>
+            <div class="field">
+                <div class="control">
+                    <textarea class="textarea" id="inputText" rows="10" onchange="generateNcalcExpression()" placeholder="Input"></textarea>
+                </div>
+            </div>
+            <div class="field">
+                <div class="control">
+                    <textarea class="textarea" id="outputText" rows="10" placeholder="Output"></textarea>
+                </div>
+            </div>
+        </div>
+    </section>
     <script>
         let inputText = document.getElementById("inputText");
         let outputText = document.getElementById("outputText");
