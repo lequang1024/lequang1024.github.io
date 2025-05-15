@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Link QR Code Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        /* Custom font */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Ensure QR code div is cleared properly for regeneration */
+        #qrcode img {
+            margin: auto; /* Center the QR code image if it's smaller than the container */
+        }
+        /* Style for the generated URL display */
+        #generatedUrl {
+            word-break: break-all; /* Break long URLs to prevent overflow */
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-lg">
+        <h1 class="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-6 sm:mb-8">Deep Link QR Code Generator</h1>
+
+        <div class="space-y-5">
+            <div>
+                <label for="environment" class="block text-sm font-medium text-gray-700 mb-1">Environment</label>
+                <select id="environment" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <option value="trunk">Trunk (backend.jarvistrunk.net)</option>
+                    <option value="qa3">QA3 (backend.liveops.jarvisqa.net)</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="identifier" class="block text-sm font-medium text-gray-700 mb-1">Identifier (e.g., 3299)</label>
+                <input type="text" id="identifier" value="3299" placeholder="e.g., 1234" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <p class="mt-1 text-xs text-gray-500">Enter identifier (like a PR number). If provided, 'pr-' is prepended. If blank, only the base environment URL is used.</p>
+            </div>
+
+            <div>
+                <label for="avaDab" class="block text-sm font-medium text-gray-700 mb-1">AVA DAB Value (e.g., dab_lb)</label>
+                <input type="text" id="avaDab" value="dab_lb" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+
+            <div>
+                <label for="avaHeader" class="block text-sm font-medium text-gray-700 mb-1">AVA Header</label>
+                <select id="avaHeader" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <option value="mvmx">mvmx</option>
+                    <option value="mvmx-liveops">mvmx-liveops</option>
+                </select>
+            </div>
+        </div>
+
+        <button id="generateBtn" class="mt-8 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
+            Generate QR Code
+        </button>
+
+        <div class="mt-8 flex flex-col items-center">
+            <h2 class="text-lg font-semibold text-gray-700 mb-2">Scan QR Code:</h2>
+            <div id="qrcode" class="p-4 border border-gray-300 rounded-lg bg-white shadow-sm w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center">
+                </div>
+        </div>
+
+        <div class="mt-6">
+            <h2 class="text-lg font-semibold text-gray-700 mb-2">Generated Deep Link URL:</h2>
+            <p id="generatedUrl" class="text-sm text-gray-600 bg-gray-50 p-3 rounded-md border border-gray-200"></p>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const environmentSelect = document.getElementById('environment');
+        const identifierInput = document.getElementById('identifier'); // Changed from prNumberInput
+        const avaDabInput = document.getElementById('avaDab');
+        const avaHeaderSelect = document.getElementById('avaHeader');
+        const generateBtn = document.getElementById('generateBtn');
+        const qrcodeDiv = document.getElementById('qrcode');
+        const generatedUrlP = document.getElementById('generatedUrl');
+
+        let qrCodeInstance = null; // To hold the QRCode instance
+
+        // Environment to backend domain mapping
+        const environmentDomains = {
+            trunk: "backend.jarvistrunk.net",
+            qa3: "backend.liveops.jarvisqa.net"
+        };
+
+        /**
+         * Generates the deep link URL and updates the QR code.
+         */
+        function generateAndDisplayQrCode() {
+            // Get values from input fields
+            const selectedEnvironment = environmentSelect.value;
+            const identifierValue = identifierInput.value.trim(); // Value from the identifier input
+            const avaDab = avaDabInput.value.trim();
+            const avaHeader = avaHeaderSelect.value;
+
+            // Validate inputs
+            if (!avaDab) {
+                // Using a simple browser alert. Consider a more user-friendly notification for a real application.
+                alert("Please enter an AVA DAB value.");
+                return;
+            }
+
+            // Construct the backend_host parameter
+            let backendHost;
+            const baseDomain = environmentDomains[selectedEnvironment];
+
+            if (identifierValue) { // If an identifier (e.g., PR number part) is provided
+                backendHost = `pr-${identifierValue}.${baseDomain}`;
+            } else { // If the identifier field is blank
+                backendHost = baseDomain;
+            }
+
+            // Construct the full deep link URL
+            const deepLinkUrl = `myvegas-slots://slots/action?backend_host=${encodeURIComponent(backendHost)}&ava_dab=${encodeURIComponent(avaDab)}&ava_header=${encodeURIComponent(avaHeader)}`;
+
+            // Display the generated URL
+            generatedUrlP.textContent = deepLinkUrl;
+
+            // Clear previous QR code
+            qrcodeDiv.innerHTML = '';
+
+            // Generate new QR code
+            qrCodeInstance = new QRCode(qrcodeDiv, {
+                text: deepLinkUrl,
+                width: 256,  // Desired width of the QR code image
+                height: 256, // Desired height of the QR code image
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H // High error correction level
+            });
+        }
+
+        // Event Listener for the Generate Button
+        generateBtn.addEventListener('click', generateAndDisplayQrCode);
+
+        // Regenerate QR when any relevant input changes (for immediate feedback)
+        identifierInput.addEventListener('input', generateAndDisplayQrCode);
+        avaDabInput.addEventListener('input', generateAndDisplayQrCode);
+        avaHeaderSelect.addEventListener('change', generateAndDisplayQrCode);
+        environmentSelect.addEventListener('change', generateAndDisplayQrCode);
+
+
+        // Initial QR code generation on page load with default values
+        window.addEventListener('load', () => {
+            // Update labels and hints to be consistent with the new logic
+            const identifierLabel = document.querySelector('label[for="identifier"]');
+            const identifierHint = identifierInput.nextElementSibling; // The <p> tag after input
+
+            identifierLabel.textContent = "Identifier (e.g., 3299)";
+            identifierInput.placeholder = "e.g., 1234"; // Placeholder for the input field
+            identifierHint.textContent = "Enter identifier (like a PR number). If provided, 'pr-' is prepended. If blank, only the base environment URL is used.";
+            
+            generateAndDisplayQrCode();
+        });
+    </script>
+
+</body>
+</html>
