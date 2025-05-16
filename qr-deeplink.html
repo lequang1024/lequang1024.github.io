@@ -56,6 +56,7 @@
                             <label for="environment" class="block text-sm font-medium text-gray-700 mb-1">Environment</label>
                             <select id="environment" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 <option value="trunk">Trunk (backend.jarvistrunk.net)</option>
+                                <option value="trunkliveops">Trunk Liveops (don't use PR) (backend-liveops.jarvistrunk.net)</option>
                                 <option value="qa3">QA3 (backend.liveops.jarvisqa.net)</option>
                             </select>
                         </div>
@@ -72,9 +73,14 @@
                     <div id="additionalParamsContainer" class="space-y-4">
                         </div>
                 </div>
-                 <button id="generateBtn" class="mt-8 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
-                    Generate QR Code & URL
-                </button>
+                <div class="flex space-x-4 mt-8">
+                     <button id="generateBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
+                        Generate QR Code & URL
+                    </button>
+                    <button id="resetBtn" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
+                        Reset to Defaults
+                    </button>
+                </div>
             </div>
 
             <div class="lg:w-1/2 lg:sticky lg:top-8 space-y-6">
@@ -94,9 +100,10 @@
     <script>
         // DOM Elements
         const environmentSelect = document.getElementById('environment');
-        const prNumberInput = document.getElementById('prNumber'); // Renamed from identifierInput
+        const prNumberInput = document.getElementById('prNumber');
         const additionalParamsContainer = document.getElementById('additionalParamsContainer');
         const generateBtn = document.getElementById('generateBtn');
+        const resetBtn = document.getElementById('resetBtn');
         const qrcodeDiv = document.getElementById('qrcode');
         const generatedUrlP = document.getElementById('generatedUrl');
 
@@ -104,6 +111,7 @@
 
         const environmentDomains = {
             trunk: "backend.jarvistrunk.net",
+            trunkliveops: "backend-liveops.jarvistrunk.net",
             qa3: "backend.liveops.jarvisqa.net"
         };
 
@@ -114,7 +122,11 @@
             ADDITIONAL_PARAMS: LS_BASE_KEY + 'additionalParams'
         };
 
-        // Configuration for additional query parameters
+        const DEFAULTS = {
+            ENVIRONMENT: 'trunk',
+            PR_NUMBER: '',
+        };
+
         const additionalParamsConfig = [
             { id: 'ava_dab', name: 'Ava DAB', key: 'ava_dab', type: 'text', placeholder: 'AVA_DAB value or reset', example: '?ava_dab=MY_DAB', defaultValue: '3_63_0' },
             { id: 'ava_header', name: 'Ava Header', key: 'ava_header', type: 'select', options: ['mvmx', 'mvmx-liveops'], example: '?ava_header=AVA_HEADER', defaultValue: 'mvmx' },
@@ -123,47 +135,68 @@
             { id: 'env_profile', name: 'Server Environment Profile', key: 'env_profile', type: 'select', options: ['trunk', 'qa1', 'qa3', 'stage', 'prod', 'reset'], example: '?env_profile=qa3', defaultValue: 'qa3' },
             { id: 'backend_pr', name: 'Backend PR (additional)', key: 'backend_pr', type: 'text', placeholder: 'e.g., 1024 or reset', example: '?backend_pr=1024', defaultValue: '' },
             { id: 'iap_cheat', name: 'IAP Cheat (no AppStore)', key: 'iap_cheat', type: 'select', options: ['true', 'false'], example: '?iap_cheat=true', defaultValue: 'false' },
-            { id: 'reset_device', name: 'Reset Device', key: 'reset', type: 'text', placeholder: 'device', example: '?reset=device', defaultValue: '' },
+            // Changed: Reset Device no longer has a text input, its value is fixed to "device" when enabled
+            { id: 'reset_device', name: 'Reset Device', key: 'reset', type: 'checkbox_only', example: '?reset=device', fixedValue: 'device', defaultValue: false }, // defaultValue here refers to enabled state
             { id: 'nlog_level', name: 'NLog Console Log Level', key: 'nlog_level', type: 'select', options: ['debug', 'info', 'warn', 'error', 'fatal', 'off'], example: '?nlog_level=debug', defaultValue: 'info' },
             { id: 'auto_cheat', name: 'Auto Cheat', key: 'auto_cheat', type: 'text', placeholder: 'Cheat ID (e.g. SuperPlayer)', example: '?auto_cheat=SuperPlayer', defaultValue: '' }
         ];
 
         function renderAdditionalParams() {
-            additionalParamsContainer.innerHTML = ''; // Clear existing params
+            additionalParamsContainer.innerHTML = ''; 
             const savedParamsState = JSON.parse(localStorage.getItem(LS_KEYS.ADDITIONAL_PARAMS) || '{}');
 
             additionalParamsConfig.forEach(param => {
-                const paramState = savedParamsState[param.id] || { enabled: (param.id === 'ava_dab' || param.id === 'ava_header'), value: param.defaultValue }; // AvaDab and AvaHeader enabled by default
+                const isDefaultEnabled = (param.id === 'ava_dab' || param.id === 'ava_header' || (param.type === 'checkbox_only' && param.defaultValue === true) );
+                // For checkbox_only, param.defaultValue refers to its enabled state.
+                // For others, param.defaultValue refers to the input's value, and enabled is separate.
+                let initialEnabledState = isDefaultEnabled;
+                let initialValue = param.defaultValue;
+
+                if (savedParamsState[param.id]) {
+                    initialEnabledState = savedParamsState[param.id].enabled;
+                    if (param.type !== 'checkbox_only') { // checkbox_only doesn't have a separate value to save/load
+                        initialValue = savedParamsState[param.id].value;
+                    }
+                }
+
 
                 const wrapper = document.createElement('div');
                 wrapper.className = 'param-group';
 
                 let inputHtml = '';
+                // Only render input fields for types that require them
                 if (param.type === 'text') {
-                    inputHtml = `<input type="text" id="${param.id}_value" value="${paramState.value}" placeholder="${param.placeholder || ''}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" ${!paramState.enabled ? 'disabled' : ''}>`;
+                    inputHtml = `<input type="text" id="${param.id}_value" value="${initialValue}" placeholder="${param.placeholder || ''}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" ${!initialEnabledState ? 'disabled' : ''}>`;
                 } else if (param.type === 'select') {
-                    const optionsHtml = param.options.map(opt => `<option value="${opt}" ${opt === paramState.value ? 'selected' : ''}>${opt}</option>`).join('');
-                    inputHtml = `<select id="${param.id}_value" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" ${!paramState.enabled ? 'disabled' : ''}>${optionsHtml}</select>`;
+                    const optionsHtml = param.options.map(opt => `<option value="${opt}" ${opt === initialValue ? 'selected' : ''}>${opt}</option>`).join('');
+                    inputHtml = `<select id="${param.id}_value" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" ${!initialEnabledState ? 'disabled' : ''}>${optionsHtml}</select>`;
                 }
+                // For 'checkbox_only', inputHtml remains empty as the checkbox itself is the primary control.
 
                 wrapper.innerHTML = `
                     <div class="flex items-center justify-between">
                         <label for="${param.id}_enable" class="block text-sm font-medium text-gray-900">${param.name}</label>
-                        <input type="checkbox" id="${param.id}_enable" ${paramState.enabled ? 'checked' : ''} class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                        <input type="checkbox" id="${param.id}_enable" ${initialEnabledState ? 'checked' : ''} class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
                     </div>
-                    ${inputHtml}
+                    ${inputHtml} 
                     ${param.example ? `<p class="mt-1 text-xs text-gray-500">${param.example}</p>` : ''}
                 `;
                 additionalParamsContainer.appendChild(wrapper);
 
-                // Add event listener for enabling/disabling and value changes
-                document.getElementById(`${param.id}_enable`).addEventListener('change', (e) => {
-                    document.getElementById(`${param.id}_value`).disabled = !e.target.checked;
+                const enableCheckbox = document.getElementById(`${param.id}_enable`);
+                enableCheckbox.addEventListener('change', (e) => {
+                    if (param.type !== 'checkbox_only') {
+                        document.getElementById(`${param.id}_value`).disabled = !e.target.checked;
+                    }
                     generateAndDisplayQrCode();
                 });
-                document.getElementById(`${param.id}_value`).addEventListener('input', generateAndDisplayQrCode);
-                 if(param.type === 'select') {
-                    document.getElementById(`${param.id}_value`).addEventListener('change', generateAndDisplayQrCode);
+
+                if (param.type !== 'checkbox_only') {
+                    const valueElement = document.getElementById(`${param.id}_value`);
+                    valueElement.addEventListener('input', generateAndDisplayQrCode); 
+                    if(param.type === 'select') { 
+                        valueElement.addEventListener('change', generateAndDisplayQrCode);
+                    }
                 }
             });
         }
@@ -174,18 +207,28 @@
 
             const additionalParamsState = {};
             additionalParamsConfig.forEach(param => {
+                const enableCheckbox = document.getElementById(`${param.id}_enable`);
                 additionalParamsState[param.id] = {
-                    enabled: document.getElementById(`${param.id}_enable`).checked,
-                    value: document.getElementById(`${param.id}_value`).value
+                    enabled: enableCheckbox.checked,
+                    // For checkbox_only, value is not user-editable, so we don't try to get it from a non-existent input.
+                    // The fixedValue is used during URL generation.
+                    value: (param.type !== 'checkbox_only' && enableCheckbox.checked) ? document.getElementById(`${param.id}_value`).value : (param.fixedValue || '')
                 };
             });
             localStorage.setItem(LS_KEYS.ADDITIONAL_PARAMS, JSON.stringify(additionalParamsState));
         }
 
         function loadInputsFromLocalStorage() {
-            environmentSelect.value = localStorage.getItem(LS_KEYS.ENVIRONMENT) || 'trunk';
-            prNumberInput.value = localStorage.getItem(LS_KEYS.PR_NUMBER) || '';
-            // Additional params are loaded during their rendering phase
+            environmentSelect.value = localStorage.getItem(LS_KEYS.ENVIRONMENT) || DEFAULTS.ENVIRONMENT;
+            prNumberInput.value = localStorage.getItem(LS_KEYS.PR_NUMBER) || DEFAULTS.PR_NUMBER;
+        }
+
+        function resetToDefaultSettings() {
+            Object.values(LS_KEYS).forEach(key => localStorage.removeItem(key));
+            environmentSelect.value = DEFAULTS.ENVIRONMENT;
+            prNumberInput.value = DEFAULTS.PR_NUMBER;
+            renderAdditionalParams(); // This will now use hardcoded defaults for additional params
+            generateAndDisplayQrCode();
         }
 
         function generateAndDisplayQrCode() {
@@ -204,10 +247,18 @@
 
             additionalParamsConfig.forEach(param => {
                 const enableCheckbox = document.getElementById(`${param.id}_enable`);
-                const valueInput = document.getElementById(`${param.id}_value`);
-                if (enableCheckbox && valueInput && enableCheckbox.checked) {
-                    const value = valueInput.value.trim();
-                    if (value !== '' || param.key === 'ava_dab' || param.key === 'ava_header') { // Allow empty for some if needed, but generally require value
+                if (enableCheckbox && enableCheckbox.checked) {
+                    let value;
+                    if (param.type === 'checkbox_only') {
+                        value = param.fixedValue; // Use the fixed value
+                    } else {
+                        const valueInput = document.getElementById(`${param.id}_value`);
+                        value = valueInput ? valueInput.value.trim() : '';
+                    }
+                    
+                    // Only add param if it has a value, or if it's a type that should always be included when enabled (like checkbox_only)
+                    // or specific keys like ava_dab/ava_header.
+                    if (value !== '' || param.type === 'checkbox_only' || param.key === 'ava_dab' || param.key === 'ava_header') {
                         queryParams.push(`${encodeURIComponent(param.key)}=${encodeURIComponent(value)}`);
                     }
                 }
@@ -220,31 +271,35 @@
             try {
                 qrCodeInstance = new QRCode(qrcodeDiv, {
                     text: deepLinkUrl,
-                    width: qrcodeDiv.offsetWidth - 10 > 200 ? qrcodeDiv.offsetWidth -10 : 256, // Adjust to fit container
-                    height: qrcodeDiv.offsetHeight - 10 > 200 ? qrcodeDiv.offsetHeight -10 : 256, // Adjust to fit container
+                    width: qrcodeDiv.offsetWidth > 20 ? qrcodeDiv.offsetWidth - 10 : 256, 
+                    height: qrcodeDiv.offsetHeight > 20 ? qrcodeDiv.offsetHeight - 10 : 256,
                     colorDark: "#000000",
                     colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.H
                 });
-                saveInputsToLocalStorage();
+                if (!resetBtn.dataset.isResetting) { 
+                     saveInputsToLocalStorage();
+                }
             } catch (e) {
                 console.error("QR Code generation error:", e);
                 qrcodeDiv.innerHTML = 'Error generating QR code.';
             }
         }
 
-        // Event Listeners
         generateBtn.addEventListener('click', generateAndDisplayQrCode);
+        resetBtn.addEventListener('click', () => {
+            resetBtn.dataset.isResetting = true; 
+            resetToDefaultSettings();
+            delete resetBtn.dataset.isResetting; 
+        });
         environmentSelect.addEventListener('change', generateAndDisplayQrCode);
         prNumberInput.addEventListener('input', generateAndDisplayQrCode);
 
-        // Initial setup
         window.addEventListener('load', () => {
-            loadInputsFromLocalStorage(); // Load base config
-            renderAdditionalParams();     // Render dynamic params (which also loads their specific LS state)
-            generateAndDisplayQrCode();   // Generate QR with loaded/default values
+            loadInputsFromLocalStorage(); 
+            renderAdditionalParams();     
+            generateAndDisplayQrCode();   
 
-            // Ensure QR code resizes if window resizes (simple version)
             let resizeTimeout;
             window.addEventListener('resize', () => {
                 clearTimeout(resizeTimeout);

@@ -1,24 +1,72 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>Tools Index</title>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
-    </head>
-<body>
-    <nav class="navbar" role="navigation" aria-label="main navigation">
-        <div class="navbar-brand">
-            <a class="navbar-item" href="#">
-                <h1 class="title">Tools Index</h1>
-            </a>
-        </div>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Project Pages - Quang Le</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Apply Inter font to the body */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom styles for link items */
+        .link-item {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .link-item:hover {
+            transform: translateY(-2px) scale(1.01); /* Subtle hover effect */
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.07), 0 4px 8px -3px rgba(0, 0, 0, 0.04);
+        }
+        /* Gradient for the main header text */
+        .header-gradient {
+            background: linear-gradient(to right, #4f46e5, #7c3aed); /* Indigo to Purple */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-100 to-slate-200 text-gray-800 min-h-screen flex flex-col items-center justify-center p-6 selection:bg-indigo-500 selection:text-white">
 
-        <div id="navbarBasicExample" class="navbar-menu">
-            <div class="navbar-start">
-                <a href="datetime-to-ticks.html" class="navbar-item">Datetime to Ticks Converter</a>
-                <a href="support-code-scraper-tool.html" class="navbar-item">SC scraper Tool</a>
-                <!-- Add more tools as needed -->
-            </div>
-        </div>
-    </nav>
+    <div class="container mx-auto max-w-2xl w-full bg-white/80 backdrop-blur-lg shadow-xl rounded-xl p-8 md:p-12">
+        <header class="mb-10 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-3 header-gradient">My Project Pages</h1>
+            <p class="text-lg text-gray-600">A collection of tools and projects I've built.</p>
+        </header>
+
+        <main>
+            <ul class="space-y-5">
+                <li class="link-item bg-slate-50 hover:bg-slate-100/70 border border-slate-200 p-6 rounded-lg shadow-md">
+                    <a href="qr-deeplink.html" class="block group">
+                        <h2 class="text-2xl font-semibold text-indigo-600 group-hover:text-indigo-700 mb-2">QR Code Deeplink Generator</h2>
+                        <p class="text-gray-700 group-hover:text-gray-800">A tool to generate QR codes that act as deep links.</p>
+                    </a>
+                </li>
+
+                <li class="link-item bg-slate-50 hover:bg-slate-100/70 border border-slate-200 p-6 rounded-lg shadow-md">
+                    <a href="support-code-scraper-tool.html" class="block group">
+                        <h2 class="text-2xl font-semibold text-indigo-600 group-hover:text-indigo-700 mb-2">Support Code Scraper</h2>
+                        <p class="text-gray-700 group-hover:text-gray-800">A utility for scraping support codes or similar information.</p>
+                    </a>
+                </li>
+
+                <li class="link-item bg-slate-50 hover:bg-slate-100/70 border border-slate-200 p-6 rounded-lg shadow-md">
+                    <a href="datetime-to-ticks.html" class="block group">
+                        <h2 class="text-2xl font-semibold text-indigo-600 group-hover:text-indigo-700 mb-2">DateTime to Ticks Converter</h2>
+                        <p class="text-gray-700 group-hover:text-gray-800">Converts date and time values to .NET Ticks.</p>
+                    </a>
+                </li>
+                </ul>
+        </main>
+
+        <footer class="mt-12 text-center">
+            <p class="text-sm text-gray-500">
+                Hosted on GitHub Pages.
+                &copy; <script>document.write(new Date().getFullYear())</script> Quang Le.
+            </p>
+        </footer>
+    </div>
+
 </body>
 </html>
