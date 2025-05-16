@@ -3,163 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deep Link QR Code Generator</title>
+    <title>Advanced Deep Link QR Code Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        /* Custom font */
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Tailwind bg-gray-100 */
         }
-        /* Ensure QR code div is cleared properly for regeneration */
         #qrcode img {
-            margin: auto; /* Center the QR code image if it's smaller than the container */
+            margin: auto;
+            display: block; /* Ensure it behaves as a block for margin auto to work */
         }
-        /* Style for the generated URL display */
         #generatedUrl {
-            word-break: break-all; /* Break long URLs to prevent overflow */
+            word-break: break-all;
+        }
+        .param-group {
+            border: 1px solid #e5e7eb; /* Tailwind border-gray-200 */
+            border-radius: 0.5rem; /* Tailwind rounded-lg */
+            padding: 1rem; /* Tailwind p-4 */
+            margin-bottom: 1rem; /* Tailwind mb-4 */
+            background-color: #ffffff; /* Tailwind bg-white */
+        }
+        .param-group label.block {
+            font-weight: 500; /* Tailwind font-medium */
+        }
+        /* Ensure select dropdowns are visible in dark mode if user has it enabled */
+        select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
+<body class="min-h-screen p-4 lg:p-8">
 
-    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-lg">
-        <h1 class="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-6 sm:mb-8">Deep Link QR Code Generator</h1>
+    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Advanced Deep Link QR Code Generator</h1>
 
-        <div class="space-y-5">
-            <div>
-                <label for="environment" class="block text-sm font-medium text-gray-700 mb-1">Environment</label>
-                <select id="environment" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                    <option value="trunk">Trunk (backend.jarvistrunk.net)</option>
-                    <option value="qa3">QA3 (backend.liveops.jarvisqa.net)</option>
-                </select>
-            </div>
-
-            <div>
-                <label for="identifier" class="block text-sm font-medium text-gray-700 mb-1">Identifier (e.g., 3299)</label>
-                <input type="text" id="identifier" value="3299" placeholder="e.g., 1234" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                <p class="mt-1 text-xs text-gray-500">Enter identifier (like a PR number). If provided, 'pr-' is prepended. If blank, only the base environment URL is used.</p>
-            </div>
-
-            <div>
-                <label for="avaDab" class="block text-sm font-medium text-gray-700 mb-1">AVA DAB Value (e.g., dab_lb)</label>
-                <input type="text" id="avaDab" value="dab_lb" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-            </div>
-
-            <div>
-                <label for="avaHeader" class="block text-sm font-medium text-gray-700 mb-1">AVA Header</label>
-                <select id="avaHeader" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                    <option value="mvmx">mvmx</option>
-                    <option value="mvmx-liveops">mvmx-liveops</option>
-                </select>
-            </div>
-        </div>
-
-        <button id="generateBtn" class="mt-8 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
-            Generate QR Code
-        </button>
-
-        <div class="mt-8 flex flex-col items-center">
-            <h2 class="text-lg font-semibold text-gray-700 mb-2">Scan QR Code:</h2>
-            <div id="qrcode" class="p-4 border border-gray-300 rounded-lg bg-white shadow-sm w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <div class="lg:w-1/2 space-y-6">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-700 mb-3">Base Configuration</h2>
+                    <div class="param-group">
+                        <div>
+                            <label for="environment" class="block text-sm font-medium text-gray-700 mb-1">Environment</label>
+                            <select id="environment" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="trunk">Trunk (backend.jarvistrunk.net)</option>
+                                <option value="qa3">QA3 (backend.liveops.jarvisqa.net)</option>
+                            </select>
+                        </div>
+                        <div class="mt-4">
+                            <label for="prNumber" class="block text-sm font-medium text-gray-700 mb-1">PR Number</label>
+                            <input type="text" id="prNumber" value="" placeholder="e.g., 1234 (optional)" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <p class="mt-1 text-xs text-gray-500">If provided, 'pr-' is prepended to form part of the backend_host. If blank, only the base environment URL is used for backend_host.</p>
+                        </div>
+                    </div>
                 </div>
-        </div>
 
-        <div class="mt-6">
-            <h2 class="text-lg font-semibold text-gray-700 mb-2">Generated Deep Link URL:</h2>
-            <p id="generatedUrl" class="text-sm text-gray-600 bg-gray-50 p-3 rounded-md border border-gray-200"></p>
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-700 mb-3">Additional Query Parameters ("Cheats")</h2>
+                    <div id="additionalParamsContainer" class="space-y-4">
+                        </div>
+                </div>
+                 <button id="generateBtn" class="mt-8 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
+                    Generate QR Code & URL
+                </button>
+            </div>
+
+            <div class="lg:w-1/2 lg:sticky lg:top-8 space-y-6">
+                 <div>
+                    <h2 class="text-xl font-semibold text-gray-700 mb-2 text-center">Scan QR Code</h2>
+                    <div id="qrcode" class="p-4 border border-gray-300 rounded-lg bg-white shadow-sm w-64 h-64 sm:w-72 sm:h-72 mx-auto flex items-center justify-center">
+                        </div>
+                </div>
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-700 mb-2">Generated Deep Link URL</h2>
+                    <p id="generatedUrl" class="text-sm text-gray-600 bg-gray-50 p-3 rounded-md border border-gray-200 min-h-[60px]"></p>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         // DOM Elements
         const environmentSelect = document.getElementById('environment');
-        const identifierInput = document.getElementById('identifier'); // Changed from prNumberInput
-        const avaDabInput = document.getElementById('avaDab');
-        const avaHeaderSelect = document.getElementById('avaHeader');
+        const prNumberInput = document.getElementById('prNumber'); // Renamed from identifierInput
+        const additionalParamsContainer = document.getElementById('additionalParamsContainer');
         const generateBtn = document.getElementById('generateBtn');
         const qrcodeDiv = document.getElementById('qrcode');
         const generatedUrlP = document.getElementById('generatedUrl');
 
-        let qrCodeInstance = null; // To hold the QRCode instance
+        let qrCodeInstance = null;
 
-        // Environment to backend domain mapping
         const environmentDomains = {
             trunk: "backend.jarvistrunk.net",
             qa3: "backend.liveops.jarvisqa.net"
         };
 
-        /**
-         * Generates the deep link URL and updates the QR code.
-         */
-        function generateAndDisplayQrCode() {
-            // Get values from input fields
-            const selectedEnvironment = environmentSelect.value;
-            const identifierValue = identifierInput.value.trim(); // Value from the identifier input
-            const avaDab = avaDabInput.value.trim();
-            const avaHeader = avaHeaderSelect.value;
+        const LS_BASE_KEY = 'qrGenAdv_';
+        const LS_KEYS = {
+            ENVIRONMENT: LS_BASE_KEY + 'environment',
+            PR_NUMBER: LS_BASE_KEY + 'prNumber',
+            ADDITIONAL_PARAMS: LS_BASE_KEY + 'additionalParams'
+        };
 
-            // Validate inputs
-            if (!avaDab) {
-                // Using a simple browser alert. Consider a more user-friendly notification for a real application.
-                alert("Please enter an AVA DAB value.");
-                return;
-            }
+        // Configuration for additional query parameters
+        const additionalParamsConfig = [
+            { id: 'ava_dab', name: 'Ava DAB', key: 'ava_dab', type: 'text', placeholder: 'AVA_DAB value or reset', example: '?ava_dab=MY_DAB', defaultValue: '3_63_0' },
+            { id: 'ava_header', name: 'Ava Header', key: 'ava_header', type: 'select', options: ['mvmx', 'mvmx-liveops'], example: '?ava_header=AVA_HEADER', defaultValue: 'mvmx' },
+            { id: 'user_deviceid', name: 'User DeviceID', key: 'user_deviceid', type: 'text', placeholder: 'UDID', example: '?user_deviceid=UDID', defaultValue: '' },
+            { id: 'user_adid', name: 'User AdvertisingID', key: 'user_adid', type: 'text', placeholder: 'ADID', example: '?user_adid=ADID', defaultValue: '' },
+            { id: 'env_profile', name: 'Server Environment Profile', key: 'env_profile', type: 'select', options: ['trunk', 'qa1', 'qa3', 'stage', 'prod', 'reset'], example: '?env_profile=qa3', defaultValue: 'qa3' },
+            { id: 'backend_pr', name: 'Backend PR (additional)', key: 'backend_pr', type: 'text', placeholder: 'e.g., 1024 or reset', example: '?backend_pr=1024', defaultValue: '' },
+            { id: 'iap_cheat', name: 'IAP Cheat (no AppStore)', key: 'iap_cheat', type: 'select', options: ['true', 'false'], example: '?iap_cheat=true', defaultValue: 'false' },
+            { id: 'reset_device', name: 'Reset Device', key: 'reset', type: 'text', placeholder: 'device', example: '?reset=device', defaultValue: '' },
+            { id: 'nlog_level', name: 'NLog Console Log Level', key: 'nlog_level', type: 'select', options: ['debug', 'info', 'warn', 'error', 'fatal', 'off'], example: '?nlog_level=debug', defaultValue: 'info' },
+            { id: 'auto_cheat', name: 'Auto Cheat', key: 'auto_cheat', type: 'text', placeholder: 'Cheat ID (e.g. SuperPlayer)', example: '?auto_cheat=SuperPlayer', defaultValue: '' }
+        ];
 
-            // Construct the backend_host parameter
-            let backendHost;
-            const baseDomain = environmentDomains[selectedEnvironment];
+        function renderAdditionalParams() {
+            additionalParamsContainer.innerHTML = ''; // Clear existing params
+            const savedParamsState = JSON.parse(localStorage.getItem(LS_KEYS.ADDITIONAL_PARAMS) || '{}');
 
-            if (identifierValue) { // If an identifier (e.g., PR number part) is provided
-                backendHost = `pr-${identifierValue}.${baseDomain}`;
-            } else { // If the identifier field is blank
-                backendHost = baseDomain;
-            }
+            additionalParamsConfig.forEach(param => {
+                const paramState = savedParamsState[param.id] || { enabled: (param.id === 'ava_dab' || param.id === 'ava_header'), value: param.defaultValue }; // AvaDab and AvaHeader enabled by default
 
-            // Construct the full deep link URL
-            const deepLinkUrl = `myvegas-slots://slots/action?backend_host=${encodeURIComponent(backendHost)}&ava_dab=${encodeURIComponent(avaDab)}&ava_header=${encodeURIComponent(avaHeader)}`;
+                const wrapper = document.createElement('div');
+                wrapper.className = 'param-group';
 
-            // Display the generated URL
-            generatedUrlP.textContent = deepLinkUrl;
+                let inputHtml = '';
+                if (param.type === 'text') {
+                    inputHtml = `<input type="text" id="${param.id}_value" value="${paramState.value}" placeholder="${param.placeholder || ''}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" ${!paramState.enabled ? 'disabled' : ''}>`;
+                } else if (param.type === 'select') {
+                    const optionsHtml = param.options.map(opt => `<option value="${opt}" ${opt === paramState.value ? 'selected' : ''}>${opt}</option>`).join('');
+                    inputHtml = `<select id="${param.id}_value" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" ${!paramState.enabled ? 'disabled' : ''}>${optionsHtml}</select>`;
+                }
 
-            // Clear previous QR code
-            qrcodeDiv.innerHTML = '';
+                wrapper.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <label for="${param.id}_enable" class="block text-sm font-medium text-gray-900">${param.name}</label>
+                        <input type="checkbox" id="${param.id}_enable" ${paramState.enabled ? 'checked' : ''} class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                    </div>
+                    ${inputHtml}
+                    ${param.example ? `<p class="mt-1 text-xs text-gray-500">${param.example}</p>` : ''}
+                `;
+                additionalParamsContainer.appendChild(wrapper);
 
-            // Generate new QR code
-            qrCodeInstance = new QRCode(qrcodeDiv, {
-                text: deepLinkUrl,
-                width: 256,  // Desired width of the QR code image
-                height: 256, // Desired height of the QR code image
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H // High error correction level
+                // Add event listener for enabling/disabling and value changes
+                document.getElementById(`${param.id}_enable`).addEventListener('change', (e) => {
+                    document.getElementById(`${param.id}_value`).disabled = !e.target.checked;
+                    generateAndDisplayQrCode();
+                });
+                document.getElementById(`${param.id}_value`).addEventListener('input', generateAndDisplayQrCode);
+                 if(param.type === 'select') {
+                    document.getElementById(`${param.id}_value`).addEventListener('change', generateAndDisplayQrCode);
+                }
             });
         }
 
-        // Event Listener for the Generate Button
-        generateBtn.addEventListener('click', generateAndDisplayQrCode);
+        function saveInputsToLocalStorage() {
+            localStorage.setItem(LS_KEYS.ENVIRONMENT, environmentSelect.value);
+            localStorage.setItem(LS_KEYS.PR_NUMBER, prNumberInput.value);
 
-        // Regenerate QR when any relevant input changes (for immediate feedback)
-        identifierInput.addEventListener('input', generateAndDisplayQrCode);
-        avaDabInput.addEventListener('input', generateAndDisplayQrCode);
-        avaHeaderSelect.addEventListener('change', generateAndDisplayQrCode);
-        environmentSelect.addEventListener('change', generateAndDisplayQrCode);
+            const additionalParamsState = {};
+            additionalParamsConfig.forEach(param => {
+                additionalParamsState[param.id] = {
+                    enabled: document.getElementById(`${param.id}_enable`).checked,
+                    value: document.getElementById(`${param.id}_value`).value
+                };
+            });
+            localStorage.setItem(LS_KEYS.ADDITIONAL_PARAMS, JSON.stringify(additionalParamsState));
+        }
 
+        function loadInputsFromLocalStorage() {
+            environmentSelect.value = localStorage.getItem(LS_KEYS.ENVIRONMENT) || 'trunk';
+            prNumberInput.value = localStorage.getItem(LS_KEYS.PR_NUMBER) || '';
+            // Additional params are loaded during their rendering phase
+        }
 
-        // Initial QR code generation on page load with default values
-        window.addEventListener('load', () => {
-            // Update labels and hints to be consistent with the new logic
-            const identifierLabel = document.querySelector('label[for="identifier"]');
-            const identifierHint = identifierInput.nextElementSibling; // The <p> tag after input
-
-            identifierLabel.textContent = "Identifier (e.g., 3299)";
-            identifierInput.placeholder = "e.g., 1234"; // Placeholder for the input field
-            identifierHint.textContent = "Enter identifier (like a PR number). If provided, 'pr-' is prepended. If blank, only the base environment URL is used.";
+        function generateAndDisplayQrCode() {
+            const selectedEnvironment = environmentSelect.value;
+            const prNumber = prNumberInput.value.trim();
             
-            generateAndDisplayQrCode();
+            let backendHost;
+            const baseDomain = environmentDomains[selectedEnvironment];
+            if (prNumber) {
+                backendHost = `pr-${prNumber}.${baseDomain}`;
+            } else {
+                backendHost = baseDomain;
+            }
+
+            let queryParams = [`backend_host=${encodeURIComponent(backendHost)}`];
+
+            additionalParamsConfig.forEach(param => {
+                const enableCheckbox = document.getElementById(`${param.id}_enable`);
+                const valueInput = document.getElementById(`${param.id}_value`);
+                if (enableCheckbox && valueInput && enableCheckbox.checked) {
+                    const value = valueInput.value.trim();
+                    if (value !== '' || param.key === 'ava_dab' || param.key === 'ava_header') { // Allow empty for some if needed, but generally require value
+                        queryParams.push(`${encodeURIComponent(param.key)}=${encodeURIComponent(value)}`);
+                    }
+                }
+            });
+            
+            const deepLinkUrl = `myvegas-slots://slots/action?${queryParams.join('&')}`;
+            generatedUrlP.textContent = deepLinkUrl;
+            qrcodeDiv.innerHTML = '';
+
+            try {
+                qrCodeInstance = new QRCode(qrcodeDiv, {
+                    text: deepLinkUrl,
+                    width: qrcodeDiv.offsetWidth - 10 > 200 ? qrcodeDiv.offsetWidth -10 : 256, // Adjust to fit container
+                    height: qrcodeDiv.offsetHeight - 10 > 200 ? qrcodeDiv.offsetHeight -10 : 256, // Adjust to fit container
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+                saveInputsToLocalStorage();
+            } catch (e) {
+                console.error("QR Code generation error:", e);
+                qrcodeDiv.innerHTML = 'Error generating QR code.';
+            }
+        }
+
+        // Event Listeners
+        generateBtn.addEventListener('click', generateAndDisplayQrCode);
+        environmentSelect.addEventListener('change', generateAndDisplayQrCode);
+        prNumberInput.addEventListener('input', generateAndDisplayQrCode);
+
+        // Initial setup
+        window.addEventListener('load', () => {
+            loadInputsFromLocalStorage(); // Load base config
+            renderAdditionalParams();     // Render dynamic params (which also loads their specific LS state)
+            generateAndDisplayQrCode();   // Generate QR with loaded/default values
+
+            // Ensure QR code resizes if window resizes (simple version)
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(generateAndDisplayQrCode, 250);
+            });
         });
     </script>
-
 </body>
 </html>
