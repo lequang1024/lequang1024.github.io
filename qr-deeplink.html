@@ -72,7 +72,9 @@
 <body class="min-h-screen p-4 lg:p-8">
 
     <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-6xl mx-auto">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Advanced Deep Link QR Code Generator</h1>
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-center text-gray-800 flex-grow">Advanced Deep Link QR Code Generator</h1>
+            </div>
 
         <div class="flex flex-col lg:flex-row gap-8">
             <div class="lg:w-1/2 space-y-6">
@@ -100,14 +102,6 @@
                     <div id="additionalParamsContainer" class="space-y-4">
                         </div>
                 </div>
-                <div class="flex space-x-4 mt-8">
-                     <button id="generateBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
-                        Generate QR Code & URL
-                    </button>
-                    <button id="resetBtn" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
-                        Reset to Defaults
-                    </button>
-                </div>
             </div>
 
             <div class="lg:w-1/2 lg:sticky lg:top-8 space-y-6">
@@ -120,6 +114,11 @@
                     <h2 class="text-xl font-semibold text-gray-700 mb-2">Generated Deep Link URL</h2>
                     <p id="generatedUrl" class="text-sm text-gray-600 bg-gray-50 p-3 rounded-md border border-gray-200 min-h-[60px]"></p>
                 </div>
+                <div class="mt-4 flex justify-center">
+                    <button id="resetBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 text-sm rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
+                        Reset All Settings
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -129,7 +128,6 @@
         const environmentSelect = document.getElementById('environment');
         const prNumberInput = document.getElementById('prNumber');
         const additionalParamsContainer = document.getElementById('additionalParamsContainer');
-        const generateBtn = document.getElementById('generateBtn');
         const resetBtn = document.getElementById('resetBtn');
         const qrcodeDiv = document.getElementById('qrcode');
         const generatedUrlP = document.getElementById('generatedUrl');
@@ -263,7 +261,7 @@
                 }
             });
             generatedUrlP.classList.remove('error-message');
-            generatedUrlP.innerHTML = ''; // Clear previous content (text or link)
+            generatedUrlP.innerHTML = ''; 
 
             const prNumberValue = prNumberInput.value; 
             if (environmentSelect.value !== "trunkliveops" && prNumberValue.indexOf(' ') !== -1) { 
@@ -337,12 +335,11 @@
             
             const deepLinkUrl = `myvegas-slots://slots/action?${queryParams.join('&')}`;
             
-            // Make the URL clickable
-            generatedUrlP.innerHTML = ''; // Clear previous content
+            generatedUrlP.innerHTML = ''; 
             const linkElement = document.createElement('a');
             linkElement.href = deepLinkUrl;
             linkElement.textContent = deepLinkUrl;
-            linkElement.target = "_blank"; // Optional: open in new tab if it were a web URL
+            linkElement.target = "_blank"; 
             generatedUrlP.appendChild(linkElement);
             generatedUrlP.classList.remove('error-message'); 
             
@@ -372,7 +369,7 @@
             } catch (e) {
                 console.error("QR Code generation error:", e);
                 qrcodeDiv.innerHTML = '<p class="error-message text-center">Error generating QR code.</p>';
-                generatedUrlP.innerHTML = ''; // Clear link on error
+                generatedUrlP.innerHTML = ''; 
                 const errorText = document.createTextNode('Error details in console.');
                 generatedUrlP.appendChild(errorText);
                 generatedUrlP.classList.add('error-message');
@@ -390,7 +387,7 @@
             generateAndDisplayQrCode(); 
         });
 
-        generateBtn.addEventListener('click', generateAndDisplayQrCode);
+        // generateBtn event listener removed
         resetBtn.addEventListener('click', () => {
             resetBtn.dataset.isResetting = true; 
             resetToDefaultSettings(); 
