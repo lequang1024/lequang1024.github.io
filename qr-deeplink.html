@@ -74,7 +74,7 @@
     <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-6xl mx-auto">
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-bold text-center text-gray-800 flex-grow">Advanced Deep Link QR Code Generator</h1>
-            </div>
+        </div>
 
         <div class="flex flex-col lg:flex-row gap-8">
             <div class="lg:w-1/2 space-y-6">
@@ -114,8 +114,11 @@
                     <h2 class="text-xl font-semibold text-gray-700 mb-2">Generated Deep Link URL</h2>
                     <p id="generatedUrl" class="text-sm text-gray-600 bg-gray-50 p-3 rounded-md border border-gray-200 min-h-[60px]"></p>
                 </div>
-                <div class="mt-4 flex justify-center">
-                    <button id="resetBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 text-sm rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
+                <div class="mt-6 flex flex-col sm:flex-row justify-center items-center gap-4">
+                    <button id="startMyVegasBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 text-sm rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out w-full sm:w-auto">
+                        Start MyVegas
+                    </button>
+                    <button id="resetBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 text-sm rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition duration-150 ease-in-out w-full sm:w-auto">
                         Reset All Settings
                     </button>
                 </div>
@@ -129,10 +132,12 @@
         const prNumberInput = document.getElementById('prNumber');
         const additionalParamsContainer = document.getElementById('additionalParamsContainer');
         const resetBtn = document.getElementById('resetBtn');
+        const startMyVegasBtn = document.getElementById('startMyVegasBtn'); // New button
         const qrcodeDiv = document.getElementById('qrcode');
         const generatedUrlP = document.getElementById('generatedUrl');
 
         let qrCodeInstance = null;
+        let currentDeepLinkUrl = ''; // Variable to store the current deep link
 
         const environmentDomains = {
             trunk: "backend.jarvistrunk.net",
@@ -155,7 +160,7 @@
         const additionalParamsConfig = [
             { id: 'ava_dab', name: 'Ava DAB', key: 'ava_dab', type: 'text', placeholder: 'AVA_DAB value or reset', example: '?ava_dab=MY_DAB', defaultValue: '3_63_0' },
             { id: 'ava_header', name: 'Ava Header', key: 'ava_header', type: 'select', options: ['mvmx', 'mvmx-liveops'], example: '?ava_header=AVA_HEADER', defaultValue: 'mvmx' },
-            { id: 'auto_cheat', name: 'Auto Cheat', key: 'auto_cheat', type: 'text', placeholder: 'Cheat ID (e.g. SuperPlayer)', example: '?auto_cheat=SuperPlayer', defaultValue: '' },
+            { id: 'auto_cheat', name: 'Auto Cheat', key: 'auto_cheat', type: 'text', placeholder: 'Cheat ID (e.g. SuperPlayer)', example: '?auto_cheat=SuperPlayer', defaultValue: '' }, // Reverted placeholder
             { id: 'reset_device', name: 'Reset Device', key: 'reset', type: 'checkbox_only', example: '?reset=device', fixedValue: 'device', defaultValue: false },
             { id: 'user_deviceid', name: 'User DeviceID', key: 'user_deviceid', type: 'text', placeholder: 'UDID', example: '?user_deviceid=UDID', defaultValue: '' },
             { id: 'user_adid', name: 'User AdvertisingID', key: 'user_adid', type: 'text', placeholder: 'ADID', example: '?user_adid=ADID', defaultValue: '' },
@@ -293,6 +298,7 @@
 
         function generateAndDisplayQrCode() {
             if (!validateInputs()) {
+                currentDeepLinkUrl = ''; // Clear stored URL on validation error
                 return; 
             }
 
@@ -333,12 +339,12 @@
                 }
             });
             
-            const deepLinkUrl = `myvegas-slots://slots/action?${queryParams.join('&')}`;
+            currentDeepLinkUrl = `myvegas-slots://slots/action?${queryParams.join('&')}`; // Store the generated URL
             
             generatedUrlP.innerHTML = ''; 
             const linkElement = document.createElement('a');
-            linkElement.href = deepLinkUrl;
-            linkElement.textContent = deepLinkUrl;
+            linkElement.href = currentDeepLinkUrl;
+            linkElement.textContent = currentDeepLinkUrl;
             linkElement.target = "_blank"; 
             generatedUrlP.appendChild(linkElement);
             generatedUrlP.classList.remove('error-message'); 
@@ -347,7 +353,7 @@
 
             try {
                 qrCodeInstance = new QRCode(qrcodeDiv, {
-                    text: deepLinkUrl,
+                    text: currentDeepLinkUrl,
                     width: qrcodeDiv.offsetWidth > 20 ? qrcodeDiv.offsetWidth - 10 : 256, 
                     height: qrcodeDiv.offsetHeight > 20 ? qrcodeDiv.offsetHeight - 10 : 256,
                     colorDark: "#000000",
@@ -373,6 +379,7 @@
                 const errorText = document.createTextNode('Error details in console.');
                 generatedUrlP.appendChild(errorText);
                 generatedUrlP.classList.add('error-message');
+                currentDeepLinkUrl = ''; // Clear stored URL on generation error
             }
         }
         
@@ -387,7 +394,15 @@
             generateAndDisplayQrCode(); 
         });
 
-        // generateBtn event listener removed
+        startMyVegasBtn.addEventListener('click', () => {
+            if (currentDeepLinkUrl) {
+                window.location.href = currentDeepLinkUrl;
+            } else {
+                // Optionally, provide feedback if no URL is generated yet or if there was an error
+                alert("Please generate a valid QR code and URL first.");
+            }
+        });
+
         resetBtn.addEventListener('click', () => {
             resetBtn.dataset.isResetting = true; 
             resetToDefaultSettings(); 
