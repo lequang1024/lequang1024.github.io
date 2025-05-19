@@ -65,6 +65,9 @@
             font-size: 0.875rem; /* Tailwind text-sm */
             font-weight: bold;
         }
+        .hidden-field {
+            display: none;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
@@ -87,12 +90,18 @@
                                 <option value="trunk">Trunk (backend.jarvistrunk.net)</option>
                                 <option value="trunkliveops">Trunk Liveops (don't use PR) (backend-liveops.jarvistrunk.net)</option>
                                 <option value="qa3">QA3 (backend.liveops.jarvisqa.net)</option>
+                                <option value="custom">Custom Backend URL</option> 
                             </select>
                         </div>
-                        <div class="mt-4">
+                        <div id="prNumberGroup" class="mt-4">
                             <label for="prNumber" class="block text-sm font-medium text-gray-700 mb-1">PR Number</label>
                             <input type="text" id="prNumber" value="" placeholder="e.g., 1234 (optional)" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            <p class="mt-1 text-xs text-gray-500">If provided, 'pr-' is prepended to form part of the backend_host. If blank, only the base environment URL is used for backend_host. Not used for Trunk Liveops.</p>
+                            <p class="mt-1 text-xs text-gray-500">If provided, 'pr-' is prepended to form part of the backend_host. If blank, only the base environment URL is used for backend_host. Not used for Trunk Liveops or Custom URL.</p>
+                        </div>
+                        <div id="customBackendUrlGroup" class="mt-4 hidden-field">
+                            <label for="customBackendUrl" class="block text-sm font-medium text-gray-700 mb-1">Custom Backend URL</label>
+                            <input type="text" id="customBackendUrl" value="" placeholder="e.g., my-custom-backend.example.com" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <p class="mt-1 text-xs text-gray-500">Enter the full custom backend host (e.g., my-server.com or 192.168.1.100:8080).</p>
                         </div>
                     </div>
                 </div>
@@ -130,37 +139,43 @@
         // DOM Elements
         const environmentSelect = document.getElementById('environment');
         const prNumberInput = document.getElementById('prNumber');
+        const prNumberGroup = document.getElementById('prNumberGroup');
+        const customBackendUrlInput = document.getElementById('customBackendUrl');
+        const customBackendUrlGroup = document.getElementById('customBackendUrlGroup');
         const additionalParamsContainer = document.getElementById('additionalParamsContainer');
         const resetBtn = document.getElementById('resetBtn');
-        const startMyVegasBtn = document.getElementById('startMyVegasBtn'); // New button
+        const startMyVegasBtn = document.getElementById('startMyVegasBtn'); 
         const qrcodeDiv = document.getElementById('qrcode');
         const generatedUrlP = document.getElementById('generatedUrl');
 
         let qrCodeInstance = null;
-        let currentDeepLinkUrl = ''; // Variable to store the current deep link
+        let currentDeepLinkUrl = ''; 
 
         const environmentDomains = {
             trunk: "backend.jarvistrunk.net",
             trunkliveops: "backend-liveops.jarvistrunk.net", 
             qa3: "backend.liveops.jarvisqa.net"
+            // "custom" will take URL from input, "local" removed
         };
 
         const LS_BASE_KEY = 'qrGenAdv_'; 
         const LS_KEYS = {
             ENVIRONMENT: LS_BASE_KEY + 'environment',
             PR_NUMBER: LS_BASE_KEY + 'prNumber',
+            CUSTOM_BACKEND_URL: LS_BASE_KEY + 'customBackendUrl', // New key for custom URL
             ADDITIONAL_PARAMS: LS_BASE_KEY + 'additionalParams'
         };
 
         const DEFAULTS = {
             ENVIRONMENT: 'trunk',
             PR_NUMBER: '',
+            CUSTOM_BACKEND_URL: '' // Default for custom URL
         };
 
         const additionalParamsConfig = [
             { id: 'ava_dab', name: 'Ava DAB', key: 'ava_dab', type: 'text', placeholder: 'AVA_DAB value or reset', example: '?ava_dab=MY_DAB', defaultValue: '3_63_0' },
             { id: 'ava_header', name: 'Ava Header', key: 'ava_header', type: 'select', options: ['mvmx', 'mvmx-liveops'], example: '?ava_header=AVA_HEADER', defaultValue: 'mvmx' },
-            { id: 'auto_cheat', name: 'Auto Cheat', key: 'auto_cheat', type: 'text', placeholder: 'Cheat ID (e.g. SuperPlayer)', example: '?auto_cheat=SuperPlayer', defaultValue: '' }, // Reverted placeholder
+            { id: 'auto_cheat', name: 'Auto Cheat', key: 'auto_cheat', type: 'text', placeholder: 'Cheat ID (e.g. SuperPlayer)', example: '?auto_cheat=SuperPlayer', defaultValue: '' },
             { id: 'reset_device', name: 'Reset Device', key: 'reset', type: 'checkbox_only', example: '?reset=device', fixedValue: 'device', defaultValue: false },
             { id: 'user_deviceid', name: 'User DeviceID', key: 'user_deviceid', type: 'text', placeholder: 'UDID', example: '?user_deviceid=UDID', defaultValue: '' },
             { id: 'user_adid', name: 'User AdvertisingID', key: 'user_adid', type: 'text', placeholder: 'ADID', example: '?user_adid=ADID', defaultValue: '' },
@@ -228,6 +243,7 @@
         function saveInputsToLocalStorage() {
             localStorage.setItem(LS_KEYS.ENVIRONMENT, environmentSelect.value);
             localStorage.setItem(LS_KEYS.PR_NUMBER, prNumberInput.value);
+            localStorage.setItem(LS_KEYS.CUSTOM_BACKEND_URL, customBackendUrlInput.value); // Save custom URL
 
             const additionalParamsState = {};
             additionalParamsConfig.forEach(param => {
@@ -243,22 +259,52 @@
         function loadInputsFromLocalStorage() {
             environmentSelect.value = localStorage.getItem(LS_KEYS.ENVIRONMENT) || DEFAULTS.ENVIRONMENT;
             prNumberInput.value = localStorage.getItem(LS_KEYS.PR_NUMBER) || DEFAULTS.PR_NUMBER;
+            customBackendUrlInput.value = localStorage.getItem(LS_KEYS.CUSTOM_BACKEND_URL) || DEFAULTS.CUSTOM_BACKEND_URL; // Load custom URL
         }
+        
+        function updateInputVisibility(selectedEnv) {
+            if (selectedEnv === "custom") {
+                prNumberGroup.classList.add('hidden-field');
+                prNumberInput.disabled = true;
+                prNumberInput.value = ''; // Clear PR number
+                customBackendUrlGroup.classList.remove('hidden-field');
+                customBackendUrlInput.disabled = false;
+            } else if (selectedEnv === "trunkliveops") {
+                prNumberGroup.classList.remove('hidden-field'); // Show PR group but disable input
+                prNumberInput.disabled = true;
+                prNumberInput.value = ''; // Clear PR number
+                customBackendUrlGroup.classList.add('hidden-field');
+                customBackendUrlInput.disabled = true;
+            } else { // Trunk, QA3, etc.
+                prNumberGroup.classList.remove('hidden-field');
+                prNumberInput.disabled = false;
+                customBackendUrlGroup.classList.add('hidden-field');
+                customBackendUrlInput.disabled = true;
+            }
+        }
+
 
         function resetToDefaultSettings() {
             localStorage.removeItem(LS_KEYS.ENVIRONMENT);
             localStorage.removeItem(LS_KEYS.PR_NUMBER);
+            localStorage.removeItem(LS_KEYS.CUSTOM_BACKEND_URL); // Clear custom URL from LS
             localStorage.removeItem(LS_KEYS.ADDITIONAL_PARAMS);
 
             environmentSelect.value = DEFAULTS.ENVIRONMENT;
             prNumberInput.value = DEFAULTS.PR_NUMBER;
+            customBackendUrlInput.value = DEFAULTS.CUSTOM_BACKEND_URL; // Reset custom URL input
+
             prNumberInput.classList.remove('input-error'); 
+            customBackendUrlInput.classList.remove('input-error');
+            
+            updateInputVisibility(DEFAULTS.ENVIRONMENT); // Update visibility based on default env
             renderAdditionalParams(); 
             generateAndDisplayQrCode();
         }
 
         function validateInputs() {
             prNumberInput.classList.remove('input-error');
+            customBackendUrlInput.classList.remove('input-error');
             additionalParamsConfig.forEach(param => {
                 if (param.type === 'text') {
                     const inputElement = document.getElementById(`${param.id}_value`);
@@ -269,7 +315,25 @@
             generatedUrlP.innerHTML = ''; 
 
             const prNumberValue = prNumberInput.value; 
-            if (environmentSelect.value !== "trunkliveops" && prNumberValue.indexOf(' ') !== -1) { 
+            const selectedEnv = environmentSelect.value;
+
+            if (selectedEnv === "custom") {
+                const customUrl = customBackendUrlInput.value.trim();
+                if (!customUrl) {
+                    generatedUrlP.textContent = "Error: Custom Backend URL cannot be empty.";
+                    generatedUrlP.classList.add('error-message');
+                    customBackendUrlInput.classList.add('input-error');
+                    qrcodeDiv.innerHTML = ''; 
+                    return false;
+                }
+                if (customUrl.indexOf(' ') !== -1) {
+                    generatedUrlP.textContent = "Error: Custom Backend URL cannot contain spaces.";
+                    generatedUrlP.classList.add('error-message');
+                    customBackendUrlInput.classList.add('input-error');
+                    qrcodeDiv.innerHTML = ''; 
+                    return false;
+                }
+            } else if (selectedEnv !== "trunkliveops" && prNumberValue.indexOf(' ') !== -1) { 
                 generatedUrlP.textContent = "Error: PR Number cannot contain spaces.";
                 generatedUrlP.classList.add('error-message');
                 prNumberInput.classList.add('input-error');
@@ -298,7 +362,7 @@
 
         function generateAndDisplayQrCode() {
             if (!validateInputs()) {
-                currentDeepLinkUrl = ''; // Clear stored URL on validation error
+                currentDeepLinkUrl = ''; 
                 return; 
             }
 
@@ -306,21 +370,26 @@
             const prNumberRaw = prNumberInput.value; 
             
             let backendHost;
-            const baseDomain = environmentDomains[selectedEnvironment];
 
-            if (selectedEnvironment === "trunkliveops") {
-                backendHost = baseDomain;
-                prNumberInput.disabled = true; 
-            } else {
-                prNumberInput.disabled = false; 
+            if (selectedEnvironment === "custom") {
+                backendHost = customBackendUrlInput.value.trim();
+            } else if (selectedEnvironment === "trunkliveops") {
+                backendHost = environmentDomains[selectedEnvironment];
+            } else { // Trunk, QA3
+                const baseDomain = environmentDomains[selectedEnvironment];
                 if (prNumberRaw.trim()) {
                     backendHost = `pr-${prNumberRaw.trim()}.${baseDomain}`;
                 } else {
                     backendHost = baseDomain;
                 }
             }
+            
+            let backendHostQueryParam = `backend_host=${encodeURIComponent(backendHost)}`;
+            // No special handling for colon in custom URL, encodeURIComponent is generally safer for parameters.
+            // If the custom URL is an absolute URL like http://localhost:5001, it will be encoded.
+            // For backend_host, typically only hostname:port is expected.
 
-            let queryParams = [`backend_host=${encodeURIComponent(backendHost)}`];
+            let queryParams = [backendHostQueryParam];
 
             additionalParamsConfig.forEach(param => {
                 const enableCheckbox = document.getElementById(`${param.id}_enable`);
@@ -339,7 +408,7 @@
                 }
             });
             
-            currentDeepLinkUrl = `myvegas-slots://slots/action?${queryParams.join('&')}`; // Store the generated URL
+            currentDeepLinkUrl = `myvegas-slots://slots/action?${queryParams.join('&')}`; 
             
             generatedUrlP.innerHTML = ''; 
             const linkElement = document.createElement('a');
@@ -379,18 +448,13 @@
                 const errorText = document.createTextNode('Error details in console.');
                 generatedUrlP.appendChild(errorText);
                 generatedUrlP.classList.add('error-message');
-                currentDeepLinkUrl = ''; // Clear stored URL on generation error
+                currentDeepLinkUrl = ''; 
             }
         }
         
         environmentSelect.addEventListener('change', () => {
-            if (environmentSelect.value === "trunkliveops") {
-                prNumberInput.value = ''; 
-                prNumberInput.disabled = true;
-                prNumberInput.classList.remove('input-error'); 
-            } else {
-                prNumberInput.disabled = false;
-            }
+            const selectedEnv = environmentSelect.value;
+            updateInputVisibility(selectedEnv);
             generateAndDisplayQrCode(); 
         });
 
@@ -398,29 +462,24 @@
             if (currentDeepLinkUrl) {
                 window.location.href = currentDeepLinkUrl;
             } else {
-                // Optionally, provide feedback if no URL is generated yet or if there was an error
-                alert("Please generate a valid QR code and URL first.");
+                alert("Please generate a valid QR code and URL first, or check for errors.");
             }
         });
 
         resetBtn.addEventListener('click', () => {
             resetBtn.dataset.isResetting = true; 
             resetToDefaultSettings(); 
-            if (environmentSelect.value === "trunkliveops") { 
-                 prNumberInput.disabled = true;
-            } else {
-                 prNumberInput.disabled = false;
-            }
+            // Visibility is handled by resetToDefaultSettings calling updateInputVisibility
             delete resetBtn.dataset.isResetting; 
         });
         prNumberInput.addEventListener('input', generateAndDisplayQrCode); 
+        customBackendUrlInput.addEventListener('input', generateAndDisplayQrCode);
+
 
         window.addEventListener('load', () => {
             loadInputsFromLocalStorage(); 
             renderAdditionalParams(); 
-            if (environmentSelect.value === "trunkliveops") {
-                prNumberInput.disabled = true;
-            }
+            updateInputVisibility(environmentSelect.value); // Initial visibility setup
             generateAndDisplayQrCode();   
 
             let resizeTimeout;
