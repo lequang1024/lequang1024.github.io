@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL3LWXVBHR"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -26,6 +25,13 @@
         }
         #generatedUrl {
             word-break: break-all;
+        }
+        #generatedUrl a { /* Style for the clickable link */
+            color: #4f46e5; /* Tailwind indigo-600 */
+            text-decoration: underline;
+        }
+        #generatedUrl a:hover {
+            color: #3730a3; /* Tailwind indigo-800 */
         }
         .param-group {
             border: 1px solid #e5e7eb; /* Tailwind border-gray-200 */
@@ -257,7 +263,7 @@
                 }
             });
             generatedUrlP.classList.remove('error-message');
-            generatedUrlP.textContent = ''; 
+            generatedUrlP.innerHTML = ''; // Clear previous content (text or link)
 
             const prNumberValue = prNumberInput.value; 
             if (environmentSelect.value !== "trunkliveops" && prNumberValue.indexOf(' ') !== -1) { 
@@ -330,8 +336,16 @@
             });
             
             const deepLinkUrl = `myvegas-slots://slots/action?${queryParams.join('&')}`;
-            generatedUrlP.textContent = deepLinkUrl; 
+            
+            // Make the URL clickable
+            generatedUrlP.innerHTML = ''; // Clear previous content
+            const linkElement = document.createElement('a');
+            linkElement.href = deepLinkUrl;
+            linkElement.textContent = deepLinkUrl;
+            linkElement.target = "_blank"; // Optional: open in new tab if it were a web URL
+            generatedUrlP.appendChild(linkElement);
             generatedUrlP.classList.remove('error-message'); 
+            
             qrcodeDiv.innerHTML = '';
 
             try {
@@ -358,7 +372,9 @@
             } catch (e) {
                 console.error("QR Code generation error:", e);
                 qrcodeDiv.innerHTML = '<p class="error-message text-center">Error generating QR code.</p>';
-                generatedUrlP.textContent = 'Error details in console.'; 
+                generatedUrlP.innerHTML = ''; // Clear link on error
+                const errorText = document.createTextNode('Error details in console.');
+                generatedUrlP.appendChild(errorText);
                 generatedUrlP.classList.add('error-message');
             }
         }
