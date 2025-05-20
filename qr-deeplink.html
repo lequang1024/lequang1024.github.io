@@ -68,6 +68,16 @@
         .hidden-field {
             display: none;
         }
+        #aliveStatus {
+            font-size: 0.875rem; /* text-sm */
+            margin-top: 0.5rem; /* mt-2 */
+            text-align: left;
+            padding-left: 0.25rem; /* pl-1 for slight indent within param-group */
+        }
+        .status-checking { color: #6b7280; /* gray-500 */ }
+        .status-alive { color: #10b981; /* green-500 */ }
+        .status-not-alive { color: #ef4444; /* red-500 */ }
+        /* .status-failed class removed as it's covered by status-not-alive with no-cors */
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
@@ -103,7 +113,7 @@
                             <input type="text" id="customBackendUrl" value="" placeholder="e.g., my-custom-backend.example.com" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                             <p class="mt-1 text-xs text-gray-500">Enter the full custom backend host (e.g., my-server.com or 192.168.1.100:8080).</p>
                         </div>
-                    </div>
+                        <div id="aliveStatus" class="mt-2 text-sm"></div> </div>
                 </div>
 
                 <div>
@@ -147,29 +157,30 @@
         const startMyVegasBtn = document.getElementById('startMyVegasBtn'); 
         const qrcodeDiv = document.getElementById('qrcode');
         const generatedUrlP = document.getElementById('generatedUrl');
+        const aliveStatusDiv = document.getElementById('aliveStatus'); 
 
         let qrCodeInstance = null;
         let currentDeepLinkUrl = ''; 
+        let aliveCheckTimeout = null; 
 
         const environmentDomains = {
             trunk: "backend.jarvistrunk.net",
             trunkliveops: "backend-liveops.jarvistrunk.net", 
             qa3: "backend.liveops.jarvisqa.net"
-            // "custom" will take URL from input, "local" removed
         };
 
         const LS_BASE_KEY = 'qrGenAdv_'; 
         const LS_KEYS = {
             ENVIRONMENT: LS_BASE_KEY + 'environment',
             PR_NUMBER: LS_BASE_KEY + 'prNumber',
-            CUSTOM_BACKEND_URL: LS_BASE_KEY + 'customBackendUrl', // New key for custom URL
+            CUSTOM_BACKEND_URL: LS_BASE_KEY + 'customBackendUrl',
             ADDITIONAL_PARAMS: LS_BASE_KEY + 'additionalParams'
         };
 
         const DEFAULTS = {
             ENVIRONMENT: 'trunk',
             PR_NUMBER: '',
-            CUSTOM_BACKEND_URL: '' // Default for custom URL
+            CUSTOM_BACKEND_URL: ''
         };
 
         const additionalParamsConfig = [
@@ -227,14 +238,20 @@
                     if (param.type !== 'checkbox_only') {
                         document.getElementById(`${param.id}_value`).disabled = !e.target.checked;
                     }
-                    generateAndDisplayQrCode();
+                    generateAndDisplayQrCode(); 
                 });
 
                 if (param.type !== 'checkbox_only') {
                     const valueElement = document.getElementById(`${param.id}_value`);
-                    valueElement.addEventListener('input', generateAndDisplayQrCode); 
+                    valueElement.addEventListener('input', () => { 
+                        generateAndDisplayQrCode();
+                        scheduleAliveCheck();
+                    }); 
                     if(param.type === 'select') { 
-                        valueElement.addEventListener('change', generateAndDisplayQrCode);
+                        valueElement.addEventListener('change', () => { 
+                           generateAndDisplayQrCode();
+                           scheduleAliveCheck(); 
+                        });
                     }
                 }
             });
@@ -243,7 +260,7 @@
         function saveInputsToLocalStorage() {
             localStorage.setItem(LS_KEYS.ENVIRONMENT, environmentSelect.value);
             localStorage.setItem(LS_KEYS.PR_NUMBER, prNumberInput.value);
-            localStorage.setItem(LS_KEYS.CUSTOM_BACKEND_URL, customBackendUrlInput.value); // Save custom URL
+            localStorage.setItem(LS_KEYS.CUSTOM_BACKEND_URL, customBackendUrlInput.value);
 
             const additionalParamsState = {};
             additionalParamsConfig.forEach(param => {
@@ -259,23 +276,23 @@
         function loadInputsFromLocalStorage() {
             environmentSelect.value = localStorage.getItem(LS_KEYS.ENVIRONMENT) || DEFAULTS.ENVIRONMENT;
             prNumberInput.value = localStorage.getItem(LS_KEYS.PR_NUMBER) || DEFAULTS.PR_NUMBER;
-            customBackendUrlInput.value = localStorage.getItem(LS_KEYS.CUSTOM_BACKEND_URL) || DEFAULTS.CUSTOM_BACKEND_URL; // Load custom URL
+            customBackendUrlInput.value = localStorage.getItem(LS_KEYS.CUSTOM_BACKEND_URL) || DEFAULTS.CUSTOM_BACKEND_URL;
         }
         
         function updateInputVisibility(selectedEnv) {
             if (selectedEnv === "custom") {
                 prNumberGroup.classList.add('hidden-field');
                 prNumberInput.disabled = true;
-                prNumberInput.value = ''; // Clear PR number
+                prNumberInput.value = ''; 
                 customBackendUrlGroup.classList.remove('hidden-field');
                 customBackendUrlInput.disabled = false;
             } else if (selectedEnv === "trunkliveops") {
-                prNumberGroup.classList.remove('hidden-field'); // Show PR group but disable input
+                prNumberGroup.classList.remove('hidden-field'); 
                 prNumberInput.disabled = true;
-                prNumberInput.value = ''; // Clear PR number
+                prNumberInput.value = ''; 
                 customBackendUrlGroup.classList.add('hidden-field');
                 customBackendUrlInput.disabled = true;
-            } else { // Trunk, QA3, etc.
+            } else { 
                 prNumberGroup.classList.remove('hidden-field');
                 prNumberInput.disabled = false;
                 customBackendUrlGroup.classList.add('hidden-field');
@@ -283,23 +300,24 @@
             }
         }
 
-
         function resetToDefaultSettings() {
             localStorage.removeItem(LS_KEYS.ENVIRONMENT);
             localStorage.removeItem(LS_KEYS.PR_NUMBER);
-            localStorage.removeItem(LS_KEYS.CUSTOM_BACKEND_URL); // Clear custom URL from LS
+            localStorage.removeItem(LS_KEYS.CUSTOM_BACKEND_URL); 
             localStorage.removeItem(LS_KEYS.ADDITIONAL_PARAMS);
 
             environmentSelect.value = DEFAULTS.ENVIRONMENT;
             prNumberInput.value = DEFAULTS.PR_NUMBER;
-            customBackendUrlInput.value = DEFAULTS.CUSTOM_BACKEND_URL; // Reset custom URL input
+            customBackendUrlInput.value = DEFAULTS.CUSTOM_BACKEND_URL; 
 
             prNumberInput.classList.remove('input-error'); 
             customBackendUrlInput.classList.remove('input-error');
+            aliveStatusDiv.textContent = ''; 
+            aliveStatusDiv.className = 'mt-2 text-sm'; 
             
-            updateInputVisibility(DEFAULTS.ENVIRONMENT); // Update visibility based on default env
+            updateInputVisibility(DEFAULTS.ENVIRONMENT); 
             renderAdditionalParams(); 
-            generateAndDisplayQrCode();
+            generateAndDisplayQrCode(); 
         }
 
         function validateInputs() {
@@ -359,10 +377,65 @@
             }
             return true; 
         }
+        
+        async function performAliveCheck() {
+            const selectedEnvironment = environmentSelect.value;
+            const prNumberRaw = prNumberInput.value;
+            let hostToCheck;
+
+            if (selectedEnvironment === "custom") {
+                hostToCheck = customBackendUrlInput.value.trim();
+            } else if (selectedEnvironment === "trunkliveops") {
+                hostToCheck = environmentDomains[selectedEnvironment];
+            } else {
+                const baseDomain = environmentDomains[selectedEnvironment];
+                if (prNumberRaw.trim()) {
+                    hostToCheck = `pr-${prNumberRaw.trim()}.${baseDomain}`;
+                } else {
+                    hostToCheck = baseDomain;
+                }
+            }
+
+            if (!hostToCheck) {
+                aliveStatusDiv.textContent = '';
+                aliveStatusDiv.className = 'mt-2 text-sm';
+                return;
+            }
+
+            let checkUrl = hostToCheck;
+            if (!checkUrl.startsWith('http://') && !checkUrl.startsWith('https://')) {
+                checkUrl = 'https://' + checkUrl; 
+            }
+            checkUrl += '/api/live'; // Using /api/live endpoint
+
+            aliveStatusDiv.textContent = 'Status: Checking...';
+            aliveStatusDiv.className = 'mt-2 text-sm status-checking';
+
+            try {
+                // Using HEAD request with no-cors mode
+                await fetch(checkUrl, { method: 'HEAD', mode: 'no-cors' }); 
+                // If fetch resolves in 'no-cors' mode, it means the server was reachable at a network level.
+                aliveStatusDiv.textContent = 'Status: Server Reachable ✅';
+                aliveStatusDiv.className = 'mt-2 text-sm status-alive';
+            } catch (error) {
+                // This catch block will now primarily indicate network errors (DNS, server down)
+                console.error('Alive check failed (Network Error):', error);
+                aliveStatusDiv.textContent = 'Status: Server Unreachable ❌';
+                aliveStatusDiv.className = 'mt-2 text-sm status-not-alive';
+            }
+        }
+
+        function scheduleAliveCheck() {
+            clearTimeout(aliveCheckTimeout);
+            aliveCheckTimeout = setTimeout(performAliveCheck, 1000); 
+        }
+
 
         function generateAndDisplayQrCode() {
             if (!validateInputs()) {
                 currentDeepLinkUrl = ''; 
+                aliveStatusDiv.textContent = ''; 
+                aliveStatusDiv.className = 'mt-2 text-sm';
                 return; 
             }
 
@@ -375,7 +448,7 @@
                 backendHost = customBackendUrlInput.value.trim();
             } else if (selectedEnvironment === "trunkliveops") {
                 backendHost = environmentDomains[selectedEnvironment];
-            } else { // Trunk, QA3
+            } else { 
                 const baseDomain = environmentDomains[selectedEnvironment];
                 if (prNumberRaw.trim()) {
                     backendHost = `pr-${prNumberRaw.trim()}.${baseDomain}`;
@@ -385,10 +458,7 @@
             }
             
             let backendHostQueryParam = `backend_host=${encodeURIComponent(backendHost)}`;
-            // No special handling for colon in custom URL, encodeURIComponent is generally safer for parameters.
-            // If the custom URL is an absolute URL like http://localhost:5001, it will be encoded.
-            // For backend_host, typically only hostname:port is expected.
-
+            
             let queryParams = [backendHostQueryParam];
 
             additionalParamsConfig.forEach(param => {
@@ -450,6 +520,7 @@
                 generatedUrlP.classList.add('error-message');
                 currentDeepLinkUrl = ''; 
             }
+            scheduleAliveCheck();
         }
         
         environmentSelect.addEventListener('change', () => {
@@ -469,17 +540,21 @@
         resetBtn.addEventListener('click', () => {
             resetBtn.dataset.isResetting = true; 
             resetToDefaultSettings(); 
-            // Visibility is handled by resetToDefaultSettings calling updateInputVisibility
             delete resetBtn.dataset.isResetting; 
         });
-        prNumberInput.addEventListener('input', generateAndDisplayQrCode); 
-        customBackendUrlInput.addEventListener('input', generateAndDisplayQrCode);
+
+        prNumberInput.addEventListener('input', () => {
+            generateAndDisplayQrCode(); 
+        }); 
+        customBackendUrlInput.addEventListener('input', () => {
+            generateAndDisplayQrCode();
+        });
 
 
         window.addEventListener('load', () => {
             loadInputsFromLocalStorage(); 
             renderAdditionalParams(); 
-            updateInputVisibility(environmentSelect.value); // Initial visibility setup
+            updateInputVisibility(environmentSelect.value); 
             generateAndDisplayQrCode();   
 
             let resizeTimeout;
