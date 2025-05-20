@@ -77,7 +77,6 @@
         .status-checking { color: #6b7280; /* gray-500 */ }
         .status-alive { color: #10b981; /* green-500 */ }
         .status-not-alive { color: #ef4444; /* red-500 */ }
-        /* .status-failed class removed as it's covered by status-not-alive with no-cors */
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
@@ -162,6 +161,7 @@
         let qrCodeInstance = null;
         let currentDeepLinkUrl = ''; 
         let aliveCheckTimeout = null; 
+        let currentAliveCheckToken = null; // Token to manage alive check race conditions
 
         const environmentDomains = {
             trunk: "backend.jarvistrunk.net",
@@ -378,7 +378,7 @@
             return true; 
         }
         
-        async function performAliveCheck() {
+        async function performAliveCheck(checkToken) {
             const selectedEnvironment = environmentSelect.value;
             const prNumberRaw = prNumberInput.value;
             let hostToCheck;
@@ -397,8 +397,10 @@
             }
 
             if (!hostToCheck) {
-                aliveStatusDiv.textContent = '';
-                aliveStatusDiv.className = 'mt-2 text-sm';
+                if (checkToken === currentAliveCheckToken) { // Only update if this is the latest check
+                    aliveStatusDiv.textContent = '';
+                    aliveStatusDiv.className = 'mt-2 text-sm';
+                }
                 return;
             }
 
@@ -406,28 +408,43 @@
             if (!checkUrl.startsWith('http://') && !checkUrl.startsWith('https://')) {
                 checkUrl = 'https://' + checkUrl; 
             }
-            checkUrl += '/api/live'; // Using /api/live endpoint
+            checkUrl += '/api/live'; 
 
-            aliveStatusDiv.textContent = 'Status: Checking...';
-            aliveStatusDiv.className = 'mt-2 text-sm status-checking';
+            // Set status to checking only if this is the latest scheduled check
+            if (checkToken === currentAliveCheckToken) {
+                aliveStatusDiv.textContent = 'Status: Checking...';
+                aliveStatusDiv.className = 'mt-2 text-sm status-checking';
+            }
 
             try {
-                // Using HEAD request with no-cors mode
-                await fetch(checkUrl, { method: 'HEAD', mode: 'no-cors' }); 
-                // If fetch resolves in 'no-cors' mode, it means the server was reachable at a network level.
-                aliveStatusDiv.textContent = 'Status: Server Reachable ✅';
-                aliveStatusDiv.className = 'mt-2 text-sm status-alive';
+                const response = await fetch(checkUrl, { method: 'HEAD', mode: 'no-cors' }); 
+                // With no-cors, response.ok and response.status are not directly usable for success.
+                // The fact that fetch promise resolved means network reachability.
+                if (checkToken === currentAliveCheckToken) { // Only update if this is the latest check
+                    aliveStatusDiv.textContent = 'Status: Server Reachable ✅';
+                    aliveStatusDiv.className = 'mt-2 text-sm status-alive';
+                }
             } catch (error) {
-                // This catch block will now primarily indicate network errors (DNS, server down)
                 console.error('Alive check failed (Network Error):', error);
-                aliveStatusDiv.textContent = 'Status: Server Unreachable ❌';
-                aliveStatusDiv.className = 'mt-2 text-sm status-not-alive';
+                if (checkToken === currentAliveCheckToken) { // Only update if this is the latest check
+                    aliveStatusDiv.textContent = 'Status: Server Unreachable ❌';
+                    aliveStatusDiv.className = 'mt-2 text-sm status-not-alive';
+                }
             }
         }
 
         function scheduleAliveCheck() {
             clearTimeout(aliveCheckTimeout);
-            aliveCheckTimeout = setTimeout(performAliveCheck, 1000); 
+            currentAliveCheckToken = Symbol(); // Generate a new unique token for this check
+            const tokenForThisCheck = currentAliveCheckToken;
+            
+            // Set to checking immediately for responsiveness
+            aliveStatusDiv.textContent = 'Status: Checking...';
+            aliveStatusDiv.className = 'mt-2 text-sm status-checking';
+
+            aliveCheckTimeout = setTimeout(() => {
+                performAliveCheck(tokenForThisCheck);
+            }, 1000); 
         }
 
 
@@ -478,7 +495,7 @@
                 }
             });
             
-            currentDeepLinkUrl = `myvegas-slots://slots/cheat?${queryParams.join('&')}`; 
+            currentDeepLinkUrl = `myvegas-slots://slots/cheat?${queryParams.join('&')}`; // Changed path to slots/cheat
             
             generatedUrlP.innerHTML = ''; 
             const linkElement = document.createElement('a');
