@@ -201,7 +201,7 @@
             const savedParamsState = JSON.parse(localStorage.getItem(LS_KEYS.ADDITIONAL_PARAMS) || '{}');
 
             additionalParamsConfig.forEach(param => {
-                const isDefaultEnabled = (param.id === 'ava_dab' || param.id === 'ava_header' || (param.type === 'checkbox_only' && param.defaultValue === true) );
+                const isDefaultEnabled = (param.id === 'ava_dab' || (param.type === 'checkbox_only' && param.defaultValue === true) );
                 let initialEnabledState = isDefaultEnabled;
                 let initialValue = param.defaultValue;
 
@@ -417,17 +417,17 @@
             }
 
             try {
-                const response = await fetch(checkUrl, { method: 'HEAD', mode: 'no-cors' }); 
+                const response = await fetch(checkUrl, { method: 'GET', mode: 'no-cors' }); 
                 // With no-cors, response.ok and response.status are not directly usable for success.
                 // The fact that fetch promise resolved means network reachability.
                 if (checkToken === currentAliveCheckToken) { // Only update if this is the latest check
-                    aliveStatusDiv.textContent = 'Status: Server Reachable ✅';
+                    aliveStatusDiv.textContent = 'Status: Alive 😻';
                     aliveStatusDiv.className = 'mt-2 text-sm status-alive';
                 }
             } catch (error) {
                 console.error('Alive check failed (Network Error):', error);
                 if (checkToken === currentAliveCheckToken) { // Only update if this is the latest check
-                    aliveStatusDiv.textContent = 'Status: Server Unreachable ❌';
+                    aliveStatusDiv.textContent = 'Status: Dead 💀';
                     aliveStatusDiv.className = 'mt-2 text-sm status-not-alive';
                 }
             }
