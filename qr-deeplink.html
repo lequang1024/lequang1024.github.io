@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="robots" content="noindex">
+    
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL3LWXVBHR"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -423,22 +425,36 @@
                 if (checkToken === currentAliveCheckToken) { // Only update if this is the latest check
                     aliveStatusDiv.textContent = 'Status: Alive 😻';
                     aliveStatusDiv.className = 'mt-2 text-sm status-alive';
+                    // Fire gtag event for server reachable
+                    if (typeof gtag === 'function') {
+                        gtag('event', 'server_reachable', {
+                            'event_category': 'engagement',
+                            'event_label': 'Alive Check Success',
+                            'host': hostToCheck 
+                        });
+                    }
                 }
             } catch (error) {
                 console.error('Alive check failed (Network Error):', error);
                 if (checkToken === currentAliveCheckToken) { // Only update if this is the latest check
                     aliveStatusDiv.textContent = 'Status: Dead 💀';
                     aliveStatusDiv.className = 'mt-2 text-sm status-not-alive';
+                    if (typeof gtag === 'function') {
+                        gtag('event', 'server_unreachable', {
+                            'event_category': 'engagement',
+                            'event_label': 'Alive Check Dead',
+                            'host': hostToCheck 
+                        });
+                    }
                 }
             }
         }
 
         function scheduleAliveCheck() {
             clearTimeout(aliveCheckTimeout);
-            currentAliveCheckToken = Symbol(); // Generate a new unique token for this check
+            currentAliveCheckToken = Symbol(); 
             const tokenForThisCheck = currentAliveCheckToken;
             
-            // Set to checking immediately for responsiveness
             aliveStatusDiv.textContent = 'Status: Checking...';
             aliveStatusDiv.className = 'mt-2 text-sm status-checking';
 
@@ -495,7 +511,7 @@
                 }
             });
             
-            currentDeepLinkUrl = `myvegas-slots://slots/cheat?${queryParams.join('&')}`; // Changed path to slots/cheat
+            currentDeepLinkUrl = `myvegas-slots://slots/cheat?${queryParams.join('&')}`; 
             
             generatedUrlP.innerHTML = ''; 
             const linkElement = document.createElement('a');
@@ -548,6 +564,13 @@
 
         startGameBtn.addEventListener('click', () => {
             if (currentDeepLinkUrl) {
+                if (typeof gtag === 'function') {
+                    gtag('event', 'start_game_clicked', {
+                        'event_category': 'engagement',
+                        'event_label': 'Start Game Button',
+                        'deep_link_url': currentDeepLinkUrl
+                    });
+                }
                 window.location.href = currentDeepLinkUrl;
             } else {
                 alert("Please generate a valid QR code and URL first, or check for errors.");
@@ -556,6 +579,12 @@
 
         resetBtn.addEventListener('click', () => {
             resetBtn.dataset.isResetting = true; 
+            if (typeof gtag === 'function') {
+                gtag('event', 'reset_settings_clicked', {
+                    'event_category': 'interaction',
+                    'event_label': 'Reset All Settings Button'
+                });
+            }
             resetToDefaultSettings(); 
             delete resetBtn.dataset.isResetting; 
         });
