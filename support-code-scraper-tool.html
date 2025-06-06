@@ -1,72 +1,76 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL3LWXVBHR"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-
-        gtag('config', 'G-LL3LWXVBHR');
-    </script>
-    <title>Support Code Scraper Tool</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL3LWXVBHR"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-LL3LWXVBHR');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support Code Scraper Tool</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    textarea {
+      font-family: monospace;
+    }
+  </style>
 </head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 text-gray-800 min-h-screen flex flex-col items-center justify-center p-6">
 
-<body>
-    <nav class="navbar" role="navigation" aria-label="main navigation">
-        <div class="navbar-brand">
-            <a class="navbar-item" href="#">
-                <h1 class="title">Tools Index</h1>
-            </a>
-        </div>
-        <div id="navbarBasicExample" class="navbar-menu">
-            <div class="navbar-start">
-                <a href="datetime-to-ticks.html" class="navbar-item">Datetime to Ticks Converter</a>
-                <a href="support-code-scraper-tool.html" class="navbar-item">SC scraper Tool</a>
-                <!-- Add more tools as needed -->
-            </div>
-        </div>
-    </nav>
-    <section class="section">
-        <div class="container">
-            <h1 class="title">Support Code Scraper Tool</h1>
-            <p class="subtitle">
-                Paste any text containing support codes (e.g., logs, messages, emails) into the input box.
-                This tool will automatically extract all unique 6-character support codes and generate an
-                <code>NCalc</code>-compatible expression like:
-                <code>SupportCode = 'ABC123' OR SupportCode = 'XYZ789'</code>.
-            </p>
-            <div class="field">
-                <div class="control">
-                    <textarea class="textarea" id="inputText" rows="10" onchange="generateNcalcExpression()"
-                        placeholder="Input"></textarea>
-                </div>
-            </div>
-            <div class="field">
-                <div class="control">
-                    <textarea class="textarea" id="outputText" rows="10" placeholder="Output"></textarea>
-                </div>
-            </div>
-        </div>
-    </section>
-    <script>
-        let inputText = document.getElementById("inputText");
-        let outputText = document.getElementById("outputText");
-        let lastValue = inputText.value;
-        setInterval(function () {
-            if (inputText.value !== lastValue) {
-                lastValue = inputText.value;
-                let supportCodes = lastValue.match(/\b[A-Z0-9]{6}\b/g);
-                if (supportCodes) {
-                    supportCodes = [...new Set(supportCodes)]; // Remove duplicates
-                    let ncalcExpression = supportCodes.map(code => "SupportCode = '" + code + "'").join(" OR ");
-                    outputText.value = ncalcExpression;
-                }
-            }
-        }, 1000);
-    </script>
+  <div class="w-full max-w-3xl bg-white rounded-2xl p-8 shadow-xl border border-gray-200">
+    <header class="mb-8 text-center">
+      <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-500">
+        Support Code Scraper Tool
+      </h1>
+      <p class="mt-3 text-gray-600 text-base">
+        Paste any text containing support codes (e.g., logs, messages, emails) into the input box.<br />
+        This tool will extract all unique 6-character codes and generate an <code class="text-indigo-600">NCalc</code>-compatible filter like:<br>
+        <code class="text-sm text-gray-700">SupportCode = 'ABC123' OR SupportCode = 'XYZ789'</code>
+      </p>
+    </header>
+
+    <main class="space-y-6">
+      <div>
+        <label for="inputText" class="block mb-2 text-sm font-medium text-gray-700">Input</label>
+        <textarea id="inputText" rows="8" placeholder="Paste your logs or text here..." class="w-full p-4 text-sm bg-slate-50 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+      </div>
+
+      <div>
+        <label for="outputText" class="block mb-2 text-sm font-medium text-gray-700">Output</label>
+        <textarea id="outputText" rows="6" readonly placeholder="Generated NCalc expression will appear here..." class="w-full p-4 text-sm bg-slate-100 border border-gray-300 rounded-lg"></textarea>
+      </div>
+    </main>
+
+    <footer class="mt-8 text-center text-sm text-gray-500">
+      &copy; <script>document.write(new Date().getFullYear())</script> Quang Le.
+    </footer>
+  </div>
+
+  <script>
+    const inputText = document.getElementById("inputText");
+    const outputText = document.getElementById("outputText");
+    let lastValue = inputText.value;
+
+    setInterval(() => {
+      if (inputText.value !== lastValue) {
+        lastValue = inputText.value;
+        let supportCodes = lastValue.match(/\b[A-Z0-9]{6}\b/g);
+        if (supportCodes) {
+          supportCodes = [...new Set(supportCodes)]; // Unique codes
+          const expr = supportCodes.map(code => `SupportCode = '${code}'`).join(" OR ");
+          outputText.value = expr;
+        } else {
+          outputText.value = '';
+        }
+      }
+    }, 1000);
+  </script>
 </body>
-
 </html>
