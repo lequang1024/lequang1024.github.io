@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta name="robots" content="noindex">
-    
+    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL3LWXVBHR"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -28,11 +27,11 @@
         #generatedUrl {
             word-break: break-all;
         }
-        #generatedUrl a { /* Style for the clickable link */
+        #generatedUrl a, #grafanaLink { /* Style for the clickable link */
             color: #4f46e5; /* Tailwind indigo-600 */
             text-decoration: underline;
         }
-        #generatedUrl a:hover {
+        #generatedUrl a:hover, #grafanaLink:hover {
             color: #3730a3; /* Tailwind indigo-800 */
         }
         .param-group {
@@ -74,11 +73,18 @@
             font-size: 0.875rem; /* text-sm */
             margin-top: 0.5rem; /* mt-2 */
             text-align: left;
-            padding-left: 0.25rem; /* pl-1 for slight indent within param-group */
         }
         .status-checking { color: #6b7280; /* gray-500 */ }
         .status-alive { color: #10b981; /* green-500 */ }
         .status-not-alive { color: #ef4444; /* red-500 */ }
+        #grafanaLinkContainer {
+            margin-top: 0.5rem; /* mt-2 */
+        }
+        #grafanaLink img {
+            vertical-align: middle;
+            margin-right: 0.25rem; /* space between icon and text */
+            display: inline-block;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
@@ -108,13 +114,19 @@
                             <label for="prNumber" class="block text-sm font-medium text-gray-700 mb-1">PR Number</label>
                             <input type="text" id="prNumber" value="" placeholder="e.g., 1234 (optional)" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                             <p class="mt-1 text-xs text-gray-500">If provided, 'pr-' is prepended to form part of the backend_host. If blank, only the base environment URL is used for backend_host. Not used for Trunk Liveops or Custom URL.</p>
+                            <div id="grafanaLinkContainer" class="hidden-field">
+                                <a href="#" id="grafanaLink" target="_blank" class="text-sm" title="View Grafana Logs">
+                                    <img src="grafana-icon.svg" alt="Grafana Logs" width="16" height="16"> Logs
+                                </a>
+                            </div>
                         </div>
                         <div id="customBackendUrlGroup" class="mt-4 hidden-field">
                             <label for="customBackendUrl" class="block text-sm font-medium text-gray-700 mb-1">Custom Backend URL</label>
                             <input type="text" id="customBackendUrl" value="" placeholder="e.g., my-custom-backend.example.com" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                             <p class="mt-1 text-xs text-gray-500">Enter the full custom backend host (e.g., my-server.com or 192.168.1.100:8080).</p>
                         </div>
-                        <div id="aliveStatus" class="mt-2 text-sm"></div> </div>
+                        <div id="aliveStatus" class="mt-2 text-sm"></div> 
+                    </div>
                 </div>
 
                 <div>
@@ -159,16 +171,24 @@
         const qrcodeDiv = document.getElementById('qrcode');
         const generatedUrlP = document.getElementById('generatedUrl');
         const aliveStatusDiv = document.getElementById('aliveStatus'); 
+        const grafanaLinkContainer = document.getElementById('grafanaLinkContainer');
+        const grafanaLink = document.getElementById('grafanaLink');
+
 
         let qrCodeInstance = null;
         let currentDeepLinkUrl = ''; 
         let aliveCheckTimeout = null; 
-        let currentAliveCheckToken = null; // Token to manage alive check race conditions
+        let currentAliveCheckToken = null; 
 
         const environmentDomains = {
             trunk: "backend.jarvistrunk.net",
             trunkliveops: "backend-liveops.jarvistrunk.net", 
             qa3: "backend.liveops.jarvisqa.net"
+        };
+
+        const grafanaDataSources = { 
+            trunk: "P31FC4C0F93B441EF",
+            qa3: "P5A8999BC3E4BD4C5"
         };
 
         const LS_BASE_KEY = 'qrGenAdv_'; 
@@ -207,8 +227,13 @@
                 let initialEnabledState = isDefaultEnabled;
                 let initialValue = param.defaultValue;
 
-                if (savedParamsState[param.id]) {
+                if (param.id === 'ava_header' && (!savedParamsState[param.id] || typeof savedParamsState[param.id].enabled === 'undefined')) {
+                    initialEnabledState = true;
+                } else if (savedParamsState[param.id]) {
                     initialEnabledState = savedParamsState[param.id].enabled;
+                }
+
+                if (savedParamsState[param.id]) {
                     if (param.type !== 'checkbox_only') {
                         initialValue = savedParamsState[param.id].value;
                     }
@@ -283,18 +308,19 @@
         
         function updateInputVisibility(selectedEnv) {
             if (selectedEnv === "custom") {
-                prNumberGroup.classList.add('hidden-field');
+                prNumberGroup.classList.add('hidden-field'); 
                 prNumberInput.disabled = true;
                 prNumberInput.value = ''; 
                 customBackendUrlGroup.classList.remove('hidden-field');
                 customBackendUrlInput.disabled = false;
+                grafanaLinkContainer.classList.add('hidden-field'); 
             } else if (selectedEnv === "trunkliveops") {
                 prNumberGroup.classList.remove('hidden-field'); 
                 prNumberInput.disabled = true;
                 prNumberInput.value = ''; 
                 customBackendUrlGroup.classList.add('hidden-field');
                 customBackendUrlInput.disabled = true;
-            } else { 
+            } else { // Trunk, QA3
                 prNumberGroup.classList.remove('hidden-field');
                 prNumberInput.disabled = false;
                 customBackendUrlGroup.classList.add('hidden-field');
@@ -316,6 +342,7 @@
             customBackendUrlInput.classList.remove('input-error');
             aliveStatusDiv.textContent = ''; 
             aliveStatusDiv.className = 'mt-2 text-sm'; 
+            grafanaLinkContainer.classList.add('hidden-field');
             
             updateInputVisibility(DEFAULTS.ENVIRONMENT); 
             renderAdditionalParams(); 
@@ -399,7 +426,7 @@
             }
 
             if (!hostToCheck) {
-                if (checkToken === currentAliveCheckToken) { // Only update if this is the latest check
+                if (checkToken === currentAliveCheckToken) { 
                     aliveStatusDiv.textContent = '';
                     aliveStatusDiv.className = 'mt-2 text-sm';
                 }
@@ -412,20 +439,16 @@
             }
             checkUrl += '/api/live'; 
 
-            // Set status to checking only if this is the latest scheduled check
             if (checkToken === currentAliveCheckToken) {
                 aliveStatusDiv.textContent = 'Status: Checking...';
                 aliveStatusDiv.className = 'mt-2 text-sm status-checking';
             }
 
             try {
-                const response = await fetch(checkUrl, { method: 'GET', mode: 'no-cors' }); 
-                // With no-cors, response.ok and response.status are not directly usable for success.
-                // The fact that fetch promise resolved means network reachability.
-                if (checkToken === currentAliveCheckToken) { // Only update if this is the latest check
+                await fetch(checkUrl, { method: 'HEAD', mode: 'no-cors' }); 
+                if (checkToken === currentAliveCheckToken) { 
                     aliveStatusDiv.textContent = 'Status: Alive 😻';
                     aliveStatusDiv.className = 'mt-2 text-sm status-alive';
-                    // Fire gtag event for server reachable
                     if (typeof gtag === 'function') {
                         gtag('event', 'server_reachable', {
                             'event_category': 'engagement',
@@ -436,13 +459,13 @@
                 }
             } catch (error) {
                 console.error('Alive check failed (Network Error):', error);
-                if (checkToken === currentAliveCheckToken) { // Only update if this is the latest check
+                if (checkToken === currentAliveCheckToken) { 
                     aliveStatusDiv.textContent = 'Status: Dead 💀';
                     aliveStatusDiv.className = 'mt-2 text-sm status-not-alive';
                     if (typeof gtag === 'function') {
                         gtag('event', 'server_unreachable', {
                             'event_category': 'engagement',
-                            'event_label': 'Alive Check Dead',
+                            'event_label': 'Alive Check Failed',
                             'host': hostToCheck 
                         });
                     }
@@ -469,6 +492,7 @@
                 currentDeepLinkUrl = ''; 
                 aliveStatusDiv.textContent = ''; 
                 aliveStatusDiv.className = 'mt-2 text-sm';
+                grafanaLinkContainer.classList.add('hidden-field');
                 return; 
             }
 
@@ -477,6 +501,45 @@
             
             let backendHost;
 
+            // Grafana Link Logic
+            const prNumTrimmed = prNumberRaw.trim();
+            let showGrafanaLink = false;
+            let grafanaAppName = "";
+            let grafanaDatasourceUid = "";
+
+            if (selectedEnvironment === "trunk") {
+                grafanaDatasourceUid = grafanaDataSources.trunk;
+                grafanaAppName = prNumTrimmed ? `tnk-ea-backend-pr-${prNumTrimmed}` : "tnk-ea-backend";
+                showGrafanaLink = true;
+            } else if (selectedEnvironment === "qa3") {
+                grafanaDatasourceUid = grafanaDataSources.qa3;
+                grafanaAppName = prNumTrimmed ? `qa3-ea-backend-pr-${prNumTrimmed}` : "qa3-ea-backend";
+                showGrafanaLink = true;
+            } else if (selectedEnvironment === "trunkliveops") {
+                grafanaDatasourceUid = grafanaDataSources.trunk; 
+                grafanaAppName = "tnk-ea-backend-liveops";
+                showGrafanaLink = true;
+            }
+
+
+            if (showGrafanaLink && grafanaAppName && grafanaDatasourceUid) {
+                const expr = `{app=\"${grafanaAppName}\"} |= \`\``;
+                const panesObj = {
+                  "c13": {
+                    "datasource": grafanaDatasourceUid, 
+                    "queries": [ { "refId": "A", "editorMode": "builder", "expr": expr, "queryType": "range", "datasource": {"type": "loki", "uid": grafanaDatasourceUid} } ],
+                    "range": { "from": "now-6h", "to": "now" }
+                  }
+                };
+                const encodedPanes = encodeURIComponent(JSON.stringify(panesObj));
+                grafanaLink.href = `https://grafana.jarvis.tools/explore?schemaVersion=1&panes=${encodedPanes}&orgId=1`;
+                grafanaLinkContainer.classList.remove('hidden-field');
+            } else {
+                grafanaLinkContainer.classList.add('hidden-field');
+            }
+
+
+            // Backend Host Logic
             if (selectedEnvironment === "custom") {
                 backendHost = customBackendUrlInput.value.trim();
             } else if (selectedEnvironment === "trunkliveops") {
@@ -574,6 +637,18 @@
                 window.location.href = currentDeepLinkUrl;
             } else {
                 alert("Please generate a valid QR code and URL first, or check for errors.");
+            }
+        });
+        
+        grafanaLink.addEventListener('click', (event) => {
+            if (typeof gtag === 'function') {
+                const prNum = prNumberInput.value.trim();
+                gtag('event', 'grafana_link_clicked', {
+                    'event_category': 'interaction',
+                    'event_label': 'View Grafana Logs',
+                    'pr_number': prNum || 'N/A', 
+                    'environment': environmentSelect.value
+                });
             }
         });
 

@@ -2,6 +2,14 @@
 <html>
 
 <head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL3LWXVBHR"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-LL3LWXVBHR');
+    </script>
     <title>Support Code Scraper Tool</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
 </head>
@@ -24,9 +32,16 @@
     <section class="section">
         <div class="container">
             <h1 class="title">Support Code Scraper Tool</h1>
+            <p class="subtitle">
+                Paste any text containing support codes (e.g., logs, messages, emails) into the input box.
+                This tool will automatically extract all unique 6-character support codes and generate an
+                <code>NCalc</code>-compatible expression like:
+                <code>SupportCode = 'ABC123' OR SupportCode = 'XYZ789'</code>.
+            </p>
             <div class="field">
                 <div class="control">
-                    <textarea class="textarea" id="inputText" rows="10" onchange="generateNcalcExpression()" placeholder="Input"></textarea>
+                    <textarea class="textarea" id="inputText" rows="10" onchange="generateNcalcExpression()"
+                        placeholder="Input"></textarea>
                 </div>
             </div>
             <div class="field">

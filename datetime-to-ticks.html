@@ -2,6 +2,14 @@
 <html>
 
 <head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL3LWXVBHR"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-LL3LWXVBHR');
+    </script>
     <title>Datetime to Ticks Converter</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
 </head>
@@ -25,20 +33,29 @@
         <div class="container">
             <h1 class="title">.NET Datetime to Ticks Converter</h1>
             <p class="subtitle">
-                Note: .NET ticks represent the number of 100-nanosecond intervals that have elapsed since 12:00:00 midnight
-                on January 1, 0001, while Unix time represents the number of seconds that have elapsed since 00:00:00
-                Coordinated Universal Time (UTC), Thursday, 1 January 1970, not counting leap seconds.
+                This tool helps convert standard ISO datetime strings (in UTC) into their equivalent
+                <strong>.NET ticks</strong> format. .NET ticks represent the number of 100-nanosecond intervals
+                that have passed since midnight on January 1, 0001. Simply input your start and end datetime values,
+                and the tool will generate a ready-to-use <code>NCalc</code> expression for date range filtering in
+                backend systems.
             </p>
+            <p class="subtitle is-italic has-text-grey">
+                For reference: Unix time counts seconds since 00:00:00 UTC, January 1, 1970 (excluding leap seconds),
+                whereas .NET time uses a much earlier origin and higher precision.
+            </p>
+
             <div class="field">
                 <label class="label" for="startDatetime">Start datetime (UTC):</label>
                 <div class="control">
-                    <input class="input" type="text" id="startDatetime" placeholder="YYYY-MM-DDTHH:MM:SS" oninput="convertToTicks()">
+                    <input class="input" type="text" id="startDatetime" placeholder="YYYY-MM-DDTHH:MM:SS"
+                        oninput="convertToTicks()">
                 </div>
             </div>
             <div class="field">
                 <label class="label" for="endDatetime">End datetime (UTC):</label>
                 <div class="control">
-                    <input class="input" type="text" id="endDatetime" placeholder="YYYY-MM-DDTHH:MM:SS" oninput="convertToTicks()">
+                    <input class="input" type="text" id="endDatetime" placeholder="YYYY-MM-DDTHH:MM:SS"
+                        oninput="convertToTicks()">
                 </div>
             </div>
             <div class="field">
