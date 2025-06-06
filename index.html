@@ -1,66 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL3LWXVBHR"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'G-LL3LWXVBHR');
-  </script>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quang Le — Project Tools</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-    }
-    .project-card {
-      transition: all 0.2s ease;
-    }
-    .project-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
-    }
-  </style>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL3LWXVBHR"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-LL3LWXVBHR');
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quang Le — Project Tools</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .project-card {
+            transition: all 0.2s ease;
+        }
+        .project-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-slate-50 to-slate-100 text-gray-800 min-h-screen flex flex-col items-center justify-center p-6">
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 text-gray-800 min-h-screen flex items-center justify-center p-6">
 
-  <div class="w-full max-w-4xl">
-    <header class="text-center mb-12">
-      <h1 class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-500">
-        Quang Le's Tools
-      </h1>
-      <p class="mt-3 text-gray-600 text-lg">
-        Simple, useful utilities — hosted on GitHub Pages
-      </p>
-    </header>
+    <div class="w-full max-w-4xl">
+        <header class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-500">
+                Quang Le's Tools
+            </h1>
+            <p class="mt-3 text-gray-600 text-lg">
+                Simple, useful utilities — hosted on GitHub Pages
+            </p>
+        </header>
 
-    <main class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-      
-      <a href="qr-deeplink.html" class="project-card bg-white rounded-2xl p-6 shadow hover:shadow-md border border-gray-200 hover:border-indigo-300">
-        <h2 class="text-xl font-semibold text-indigo-600 mb-2">QR Code Deeplink Generator</h2>
-        <p class="text-gray-600 text-sm">Generate QR codes that trigger deep links — ideal for app routing tests and marketing workflows.</p>
-      </a>
+        <main id="project-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <!-- Projects will be dynamically loaded here -->
+            <div id="loading-indicator" class="col-span-full text-center text-gray-500">
+                <svg class="animate-spin h-6 w-6 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="mt-2">Loading tools...</p>
+            </div>
+        </main>
 
-      <a href="support-code-scraper-tool.html" class="project-card bg-white rounded-2xl p-6 shadow hover:shadow-md border border-gray-200 hover:border-indigo-300">
-        <h2 class="text-xl font-semibold text-indigo-600 mb-2">Support Code Scraper</h2>
-        <p class="text-gray-600 text-sm">Paste logs or messages to extract 6-digit support codes and build NCalc expressions for filtering.</p>
-      </a>
+        <footer class="mt-16 text-center text-sm text-gray-500">
+            &copy; <script>document.write(new Date().getFullYear())</script> Quang Le. Built with ❤️ using GitHub Pages.
+        </footer>
+    </div>
 
-      <a href="datetime-to-ticks.html" class="project-card bg-white rounded-2xl p-6 shadow hover:shadow-md border border-gray-200 hover:border-indigo-300">
-        <h2 class="text-xl font-semibold text-indigo-600 mb-2">Datetime to Ticks Converter</h2>
-        <p class="text-gray-600 text-sm">Convert ISO date strings into .NET ticks and generate filtering logic for server-side date checks.</p>
-      </a>
+    <script>
+        // --- GitHub API Fetching and Rendering ---
 
-    </main>
+        const apiUrl = 'https://api.github.com/repos/lequang1024/lequang1024.github.io/contents/';
+        const projectGrid = document.getElementById('project-grid');
+        const loadingIndicator = document.getElementById('loading-indicator');
 
-    <footer class="mt-16 text-center text-sm text-gray-500">
-      &copy; <script>document.write(new Date().getFullYear())</script> Quang Le. Built with ❤️ using GitHub Pages.
-    </footer>
-  </div>
+        // Function to provide titles and descriptions based on filename
+        function getProjectDetails(filename) {
+            let title = filename.replace('.html', '').replace(/-/g, ' ');
+            title = title.charAt(0).toUpperCase() + title.slice(1);
+            let description = `A simple utility: ${title}.`;
+
+            switch (filename) {
+                case 'qr-deeplink.html':
+                    title = 'QR Code Deeplink Generator';
+                    description = 'Generate QR codes that trigger deep links — ideal for app routing tests and marketing workflows.';
+                    break;
+                case 'support-code-scraper-tool.html':
+                    title = 'Support Code Scraper';
+                    description = 'Paste logs or messages to extract 6-digit support codes and build NCalc expressions for filtering.';
+                    break;
+                case 'datetime-to-ticks.html':
+                    title = 'Datetime to Ticks Converter';
+                    description = 'Convert ISO date strings into .NET ticks and generate filtering logic for server-side date checks.';
+                    break;
+                 case 'auto-tower-defense-game.html':
+                    title = 'Auto Tower Defense';
+                    description = 'An automated tower defense game. Set up your towers and watch the battle!';
+                    break;
+            }
+            return { title, description };
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error(`Network error: ${response.statusText}`);
+                    return response.json();
+                })
+                .then(data => {
+                    projectGrid.innerHTML = ''; // Clear the loading indicator
+                    
+                    const htmlFiles = data.filter(item =>
+                        item.name.endsWith('.html') &&
+                        item.type === 'file' &&
+                        item.name !== 'index.html'
+                    );
+
+                    if (htmlFiles.length === 0) {
+                        projectGrid.innerHTML = '<p class="col-span-full text-center text-gray-500">No projects found.</p>';
+                        return;
+                    }
+
+                    htmlFiles.forEach(file => {
+                        const { title, description } = getProjectDetails(file.name);
+                        const cardLink = document.createElement('a');
+                        cardLink.href = file.name;
+                        cardLink.className = 'project-card bg-white rounded-2xl p-6 shadow hover:shadow-md border border-gray-200 hover:border-indigo-300 block';
+                        
+                        cardLink.innerHTML = `
+                            <h2 class="text-xl font-semibold text-indigo-600 mb-2">${title}</h2>
+                            <p class="text-gray-600 text-sm">${description}</p>
+                        `;
+                        projectGrid.appendChild(cardLink);
+                    });
+                })
+                .catch(error => {
+                    projectGrid.innerHTML = `<p class="col-span-full text-center text-red-500">Failed to load projects: ${error.message}</p>`;
+                    console.error("Failed to fetch projects:", error);
+                });
+        });
+    </script>
 
 </body>
 </html>
