@@ -1,80 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL3LWXVBHR"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-
-        gtag('config', 'G-LL3LWXVBHR');
-    </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Project Pages - Quang Le</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        /* Apply Inter font to the body */
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Custom styles for link items */
-        .link-item {
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        }
-        .link-item:hover {
-            transform: translateY(-2px) scale(1.01); /* Subtle hover effect */
-            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.07), 0 4px 8px -3px rgba(0, 0, 0, 0.04);
-        }
-        /* Gradient for the main header text */
-        .header-gradient {
-            background: linear-gradient(to right, #4f46e5, #7c3aed); /* Indigo to Purple */
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-    </style>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL3LWXVBHR"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-LL3LWXVBHR');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quang Le — Project Tools</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .project-card {
+      transition: all 0.2s ease;
+    }
+    .project-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+    }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-gray-100 to-slate-200 text-gray-800 min-h-screen flex flex-col items-center justify-center p-6 selection:bg-indigo-500 selection:text-white">
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 text-gray-800 min-h-screen flex flex-col items-center justify-center p-6">
 
-    <div class="container mx-auto max-w-2xl w-full bg-white/80 backdrop-blur-lg shadow-xl rounded-xl p-8 md:p-12">
-        <header class="mb-10 text-center">
-            <h1 class="text-4xl md:text-5xl font-bold mb-3 header-gradient">My Project Pages</h1>
-            <p class="text-lg text-gray-600">A collection of tools and projects I've built.</p>
-        </header>
+  <div class="w-full max-w-4xl">
+    <header class="text-center mb-12">
+      <h1 class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-500">
+        Quang Le's Tools
+      </h1>
+      <p class="mt-3 text-gray-600 text-lg">
+        Simple, useful utilities — hosted on GitHub Pages
+      </p>
+    </header>
 
-        <main>
-            <ul class="space-y-5">
-                <li class="link-item bg-slate-50 hover:bg-slate-100/70 border border-slate-200 p-6 rounded-lg shadow-md">
-                    <a href="qr-deeplink.html" class="block group">
-                        <h2 class="text-2xl font-semibold text-indigo-600 group-hover:text-indigo-700 mb-2">QR Code Deeplink Generator</h2>
-                        <p class="text-gray-700 group-hover:text-gray-800">A tool to generate QR codes that act as deep links.</p>
-                    </a>
-                </li>
+    <main class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      
+      <a href="qr-deeplink.html" class="project-card bg-white rounded-2xl p-6 shadow hover:shadow-md border border-gray-200 hover:border-indigo-300">
+        <h2 class="text-xl font-semibold text-indigo-600 mb-2">QR Code Deeplink Generator</h2>
+        <p class="text-gray-600 text-sm">Generate QR codes that trigger deep links — ideal for app routing tests and marketing workflows.</p>
+      </a>
 
-                <li class="link-item bg-slate-50 hover:bg-slate-100/70 border border-slate-200 p-6 rounded-lg shadow-md">
-                    <a href="support-code-scraper-tool.html" class="block group">
-                        <h2 class="text-2xl font-semibold text-indigo-600 group-hover:text-indigo-700 mb-2">Support Code Scraper</h2>
-                        <p class="text-gray-700 group-hover:text-gray-800">A utility for scraping support codes or similar information.</p>
-                    </a>
-                </li>
+      <a href="support-code-scraper-tool.html" class="project-card bg-white rounded-2xl p-6 shadow hover:shadow-md border border-gray-200 hover:border-indigo-300">
+        <h2 class="text-xl font-semibold text-indigo-600 mb-2">Support Code Scraper</h2>
+        <p class="text-gray-600 text-sm">Paste logs or messages to extract 6-digit support codes and build NCalc expressions for filtering.</p>
+      </a>
 
-                <li class="link-item bg-slate-50 hover:bg-slate-100/70 border border-slate-200 p-6 rounded-lg shadow-md">
-                    <a href="datetime-to-ticks.html" class="block group">
-                        <h2 class="text-2xl font-semibold text-indigo-600 group-hover:text-indigo-700 mb-2">DateTime to Ticks Converter</h2>
-                        <p class="text-gray-700 group-hover:text-gray-800">Converts date and time values to .NET Ticks.</p>
-                    </a>
-                </li>
-                </ul>
-        </main>
+      <a href="datetime-to-ticks.html" class="project-card bg-white rounded-2xl p-6 shadow hover:shadow-md border border-gray-200 hover:border-indigo-300">
+        <h2 class="text-xl font-semibold text-indigo-600 mb-2">Datetime to Ticks Converter</h2>
+        <p class="text-gray-600 text-sm">Convert ISO date strings into .NET ticks and generate filtering logic for server-side date checks.</p>
+      </a>
 
-        <footer class="mt-12 text-center">
-            <p class="text-sm text-gray-500">
-                Hosted on GitHub Pages.
-                &copy; <script>document.write(new Date().getFullYear())</script> Quang Le.
-            </p>
-        </footer>
-    </div>
+    </main>
+
+    <footer class="mt-16 text-center text-sm text-gray-500">
+      &copy; <script>document.write(new Date().getFullYear())</script> Quang Le. Built with ❤️ using GitHub Pages.
+    </footer>
+  </div>
 
 </body>
 </html>
