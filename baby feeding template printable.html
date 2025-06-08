@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhật Ký Cho Bé Ăn Nhiều Ngày (Bản in)</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the page and A4 print layout */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e5e7eb; /* Gray-200 background */
+        }
+
+        /* Styles for the A4 container */
+        .a4-page {
+            width: 210mm;
+            height: 297mm; /* Fixed height for better print control */
+            padding: 10mm;
+            margin: 1rem auto;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Grid layout to fit multiple day logs - 2 COLUMNS */
+        .log-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-auto-rows: min-content;
+            gap: 8mm; /* Reduced gap */
+            /* Removed flex-grow to prevent unnecessary expansion */
+        }
+
+        .day-log {
+            border: 1px solid #9ca3af; /* Gray-400 border for a solid look */
+            padding: 0.3rem; /* Further reduced padding */
+            border-radius: 0.375rem;
+            page-break-inside: avoid; /* Prevents breaking a log across pages */
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .day-log table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.2rem; /* Further reduced margin */
+        }
+
+        .day-log th, .day-log td {
+            border: 1px solid #4b5563; /* Gray-600 for solid black lines */
+            padding: 0.15rem 0.25rem; /* Even more reduced padding */
+            font-size: 0.7rem; /* Even smaller font size */
+            line-height: 1.2; /* Tighter line-height */
+        }
+
+        .day-log th {
+            background-color: #f9fafb; /* Gray-50 */
+        }
+
+        .day-log .date-header {
+            font-weight: 600; /* Bolder font */
+            text-align: center;
+            padding: 0.25rem; /* Further reduced padding */
+            background-color: #f3f4f6; /* Gray-100 */
+            border-bottom: 1px solid #9ca3af; /* Gray-400 */
+            border-radius: 0.25rem 0.25rem 0 0;
+            font-size: 0.8rem; /* Further reduced font size for date */
+        }
+
+        /* New style for the age display */
+        .day-log .age-display {
+            font-size: 0.7rem;
+            text-align: center;
+            padding: 0.15rem;
+            color: #4b5563; /* Gray-600 */
+            font-weight: 500;
+            border-bottom: 1px solid #d1d5db; /* Light border below age */
+        }
+
+        /* Styles specifically for printing to be more compact */
+        @media print {
+            body {
+                background-color: #fff;
+                margin: 0;
+            }
+            .no-print {
+                display: none; /* Hide elements with this class when printing */
+            }
+            .a4-page {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 5mm; /* Further reduced padding */
+                box-shadow: none;
+                border: none;
+            }
+            .log-grid {
+                gap: 4mm; /* Further reduced gap */
+            }
+        }
+    </style>
+</head>
+<body class="p-4">
+
+    <!-- Header with Print Button -->
+    <header class="text-center mb-4 no-print">
+        <h1 class="text-2xl font-bold text-gray-800">Nhật Ký Cho Bé Ăn Nhiều Ngày</h1>
+        <p class="text-gray-600">Tối ưu cho khổ giấy A4. Mỗi trang chứa nhật ký cho nhiều ngày.</p>
+        
+        <!-- Input Fields -->
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-md mx-auto">
+            <div>
+                <label for="birthday" class="font-semibold text-gray-700 block mb-1">Ngày sinh của bé:</label>
+                <input type="date" id="birthday" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="startDate" class="font-semibold text-gray-700 block mb-1">Ngày bắt đầu:</label>
+                <input type="date" id="startDate" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+        </div>
+
+        <button onclick="window.print()" class="mt-4 px-6 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            In Nhật Ký
+        </button>
+    </header>
+    
+    <!-- A4 Page Container -->
+    <div id="page-container" class="a4-page">
+        <!-- Day logs will be dynamically inserted here -->
+    </div>
+
+    <script>
+        // Get the container for the day logs
+        const pageContainer = document.getElementById('page-container');
+        // Array of animal emojis to cycle through for each day
+        const dayEmojis = ['🐶', '🐱', '🐭', '🐰', '🦊', '🐻', '🐼', '🐯', '🦁'];
+        
+        // Function to calculate and format the baby's age
+        function calculateAge(currentDate) {
+            const birthdayInput = document.getElementById('birthday');
+            if (!birthdayInput.value) return "Vui lòng chọn ngày sinh";
+            
+            // Parse the birthday string to avoid timezone issues
+            const [bYear, bMonth, bDay] = birthdayInput.value.split('-').map(Number);
+            const birthday = new Date(bYear, bMonth - 1, bDay);
+
+            const startOfCurrentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+            
+            if (startOfCurrentDate < birthday) {
+                return "Chưa sinh";
+            }
+
+            const diffTime = startOfCurrentDate - birthday;
+            const totalDaysOld = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            let ageYears = startOfCurrentDate.getFullYear() - birthday.getFullYear();
+            let ageMonths = startOfCurrentDate.getMonth() - birthday.getMonth();
+            let ageDays = startOfCurrentDate.getDate() - birthday.getDate();
+
+            if (ageDays < 0) {
+                ageMonths--;
+                ageDays += new Date(startOfCurrentDate.getFullYear(), startOfCurrentDate.getMonth(), 0).getDate();
+            }
+
+            if (ageMonths < 0) {
+                ageYears--;
+                ageMonths += 12;
+            }
+            
+            const totalMonths = ageYears * 12 + ageMonths;
+
+            if (totalMonths > 0) {
+                return `${totalMonths} tháng, ${ageDays} ngày`;
+            }
+            return `${totalDaysOld} ngày`;
+        }
+        
+        // Function to create a single day log element
+        function createDayLog(date, emojiIndex) {
+            const dayWrapper = document.createElement('div');
+            dayWrapper.className = 'day-log';
+
+            const emoji = dayEmojis[emojiIndex % dayEmojis.length];
+
+            const dateString = date.toLocaleDateString('vi-VN', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            const ageString = calculateAge(date);
+
+            let tableRows = '';
+            for (let i = 0; i < 12; i++) {
+                tableRows += `
+                    <tr>
+                        <td style="width: 40%;">&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                `;
+            }
+
+            dayWrapper.innerHTML = `
+                <div class="date-header">${emoji} ${dateString}</div>
+                <div class="age-display">Tuổi: ${ageString}</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Giờ</th>
+                            <th>Lượng (oz/ml)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+            `;
+            return dayWrapper;
+        }
+
+        // Function to generate and append multiple day logs
+        function initializeLogs(numberOfDays) {
+            // Clear previous logs before generating new ones
+            pageContainer.innerHTML = '';
+            const logGrid = document.createElement('div');
+            logGrid.className = 'log-grid';
+            
+            const startDateValue = document.getElementById('startDate').value;
+            // Safely parse the date string to avoid timezone issues
+            const [year, month, day] = startDateValue.split('-').map(Number);
+            const startDay = new Date(year, month - 1, day);
+
+            for (let i = 0; i < numberOfDays; i++) {
+                const currentDate = new Date(startDay);
+                currentDate.setDate(startDay.getDate() + i);
+                const dayLog = createDayLog(currentDate, i);
+                logGrid.appendChild(dayLog);
+            }
+            
+            pageContainer.appendChild(logGrid);
+        }
+
+        // Initialize the page when the window loads
+        window.onload = function() {
+            const startDateInput = document.getElementById('startDate');
+            const birthdayInput = document.getElementById('birthday');
+            
+            // Set default date for birthday
+            birthdayInput.value = '2025-05-26';
+            
+            // Set default date for start date to today
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0'); // Add 1 to month because it's 0-indexed
+            const day = String(today.getDate()).padStart(2, '0');
+            startDateInput.value = `${year}-${month}-${day}`;
+            
+            // Generate the initial logs
+            initializeLogs(6);
+
+            // Add event listener to regenerate logs when the start date is changed
+            startDateInput.addEventListener('change', () => {
+                initializeLogs(6);
+            });
+            
+            // Add event listener to regenerate logs when the birthday is changed
+            birthdayInput.addEventListener('change', () => {
+                initializeLogs(6);
+            });
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Tycoon Observer</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #1a202c; /* Dark background */
+            color: #e2e8f0; /* Light text */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+        #sim-container {
+            background-color: #2d3748; /* Darker background for container */
+            border-radius: 0.75rem; /* Rounded corners */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3); /* Soft shadow */
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 1400px;
+            width: 100%;
+            gap: 1.5rem;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .control-group label {
+            font-weight: bold;
+            color: #cbd5e0;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #4a5568;
+            border-radius: 5px;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #63b3ed;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #63b3ed;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+
+        .main-panels {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        @media (min-width: 1024px) {
+            .main-panels {
+                flex-direction: row;
+            }
+        }
+
+        #priceChartCanvas {
+            border: 2px solid #4a5568;
+            background-color: #1f2937;
+            border-radius: 0.5rem;
+            width: 100%;
+            height: 300px; /* Fixed height for consistency */
+        }
+
+        #investorGrid {
+            border: 2px solid #4a5568;
+            background-color: #1f2937;
+            border-radius: 0.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+            max-height: 500px; /* Max height for investor grid */
+            overflow-y: auto; /* Scrollable if many investors */
+            width: 100%;
+        }
+
+        .investor-card {
+            background-color: #2d3748;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            text-align: center;
+            font-size: 0.85em;
+            color: #edf2f7;
+            border: 1px solid #4a5568;
+            position: relative; /* For speech bubbles */
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .investor-card.bankrupt {
+            background-color: #333;
+            color: #888;
+            border-color: #555;
+            text-decoration: line-through;
+        }
+
+        .investor-card .emoji {
+            font-size: 2.5em;
+            margin-bottom: 0.5rem;
+            line-height: 1; /* Adjust line height for emojis */
+        }
+
+        .investor-card .wealth-change {
+            font-size: 0.75em;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease-out;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        .investor-card .wealth-change.show {
+            opacity: 1;
+        }
+        .investor-card .wealth-change.gain {
+            color: #48bb78;
+        }
+        .investor-card .wealth-change.loss {
+            color: #f56565;
+        }
+
+        .speech-bubble {
+            position: absolute;
+            top: -10px; /* Adjust as needed */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #1a202c;
+            border-radius: 10px;
+            padding: 5px 10px;
+            font-size: 0.7em;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease-out, top 0.3s ease-out;
+            pointer-events: none; /* Allow clicks through */
+            z-index: 10;
+        }
+        .speech-bubble.show {
+            opacity: 1;
+            top: -30px;
+        }
+
+        #globalStats {
+            background-color: #1a202c;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            width: 100%;
+            text-align: center;
+            font-size: 0.95em;
+            border: 1px solid #4a5568;
+        }
+
+        #globalStats div {
+            padding: 0.25rem 0;
+        }
+
+        #killFeed {
+            background-color: #1a202c;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            max-height: 150px;
+            overflow-y: auto;
+            width: 100%;
+            border: 1px solid #4a5568;
+        }
+        .feed-event {
+            padding: 0.25rem 0;
+            border-bottom: 1px dashed #4a5568;
+            font-size: 0.85em;
+        }
+        .feed-event:last-child {
+            border-bottom: none;
+        }
+
+        /* Modal styling */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s ease;
+        }
+        .modal.show {
+            visibility: visible;
+            opacity: 1;
+        }
+        .modal-content {
+            background-color: #2d3748;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        .modal-content h3 {
+            margin-bottom: 1rem;
+            color: #edf2f7;
+            font-size: 1.5rem;
+        }
+        .modal-content p {
+            margin-bottom: 1.5rem;
+            color: #cbd5e0;
+        }
+        .modal-content button {
+            background-color: #63b3ed;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease;
+        }
+        .modal-content button:hover {
+            background-color: #4299e1;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 p-5 font-inter">
+    <div id="sim-container" class="flex flex-col items-center p-6 rounded-xl shadow-lg bg-gray-800">
+        <h1 class="text-3xl font-bold mb-4 text-yellow-400">Bitcoin Tycoon Observer</h1>
+        <p class="text-gray-400 mb-6 text-center">Watch AI investors navigate the crypto market: buy, sell, panic, and go broke or get rich!</p>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="numInvestors">Investors:</label>
+                <input type="number" id="numInvestors" value="10" min="5" max="50" class="w-24 p-2 rounded bg-gray-700 text-gray-100 border border-gray-600">
+            </div>
+            <div class="control-group">
+                <label for="simSpeed">Speed:</label>
+                <input type="range" id="simSpeed" min="1" max="100" value="5" class="w-32">
+                <span id="speedDisplay">5x</span>
+            </div>
+            <button id="startGameBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 ease-in-out transform hover:scale-105">
+                Start Simulation
+            </button>
+            <button id="resetGameBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 ease-in-out transform hover:scale-105" style="display:none;">
+                Reset Simulation
+            </button>
+        </div>
+
+        <div class="main-panels">
+            <div class="flex-1 min-w-0">
+                <h2 class="text-2xl font-semibold mb-3 text-orange-300">Bitcoin Price Chart</h2>
+                <canvas id="priceChartCanvas" class="border-2 border-gray-600 rounded-lg w-full h-auto"></canvas>
+                <div id="globalStats" class="mt-4">
+                    <div>Current BTC Price: <span id="currentBtcPrice" class="font-bold text-green-400"></span></div>
+                    <div>Market Trend: <span id="marketTrend" class="font-bold text-yellow-400">Stable</span></div>
+                    <div>Top Investor: <span id="topInvestorName" class="font-bold text-blue-400">N/A</span> (<span id="topInvestorWealth" class="font-bold text-green-400"></span>)</div>
+                </div>
+            </div>
+
+            <div class="flex-1 min-w-0">
+                <h2 class="text-2xl font-semibold mb-3 text-blue-300">Investors</h2>
+                <div id="investorGrid">
+                    <p class="text-gray-500 text-center">Investors will appear here.</p>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="text-2xl font-semibold mt-6 mb-3 text-gray-300">Event Log</h2>
+        <div id="killFeed" class="w-full bg-gray-900 rounded-lg p-4 overflow-y-auto border border-gray-700">
+            <p class="text-gray-500 text-center">No events yet...</p>
+        </div>
+    </div>
+
+    <!-- Custom Modal for messages -->
+    <div id="customModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle"></h3>
+            <p id="modalMessage"></p>
+            <button id="modalCloseBtn">OK</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration Constants ---
+        const INITIAL_BTC_PRICE = 10000; // Starting price for Bitcoin
+        const INITIAL_INVESTOR_WEALTH_MIN = 5000;
+        const INITIAL_INVESTOR_WEALTH_MAX = 15000;
+        const PRICE_VOLATILITY_BASE = 50; // Base random change per tick
+        const PRICE_EVENT_CHANCE = 0.05; // 5% chance per tick for a major price event
+        const PRICE_HISTORY_LENGTH = 150; // Number of data points for the chart
+        const INVESTOR_DECISION_COOLDOWN_MIN = 2000; // ms
+        const INVESTOR_DECISION_COOLDOWN_MAX = 8000; // ms
+        const MIN_WEALTH_FOR_INVESTMENT = 100; // Don't invest if wealth is too low
+        const MIN_BTC_FOR_SELL = 0.0001; // Don't sell if BTC holding is too low
+
+        // --- Game State Variables ---
+        let priceChartCanvas, priceChartCtx;
+        let currentBitcoinPrice = INITIAL_BTC_PRICE;
+        let priceHistory = []; // Stores objects: { price: number, event: string | null }
+        let investors = [];
+        let numInvestors = 10;
+        let gameLoopIntervalId;
+        let animationFrameId;
+        let simulationActive = false;
+        let currentSimSpeed = 5; // Multiplier for simulation tick rate
+
+        // --- Helper Functions ---
+
+        /**
+         * Shows a custom modal.
+         * @param {string} title
+         * @param {string} message
+         */
+        function showModal(title, message) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('customModal').classList.add('show');
+        }
+
+        /**
+         * Hides the custom modal.
+         */
+        function hideModal() {
+            document.getElementById('customModal').classList.remove('show');
+        }
+
+        /**
+         * Logs an event to the kill feed (now 'Event Log').
+         * @param {string} eventText
+         * @param {string} [color]
+         */
+        function logEvent(eventText, color = '#cbd5e0') {
+            const timestamp = new Date().toLocaleTimeString();
+            const eventLogDiv = document.getElementById('killFeed');
+            const eventElement = document.createElement('div');
+            eventElement.classList.add('feed-event');
+            eventElement.style.color = color;
+            eventElement.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> ${eventText}`;
+            eventLogDiv.prepend(eventElement);
+
+            // Keep log from getting too long
+            while (eventLogDiv.children.length > 30) {
+                eventLogDiv.removeChild(eventLogDiv.lastChild);
+            }
+        }
+
+        /**
+         * Clears all log entries.
+         */
+        function clearEventLog() {
+            document.getElementById('killFeed').innerHTML = '';
+            document.getElementById('killFeed').innerHTML = '<p class="text-gray-500 text-center">No events yet...</p>';
+        }
+
+        // --- Bitcoin Price Simulation ---
+
+        /**
+         * Simulates Bitcoin price movement with random walk and occasional events.
+         */
+        function simulateBitcoinPrice() {
+            let priceChange = (Math.random() - 0.5) * PRICE_VOLATILITY_BASE * (currentSimSpeed / 5); // Scale volatility with speed
+
+            let event = null;
+            if (Math.random() < PRICE_EVENT_CHANCE * (currentSimSpeed / 5)) { // Event chance scales with speed
+                const eventType = Math.random();
+                if (eventType < 0.3) { // Bull run
+                    priceChange += currentBitcoinPrice * (0.02 + Math.random() * 0.05); // 2-7% jump
+                    event = "🚀 Bull Run!";
+                    logEvent("Market Event: Bull Run!", '#48bb78');
+                } else if (eventType < 0.6) { // Crash
+                    priceChange -= currentBitcoinPrice * (0.02 + Math.random() * 0.05); // 2-7% drop
+                    event = "📉 Market Crash!";
+                    logEvent("Market Event: Market Crash!", '#f56565');
+                } else if (eventType < 0.8) { // Whale bought
+                    priceChange += currentBitcoinPrice * (0.01 + Math.random() * 0.03); // 1-4% jump
+                    event = "🐳 Whale Bought!";
+                    logEvent("Market Event: Whale Bought!", '#63b3ed');
+                } else { // China ban / negative news
+                    priceChange -= currentBitcoinPrice * (0.01 + Math.random() * 0.03); // 1-4% drop
+                    event = "🚫 China Ban!";
+                    logEvent("Market Event: China Ban!", '#f6ad55');
+                }
+            }
+
+            currentBitcoinPrice = Math.max(1, currentBitcoinPrice + priceChange); // Price can't go below 1
+
+            priceHistory.push({ price: currentBitcoinPrice, event: event });
+            if (priceHistory.length > PRICE_HISTORY_LENGTH) {
+                priceHistory.shift();
+            }
+        }
+
+        /**
+         * Draws the Bitcoin price chart on its canvas.
+         */
+        function drawPriceChart() {
+            if (!priceChartCtx) return;
+
+            const canvasWidth = priceChartCanvas.width;
+            const canvasHeight = priceChartCanvas.height;
+            priceChartCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+            if (priceHistory.length < 2) return;
+
+            // Find min/max price for scaling
+            const prices = priceHistory.map(p => p.price);
+            const minPrice = Math.min(...prices) * 0.95; // Add some padding
+            const maxPrice = Math.max(...prices) * 1.05;
+
+            // Draw grid lines (optional, for readability)
+            priceChartCtx.strokeStyle = '#333';
+            priceChartCtx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = canvasHeight - (canvasHeight / 5) * i;
+                priceChartCtx.beginPath();
+                priceChartCtx.moveTo(0, y);
+                priceChartCtx.lineTo(canvasWidth, y);
+                priceChartCtx.stroke();
+            }
+
+            // Draw price line
+            priceChartCtx.beginPath();
+            priceChartCtx.strokeStyle = '#f7931a'; // Bitcoin orange
+            priceChartCtx.lineWidth = 2;
+
+            for (let i = 0; i < priceHistory.length; i++) {
+                const x = (i / (PRICE_HISTORY_LENGTH - 1)) * canvasWidth;
+                const y = canvasHeight - ((priceHistory[i].price - minPrice) / (maxPrice - minPrice)) * canvasHeight;
+                if (i === 0) {
+                    priceChartCtx.moveTo(x, y);
+                } else {
+                    priceChartCtx.lineTo(x, y);
+                }
+            }
+            priceChartCtx.stroke();
+
+            // Draw current price indicator
+            const lastPrice = priceHistory[priceHistory.length - 1].price;
+            const lastY = canvasHeight - ((lastPrice - minPrice) / (maxPrice - minPrice)) * canvasHeight;
+            priceChartCtx.fillStyle = '#f7931a';
+            priceChartCtx.beginPath();
+            priceChartCtx.arc(canvasWidth, lastY, 5, 0, Math.PI * 2);
+            priceChartCtx.fill();
+
+            // Display current price
+            document.getElementById('currentBtcPrice').textContent = `$${lastPrice.toFixed(2)}`;
+
+            // Update market trend
+            if (priceHistory.length >= 10) {
+                const recentPrices = priceHistory.slice(-10).map(p => p.price);
+                const avgRecent = recentPrices.reduce((sum, p) => sum + p, 0) / recentPrices.length;
+                const oldPrice = priceHistory[priceHistory.length - 10].price;
+
+                const trendSpan = document.getElementById('marketTrend');
+                if (avgRecent > oldPrice * 1.02) {
+                    trendSpan.textContent = 'Strong Up ⬆️';
+                    trendSpan.className = 'font-bold text-green-400';
+                } else if (avgRecent > oldPrice * 1.005) {
+                    trendSpan.textContent = 'Up ↗️';
+                    trendSpan.className = 'font-bold text-lime-400';
+                } else if (avgRecent < oldPrice * 0.98) {
+                    trendSpan.textContent = 'Strong Down ⬇️';
+                    trendSpan.className = 'font-bold text-red-400';
+                } else if (avgRecent < oldPrice * 0.995) {
+                    trendSpan.textContent = 'Down ↘️';
+                    trendSpan.className = 'font-bold text-orange-400';
+                } else {
+                    trendSpan.textContent = 'Stable ↔️';
+                    trendSpan.className = 'font-bold text-yellow-400';
+                }
+            }
+        }
+
+        // --- Investor Logic ---
+
+        /**
+         * Creates a new investor object.
+         * @param {number} id - Unique ID.
+         * @returns {object} The investor object.
+         */
+        function createInvestor(id) {
+            const wealth = Math.random() * (INITIAL_INVESTOR_WEALTH_MAX - INITIAL_INVESTOR_WEALTH_MIN) + INITIAL_INVESTOR_WEALTH_MIN;
+            const behaviors = ['Conservative', 'YOLO', 'Trend Chaser', 'HODLer'];
+            const behavior = behaviors[Math.floor(Math.random() * behaviors.length)];
+            const name = `Inv ${id}`;
+            const emojis = ['😎', '🤔', '📈', '📉', '🤑', '🥶', '🚀', '🚨'];
+
+            return {
+                id: `inv-${id}`,
+                name: name,
+                behavior: behavior,
+                initialWealth: wealth,
+                currentWealth: wealth,
+                bitcoinHoldings: 0,
+                lastDecisionTime: 0,
+                decisionCooldown: Math.random() * (INVESTOR_DECISION_COOLDOWN_MAX - INVESTOR_DECISION_COOLDOWN_MIN) + INVESTOR_DECISION_COOLDOWN_MIN,
+                reactionEmoji: '🤔',
+                speechBubble: { text: '', displayUntil: 0 },
+                isBankrupt: false
+            };
+        }
+
+        /**
+         * Updates investor behavior based on market conditions and their type.
+         * @param {DOMHighResTimeStamp} currentTime
+         */
+        function updateInvestorBehavior(currentTime) {
+            investors.forEach(investor => {
+                if (investor.isBankrupt) return;
+
+                if (currentTime - investor.lastDecisionTime >= investor.decisionCooldown) {
+                    const recentPrices = priceHistory.slice(-10).map(p => p.price); // Last 10 prices
+                    const currentPrice = priceHistory[priceHistory.length - 1].price;
+                    const prevPrice = priceHistory[priceHistory.length - 2] ? priceHistory[priceHistory.length - 2].price : currentPrice;
+                    const priceChangeRatio = (currentPrice - prevPrice) / prevPrice; // Percentage change
+
+                    let decisionMade = false;
+
+                    switch (investor.behavior) {
+                        case 'Conservative':
+                            // Buy small on dips, sell small on spikes, panic on big crashes
+                            if (priceChangeRatio < -0.01 && investor.currentWealth > MIN_WEALTH_FOR_INVESTMENT && Math.random() < 0.6) { // Price dropped >1%
+                                const amountToInvest = investor.currentWealth * (0.05 + Math.random() * 0.1); // 5-15% of wealth
+                                buyBitcoin(investor, amountToInvest, currentPrice);
+                                investor.reactionEmoji = ' cautiously';
+                                investor.speechBubble = { text: "Buying the dip (carefully)", displayUntil: currentTime + 2000 };
+                                decisionMade = true;
+                            } else if (priceChangeRatio > 0.02 && investor.bitcoinHoldings > MIN_BTC_FOR_SELL && Math.random() < 0.6) { // Price rose >2%
+                                const amountToSellBTC = investor.bitcoinHoldings * (0.05 + Math.random() * 0.1); // Sell 5-15% of BTC
+                                sellBitcoin(investor, amountToSellBTC, currentPrice);
+                                investor.reactionEmoji = '💰';
+                                investor.speechBubble = { text: "Taking some profit", displayUntil: currentTime + 2000 };
+                                decisionMade = true;
+                            } else if (priceChangeRatio < -0.05 && investor.bitcoinHoldings > MIN_BTC_FOR_SELL && Math.random() < 0.8) { // Big crash
+                                const amountToSellBTC = investor.bitcoinHoldings * (0.5 + Math.random() * 0.5); // Panic sell 50-100%
+                                sellBitcoin(investor, amountToSellBTC, currentPrice);
+                                investor.reactionEmoji = '😱';
+                                investor.speechBubble = { text: "PANIC SELL!", displayUntil: currentTime + 2000 };
+                                decisionMade = true;
+                            }
+                            break;
+
+                        case 'YOLO':
+                            // Buy big on bull runs, might panic sell, or hold through anything
+                            if (priceChangeRatio > 0.03 && investor.currentWealth > MIN_WEALTH_FOR_INVESTMENT && Math.random() < 0.7) { // Big price jump
+                                const amountToInvest = investor.currentWealth * (0.5 + Math.random() * 0.5); // 50-100% of wealth
+                                buyBitcoin(investor, amountToInvest, currentPrice);
+                                investor.reactionEmoji = '🚀';
+                                investor.speechBubble = { text: "WE'RE GOING TO THE MOON!", displayUntil: currentTime + 2000 };
+                                decisionMade = true;
+                            } else if (priceChangeRatio < -0.01 && investor.bitcoinHoldings > MIN_BTC_FOR_SELL && Math.random() < 0.3) { // Minor dip, YOLO might panic sell
+                                const amountToSellBTC = investor.bitcoinHoldings * (0.1 + Math.random() * 0.4); // Sell 10-50%
+                                sellBitcoin(investor, amountToSellBTC, currentPrice);
+                                investor.reactionEmoji = '🥶';
+                                investor.speechBubble = { text: "Aaaaaand it's gone!", displayUntil: currentTime + 2000 };
+                                decisionMade = true;
+                            } else if (priceChangeRatio > 0.05 && investor.bitcoinHoldings > MIN_BTC_FOR_SELL && Math.random() < 0.5) { // Riding the wave
+                                investor.reactionEmoji = '�';
+                                investor.speechBubble = { text: "Just chilling here.", displayUntil: currentTime + 2000 };
+                                decisionMade = true;
+                            }
+                            break;
+
+                        case 'Trend Chaser':
+                            // Buy when consistently rising, sell when consistently falling
+                            if (recentPrices.length > 5) {
+                                const trendUp = recentPrices[4] > recentPrices[0] * 1.02; // 2% up over 5 ticks
+                                const trendDown = recentPrices[4] < recentPrices[0] * 0.98; // 2% down over 5 ticks
+
+                                if (trendUp && investor.currentWealth > MIN_WEALTH_FOR_INVESTMENT && Math.random() < 0.7) {
+                                    const amountToInvest = investor.currentWealth * (0.1 + Math.random() * 0.2);
+                                    buyBitcoin(investor, amountToInvest, currentPrice);
+                                    investor.reactionEmoji = '📈';
+                                    investor.speechBubble = { text: "Following the trend!", displayUntil: currentTime + 2000 };
+                                    decisionMade = true;
+                                } else if (trendDown && investor.bitcoinHoldings > MIN_BTC_FOR_SELL && Math.random() < 0.7) {
+                                    const amountToSellBTC = investor.bitcoinHoldings * (0.1 + Math.random() * 0.2);
+                                    sellBitcoin(investor, amountToSellBTC, currentPrice);
+                                    investor.reactionEmoji = '📉';
+                                    investor.speechBubble = { text: "Time to get out!", displayUntil: currentTime + 2000 };
+                                    decisionMade = true;
+                                }
+                            }
+                            break;
+
+                        case 'HODLer':
+                            // Buys occasionally, almost never sells
+                            if (investor.currentWealth > MIN_WEALTH_FOR_INVESTMENT * 2 && Math.random() < 0.1) { // Buy rarely
+                                const amountToInvest = investor.currentWealth * (0.1 + Math.random() * 0.2);
+                                buyBitcoin(investor, amountToInvest, currentPrice);
+                                investor.reactionEmoji = '💎✋'; // Diamond hands
+                                investor.speechBubble = { text: "Just buying more for the long run", displayUntil: currentTime + 2000 };
+                                decisionMade = true;
+                            }
+                            // Only sell if absolutely broke or on extreme conditions
+                            if (investor.currentWealth < 100 && investor.bitcoinHoldings > MIN_BTC_FOR_SELL && Math.random() < 0.5) {
+                                const amountToSellBTC = investor.bitcoinHoldings * (0.8 + Math.random() * 0.2); // Sell large chunk to survive
+                                sellBitcoin(investor, amountToSellBTC, currentPrice);
+                                investor.reactionEmoji = '💔';
+                                investor.speechBubble = { text: "Reluctantly selling...", displayUntil: currentTime + 2000 };
+                                decisionMade = true;
+                            } else {
+                                investor.reactionEmoji = '🧘';
+                                investor.speechBubble = { text: "HODL!", displayUntil: currentTime + 2000 };
+                                decisionMade = true;
+                            }
+                            break;
+                    }
+
+                    if (decisionMade || Math.random() < 0.2) { // Always update cooldown if decision or 20% chance for random update
+                        investor.lastDecisionTime = currentTime;
+                        investor.decisionCooldown = Math.random() * (INVESTOR_DECISION_COOLDOWN_MAX - INVESTOR_DECISION_COOLDOWN_MIN) + INVESTOR_DECISION_COOLDOWN_MIN;
+                    } else {
+                        // Default neutral emoji if no specific action for this tick
+                        investor.reactionEmoji = '🤔';
+                    }
+
+                    // Check for bankruptcy
+                    if (investor.currentWealth <= 0 && investor.bitcoinHoldings <= 0) {
+                        investor.isBankrupt = true;
+                        logEvent(`${investor.name} went broke! 💀`, 'gray');
+                    }
+                }
+            });
+        }
+
+        /**
+         * Executes a Bitcoin purchase for an investor.
+         * @param {object} investor
+         * @param {number} usdAmount
+         * @param {number} price
+         */
+        function buyBitcoin(investor, usdAmount, price) {
+            const actualUsd = Math.min(usdAmount, investor.currentWealth);
+            if (actualUsd <= 0) return;
+
+            const btcBought = actualUsd / price;
+            investor.currentWealth -= actualUsd;
+            investor.bitcoinHoldings += btcBought;
+            logEvent(`${investor.name} bought ${btcBought.toFixed(4)} BTC for $${actualUsd.toFixed(2)}.`, '#48bb78');
+        }
+
+        /**
+         * Executes a Bitcoin sale for an investor.
+         * @param {object} investor
+         * @param {number} btcAmount
+         * @param {number} price
+         */
+        function sellBitcoin(investor, btcAmount, price) {
+            const actualBtc = Math.min(btcAmount, investor.bitcoinHoldings);
+            if (actualBtc <= MIN_BTC_FOR_SELL) return;
+
+            const usdGained = actualBtc * price;
+            investor.currentWealth += usdGained;
+            investor.bitcoinHoldings -= actualBtc;
+            logEvent(`${investor.name} sold ${actualBtc.toFixed(4)} BTC for $${usdGained.toFixed(2)}.`, '#f56565');
+        }
+
+        // --- UI Updates ---
+
+        /**
+         * Updates the investor display grid.
+         */
+        function updateInvestorGrid(currentTime) {
+            const investorGrid = document.getElementById('investorGrid');
+            investorGrid.innerHTML = ''; // Clear existing cards
+
+            let topInvestor = null;
+            let maxWealth = -Infinity;
+
+            investors.forEach(investor => {
+                const card = document.createElement('div');
+                card.id = `investor-card-${investor.id}`;
+                card.className = 'investor-card';
+
+                if (investor.isBankrupt) {
+                    card.classList.add('bankrupt');
+                }
+
+                // Calculate total wealth (USD + BTC converted to USD)
+                const totalWealth = investor.currentWealth + (investor.bitcoinHoldings * currentBitcoinPrice);
+
+                if (totalWealth > maxWealth) {
+                    maxWealth = totalWealth;
+                    topInvestor = investor;
+                }
+
+                const initialTotalWealth = investor.initialWealth;
+                const wealthChangeAmount = totalWealth - initialTotalWealth;
+                const wealthChangeClass = wealthChangeAmount >= 0 ? 'gain' : 'loss';
+                const wealthChangeSign = wealthChangeAmount >= 0 ? '+' : '';
+
+                card.innerHTML = `
+                    <div class="emoji">${investor.reactionEmoji}</div>
+                    <div class="font-bold text-base">${investor.name} (${investor.behavior})</div>
+                    <div class="text-xs text-gray-400 mt-1">Cash: $${investor.currentWealth.toFixed(2)}</div>
+                    <div class="text-xs text-gray-400">BTC: ${investor.bitcoinHoldings.toFixed(4)} ($${(investor.bitcoinHoldings * currentBitcoinPrice).toFixed(2)})</div>
+                    <div class="font-semibold text-sm mt-1">Total: <span class="text-yellow-300">$${totalWealth.toFixed(2)}</span></div>
+                    <div class="wealth-change ${wealthChangeClass} ${wealthChangeAmount !== 0 ? 'show' : ''}">
+                        ${wealthChangeSign}$${wealthChangeAmount.toFixed(2)}
+                    </div>
+                    <div id="bubble-${investor.id}" class="speech-bubble"></div>
+                `;
+
+                investorGrid.appendChild(card);
+
+                // Update speech bubble
+                const bubbleElement = document.getElementById(`bubble-${investor.id}`);
+                if (bubbleElement && investor.speechBubble.text && currentTime < investor.speechBubble.displayUntil) {
+                    bubbleElement.textContent = investor.speechBubble.text;
+                    bubbleElement.classList.add('show');
+                } else if (bubbleElement) {
+                    bubbleElement.classList.remove('show');
+                    investor.speechBubble.text = ''; // Clear text once hidden
+                }
+            });
+
+            // Update top investor in global stats
+            if (topInvestor) {
+                document.getElementById('topInvestorName').textContent = topInvestor.name;
+                document.getElementById('topInvestorWealth').textContent = `$${maxWealth.toFixed(2)}`;
+            }
+        }
+
+        // --- Simulation Control ---
+
+        /**
+         * Initializes the simulation components.
+         */
+        function initializeSimulation() {
+            priceChartCanvas = document.getElementById('priceChartCanvas');
+            priceChartCtx = priceChartCanvas.getContext('2d');
+
+            // Responsive canvas sizing
+            const containerWidth = priceChartCanvas.clientWidth;
+            priceChartCanvas.width = 600; // Fixed resolution for drawing
+            priceChartCanvas.height = 300;
+            priceChartCanvas.style.height = `${(priceChartCanvas.height / priceChartCanvas.width) * containerWidth}px`;
+
+            // Initial price point
+            priceHistory = [{ price: INITIAL_BTC_PRICE, event: null }];
+            currentBitcoinPrice = INITIAL_BTC_PRICE;
+
+            // Setup controls
+            const numInvestorsInput = document.getElementById('numInvestors');
+            numInvestorsInput.value = numInvestors; // Set initial value
+            numInvestorsInput.addEventListener('change', (e) => {
+                numInvestors = parseInt(e.target.value, 10);
+            });
+
+            const speedSlider = document.getElementById('simSpeed');
+            const speedDisplay = document.getElementById('speedDisplay');
+            speedSlider.value = currentSimSpeed;
+            speedDisplay.textContent = `${currentSimSpeed}x`;
+            speedSlider.addEventListener('input', (e) => {
+                currentSimSpeed = parseInt(e.target.value, 10);
+                speedDisplay.textContent = `${currentSimSpeed}x`;
+                if (simulationActive) {
+                    restartGameLogicLoop(); // Adjust speed if already running
+                }
+            });
+
+            document.getElementById('startGameBtn').addEventListener('click', startGame);
+            document.getElementById('resetGameBtn').addEventListener('click', resetGame);
+            document.getElementById('modalCloseBtn').addEventListener('click', hideModal);
+
+            drawPriceChart(); // Initial chart draw
+            createInvestors(); // Create initial investors
+            updateInvestorGrid(performance.now()); // Initial investor grid update
+            clearEventLog(); // Clear initial message
+
+            // Show welcome modal
+            showModal("Welcome!", "Prepare for a crypto market simulation! Watch AI investors make their moves.", "Start Simulation");
+        }
+
+        /**
+         * Creates investors based on the current numInvestors setting.
+         */
+        function createInvestors() {
+            investors = [];
+            for (let i = 0; i < numInvestors; i++) {
+                investors.push(createInvestor(i + 1));
+            }
+        }
+
+        /**
+         * Starts the main game loops.
+         */
+        function startGame() {
+            if (simulationActive) return; // Prevent multiple starts
+            simulationActive = true;
+            logEvent("Simulation Started!", '#48bb78');
+            document.getElementById('startGameBtn').style.display = 'none';
+            document.getElementById('resetGameBtn').style.display = 'block';
+
+            // Start the main logic loop with adjustable speed
+            restartGameLogicLoop();
+
+            // Start animation loop (for chart and visual updates)
+            animationFrameId = requestAnimationFrame(animate);
+        }
+
+        /**
+         * Restarts the game logic loop to apply new speed.
+         */
+        function restartGameLogicLoop() {
+            if (gameLoopIntervalId) clearInterval(gameLoopIntervalId);
+            const intervalMs = 1000 / currentSimSpeed; // 1000ms / speed_multiplier = interval
+            gameLoopIntervalId = setInterval(gameLogicTick, intervalMs);
+        }
+
+        /**
+         * Resets the entire simulation.
+         */
+        function resetGame() {
+            if (gameLoopIntervalId) clearInterval(gameLoopIntervalId);
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            simulationActive = false;
+
+            // Reset all state variables
+            currentBitcoinPrice = INITIAL_BTC_PRICE;
+            priceHistory = [{ price: INITIAL_BTC_PRICE, event: null }];
+            investors = []; // Will be re-created by initializeSimulation
+            gameLoopIntervalId = null;
+            animationFrameId = null;
+
+            initializeSimulation(); // Re-initialize everything
+            logEvent("Simulation Reset.", '#cbd5e0');
+            document.getElementById('startGameBtn').style.display = 'block';
+            document.getElementById('resetGameBtn').style.display = 'none';
+            document.getElementById('topInvestorName').textContent = 'N/A';
+            document.getElementById('topInvestorWealth').textContent = '$0.00';
+        }
+
+        /**
+         * The main game logic tick, called by setInterval.
+         */
+        function gameLogicTick() {
+            if (!simulationActive) return;
+            const currentTime = performance.now();
+            simulateBitcoinPrice();
+            updateInvestorBehavior(currentTime);
+            // No need to call updateInvestorGrid here as it's handled by animate
+        }
+
+        /**
+         * The main animation loop, called by requestAnimationFrame.
+         * Primarily for drawing and visual updates.
+         * @param {DOMHighResTimeStamp} currentTime
+         */
+        function animate(currentTime) {
+            drawPriceChart();
+            updateInvestorGrid(currentTime);
+            animationFrameId = requestAnimationFrame(animate);
+        }
+
+        // --- Initial Setup ---
+        window.onload = initializeSimulation;
+    </script>
+</body>
+</html>
+�
