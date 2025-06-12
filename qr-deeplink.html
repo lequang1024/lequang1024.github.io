@@ -137,23 +137,36 @@
             </div>
 
             <div class="lg:w-1/2 lg:sticky lg:top-8 space-y-6">
-                 <div>
-                    <h2 class="text-xl font-semibold text-gray-700 mb-2 text-center">Scan QR Code</h2>
-                    <div id="qrcode" class="p-4 border border-gray-300 rounded-lg bg-white shadow-sm w-64 h-64 sm:w-72 sm:h-72 mx-auto flex items-center justify-center">
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-700 mb-2 text-center">Scan QR Code</h2>
+                        <div id="qrcode" class="p-4 border border-gray-300 rounded-lg bg-white shadow-sm w-64 h-64 sm:w-72 sm:h-72 mx-auto flex items-center justify-center">
                         </div>
                 </div>
                 <div>
                     <h2 class="text-xl font-semibold text-gray-700 mb-2">Generated Deep Link URL</h2>
-                    <p id="generatedUrl" class="text-sm text-gray-600 bg-gray-50 p-3 rounded-md border border-gray-200 min-h-[60px]"></p>
+                    <div class="relative bg-gray-50 rounded-md border border-gray-200 p-3 flex items-center justify-between min-h-[60px]">
+                        <p id="generatedUrl" class="text-sm text-gray-600 word-break-all flex-grow pr-2"></p>
+                        <button id="copyUrlBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-1 px-3 text-xs rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 transition duration-150 ease-in-out flex-shrink-0">
+                            Copy
+                        </button>
+                    </div>
                 </div>
                 <div class="mt-6 flex flex-col sm:flex-row justify-center items-center gap-4">
                     <button id="startGameBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 text-sm rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out w-full sm:w-auto">
                         Start Game
                     </button>
+                    <!-- Sub-text for Start Game button -->
+                    <p class="text-xs text-gray-500 text-center mt-2 w-full sm:hidden">
+                        (To start game with this button, open this website in your mobile device's browser)
+                    </p>
                     <button id="resetBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 text-sm rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition duration-150 ease-in-out w-full sm:w-auto">
                         Reset All Settings
                     </button>
                 </div>
+                <!-- Sub-text for Start Game button for larger screens -->
+                <p class="text-xs text-gray-500 text-center mt-2 hidden sm:block">
+                    (To start game with this button, open this website in your mobile device's browser)
+                </p>
             </div>
         </div>
     </div>
@@ -173,6 +186,7 @@
         const aliveStatusDiv = document.getElementById('aliveStatus'); 
         const grafanaLinkContainer = document.getElementById('grafanaLinkContainer');
         const grafanaLink = document.getElementById('grafanaLink');
+        const copyUrlBtn = document.getElementById('copyUrlBtn');
 
 
         let qrCodeInstance = null;
@@ -493,6 +507,7 @@
                 aliveStatusDiv.textContent = ''; 
                 aliveStatusDiv.className = 'mt-2 text-sm';
                 grafanaLinkContainer.classList.add('hidden-field');
+                copyUrlBtn.disabled = true; // Disable copy button on error
                 return; 
             }
 
@@ -525,11 +540,11 @@
             if (showGrafanaLink && grafanaAppName && grafanaDatasourceUid) {
                 const expr = `{app=\"${grafanaAppName}\"} |= \`\``;
                 const panesObj = {
-                  "c13": {
-                    "datasource": grafanaDatasourceUid, 
-                    "queries": [ { "refId": "A", "editorMode": "builder", "expr": expr, "queryType": "range", "datasource": {"type": "loki", "uid": grafanaDatasourceUid} } ],
-                    "range": { "from": "now-6h", "to": "now" }
-                  }
+                    "c13": {
+                        "datasource": grafanaDatasourceUid, 
+                        "queries": [ { "refId": "A", "editorMode": "builder", "expr": expr, "queryType": "range", "datasource": {"type": "loki", "uid": grafanaDatasourceUid} } ],
+                        "range": { "from": "now-6h", "to": "now" }
+                    }
                 };
                 const encodedPanes = encodeURIComponent(JSON.stringify(panesObj));
                 grafanaLink.href = `https://grafana.jarvis.tools/explore?schemaVersion=1&panes=${encodedPanes}&orgId=1`;
@@ -605,8 +620,10 @@
                 }
 
                 if (!resetBtn.dataset.isResetting) { 
-                     saveInputsToLocalStorage();
+                    saveInputsToLocalStorage();
                 }
+                copyUrlBtn.disabled = false; // Enable copy button after successful generation
+
             } catch (e) {
                 console.error("QR Code generation error:", e);
                 qrcodeDiv.innerHTML = '<p class="error-message text-center">Error generating QR code.</p>';
@@ -615,6 +632,7 @@
                 generatedUrlP.appendChild(errorText);
                 generatedUrlP.classList.add('error-message');
                 currentDeepLinkUrl = ''; 
+                copyUrlBtn.disabled = true; // Disable copy button on error
             }
             scheduleAliveCheck();
         }
@@ -636,10 +654,48 @@
                 }
                 window.location.href = currentDeepLinkUrl;
             } else {
-                alert("Please generate a valid QR code and URL first, or check for errors.");
+                // Use a custom modal or message box instead of alert()
+                console.warn("Please generate a valid QR code and URL first, or check for errors.");
             }
         });
-        
+
+        // Copy to Clipboard functionality
+        copyUrlBtn.addEventListener('click', () => {
+            if (currentDeepLinkUrl) {
+                const originalButtonText = copyUrlBtn.textContent;
+                const textArea = document.createElement('textarea');
+                textArea.value = currentDeepLinkUrl;
+                textArea.style.position = 'fixed'; // Prevent scrolling to bottom of page in MS Edge.
+                textArea.style.left = '-9999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    copyUrlBtn.textContent = 'Copied!';
+                    copyUrlBtn.disabled = true; // Disable button temporarily
+                    setTimeout(() => {
+                        copyUrlBtn.textContent = originalButtonText;
+                        copyUrlBtn.disabled = false; // Re-enable button
+                    }, 2000); // Revert after 2 seconds
+
+                    if (typeof gtag === 'function') {
+                        gtag('event', 'copy_url_clicked', {
+                            'event_category': 'interaction',
+                            'event_label': 'Copy URL Button',
+                            'deep_link_url': currentDeepLinkUrl
+                        });
+                    }
+                } catch (err) {
+                    console.error('Failed to copy: ', err);
+                    // No visible message, just console log for error
+                }
+                document.body.removeChild(textArea);
+            } else {
+                console.warn("No URL to copy. Generate a deep link first.");
+            }
+        });
+
         grafanaLink.addEventListener('click', (event) => {
             if (typeof gtag === 'function') {
                 const prNum = prNumberInput.value.trim();
@@ -676,7 +732,7 @@
             loadInputsFromLocalStorage(); 
             renderAdditionalParams(); 
             updateInputVisibility(environmentSelect.value); 
-            generateAndDisplayQrCode();   
+            generateAndDisplayQrCode();   
 
             let resizeTimeout;
             window.addEventListener('resize', () => {
