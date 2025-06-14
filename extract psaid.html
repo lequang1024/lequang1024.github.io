@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distinct PsaId Extractor</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            white-space: pre-wrap; /* Ensures newlines are rendered */
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Distinct PsaId Extractor from Logs</h2>
+    <p>Paste your log content below. The tool will extract and display a list of unique PsaIds.</p>
+
+    <textarea id="logInput" placeholder="Paste your logs here..."></textarea>
+    <button onclick="extractPsaIds()">Extract Distinct PsaIds</button>
+
+    <h3>Distinct Extracted PsaIds:</h3>
+    <div id="output"></div>
+
+    <script>
+        function extractPsaIds() {
+            const logText = document.getElementById('logInput').value;
+            // This regex looks for an IP address, then captures the number (PsaId) that follows.
+            const regex = /(?:\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s+(\d+)/g;
+            let matches;
+            const psaIds = [];
+
+            // Find all matches in the log text
+            while ((matches = regex.exec(logText)) !== null) {
+                // The PsaId is in the first capturing group (matches[1])
+                psaIds.push(matches[1]);
+            }
+
+            // Create a distinct list of PsaIds
+            const distinctPsaIds = [...new Set(psaIds)];
+
+            const outputDiv = document.getElementById('output');
+            if (distinctPsaIds.length > 0) {
+                // Join the array of distinct IDs with a newline character
+                outputDiv.innerText = distinctPsaIds.join('\n');
+            } else {
+                outputDiv.innerText = 'No PsaIds found.';
+            }
+        }
+    </script>
+
+</body>
+</html>

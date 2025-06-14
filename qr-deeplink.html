@@ -467,7 +467,8 @@
                         gtag('event', 'server_reachable', {
                             'event_category': 'engagement',
                             'event_label': 'Alive Check Success',
-                            'host': hostToCheck 
+                            'host': hostToCheck,
+                            'deep_link_url': currentDeepLinkUrl // Added currentDeepLinkUrl
                         });
                     }
                 }
@@ -480,7 +481,8 @@
                         gtag('event', 'server_unreachable', {
                             'event_category': 'engagement',
                             'event_label': 'Alive Check Failed',
-                            'host': hostToCheck 
+                            'host': hostToCheck,
+                            'deep_link_url': currentDeepLinkUrl // Added currentDeepLinkUrl
                         });
                     }
                 }
