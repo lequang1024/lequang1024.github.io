@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Google Analytics Tag -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL3LWXVBHR"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -8,21 +9,111 @@
         gtag('js', new Date());
         gtag('config', 'G-LL3LWXVBHR');
     </script>
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quang Le — Project Tools</title>
+
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
     <style>
+        /* Base font for the body */
         body {
             font-family: 'Inter', sans-serif;
         }
+
+        /* Styling for individual project cards (if any are still rendered this way, though the tree view changes this) */
         .project-card {
             transition: all 0.2s ease;
         }
         .project-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Specific styles for the tree view folders */
+        .folder-item {
+            cursor: pointer;
+            user-select: none; /* Prevents text selection on double-click */
+            padding: 8px 0;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.1s ease;
+        }
+        .folder-item:hover {
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+        }
+
+        /* Style for the expand/collapse icon */
+        .folder-toggle-icon {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0; /* Prevents icon from shrinking */
+            display: inline-block;
+            transition: transform 0.2s ease;
+            transform-origin: center center;
+        }
+        /* Rotates the icon when folder is expanded */
+        .folder-item[data-expanded="true"] .folder-toggle-icon {
+            transform: rotate(90deg);
+        }
+        /* Specific folder icon */
+        .folder-icon {
+            margin-left: 4px;
+            margin-right: 8px;
+            font-size: 1.2em; /* Adjust size for emoji */
+            line-height: 1; /* Ensure emoji aligns correctly */
+            flex-shrink: 0;
+        }
+
+        /* Style for folder name text */
+        .folder-name {
+            font-weight: 600; /* Tailwind font-semibold */
+            color: #4f46e5; /* Tailwind indigo-600 */
+        }
+
+        /* Indentation for nested items within a folder */
+        .folder-contents {
+            margin-left: 24px; /* Indent nested items */
+            list-style: none; /* Remove default list bullets */
+            padding: 0;
+            overflow: hidden; /* Hide overflow when collapsing */
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+        }
+        /* Initially hidden state for folder contents */
+        .folder-contents.hidden {
+            max-height: 0;
+            opacity: 0;
+        }
+        /* Expanded state for folder contents */
+        .folder-contents:not(.hidden) {
+            max-height: 1000px; /* A large enough value to allow content to show */
+            opacity: 1;
+        }
+
+        /* Styling for individual file items */
+        .file-item {
+            padding: 6px 0;
+            border-radius: 8px;
+            margin-bottom: 2px;
+        }
+        .file-item a {
+            display: block;
+            padding: 4px 8px; /* Padding for the clickable area */
+            border-radius: 8px;
+            color: #374151; /* Tailwind gray-700 */
+            text-decoration: none;
+            transition: background-color 0.1s ease, color 0.1s ease;
+        }
+        .file-item a:hover {
+            background-color: #e5e7eb; /* Tailwind gray-200 */
+            color: #1f2937; /* Tailwind gray-800 */
         }
     </style>
 </head>
@@ -38,15 +129,17 @@
             </p>
         </header>
 
-        <main id="project-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <!-- Projects will be dynamically loaded here -->
-            <div id="loading-indicator" class="col-span-full text-center text-gray-500">
-                <svg class="animate-spin h-6 w-6 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <main id="project-tree" class="bg-white rounded-2xl p-6 shadow border border-gray-200">
+            <!-- Loading indicator for initial fetch -->
+            <div id="loading-indicator" class="text-center text-gray-500 py-8">
+                <svg class="animate-spin h-8 w-8 text-indigo-600 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <p class="mt-2">Loading tools...</p>
+                <p>Loading repository contents...</p>
             </div>
+            <!-- Root UL for the tree structure -->
+            <ul id="tree-root" class="list-none p-0 m-0"></ul>
         </main>
 
         <footer class="mt-16 text-center text-sm text-gray-500">
@@ -55,18 +148,32 @@
     </div>
 
     <script>
-        // --- GitHub API Fetching and Rendering ---
+        // --- GitHub API Fetching and Tree Rendering Logic ---
 
-        const apiUrl = 'https://api.github.com/repos/lequang1024/lequang1024.github.io/contents/';
-        const projectGrid = document.getElementById('project-grid');
+        const repoOwner = 'lequang1024';
+        const repoName = 'lequang1024.github.io';
+        const baseUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/`;
+        const treeRoot = document.getElementById('tree-root');
         const loadingIndicator = document.getElementById('loading-indicator');
 
-        // Function to provide titles and descriptions based on filename
-        function getProjectDetails(filename) {
-            let title = filename.replace('.html', '').replace(/-/g, ' ');
-            title = title.charAt(0).toUpperCase() + title.slice(1);
-            let description = `A simple utility: ${title}.`;
+        /**
+         * Generates display details (title, description, and the correct URL) for a given file path.
+         * This function is crucial for providing user-friendly names and descriptions,
+         * especially for files nested within directories.
+         * @param {string} fullPath - The full relative path of the file (e.g., 'Games/auto-tower-defense-game.html').
+         * @returns {{title: string, description: string, url: string}} An object with the formatted title, description, and the relative URL for linking.
+         */
+        function getProjectDetails(fullPath) {
+            const parts = fullPath.split('/');
+            const filename = parts[parts.length - 1]; // Extracts the filename (e.g., 'auto-tower-defense-game.html')
+            const directoryPrefix = parts.length > 1 ? parts[0] : ''; // Gets the top-level directory (e.g., 'Games')
 
+            // Default title and description derived from the filename
+            let title = filename.replace('.html', '').replace(/-/g, ' ');
+            title = title.charAt(0).toUpperCase() + title.slice(1); // Capitalize first letter
+            let description = `A simple utility or project.`;
+
+            // Specific overrides for known files to provide custom titles and descriptions
             switch (filename) {
                 case 'qr-deeplink.html':
                     title = 'QR Code Deeplink Generator';
@@ -80,51 +187,181 @@
                     title = 'Datetime to Ticks Converter';
                     description = 'Convert ISO date strings into .NET ticks and generate filtering logic for server-side date checks.';
                     break;
-                 case 'auto-tower-defense-game.html':
+                case 'auto-tower-defense-game.html':
                     title = 'Auto Tower Defense';
                     description = 'An automated tower defense game. Set up your towers and watch the battle!';
                     break;
+                // Add more cases here for any other specific files you want to customize
             }
-            return { title, description };
+
+            // Prepend the directory name to the title for better context in the tree view, if applicable
+            if (directoryPrefix) {
+                const displayDirectory = directoryPrefix.charAt(0).toUpperCase() + directoryPrefix.slice(1);
+                title = `${displayDirectory}: ${title}`;
+            }
+
+            // The URL for GitHub Pages is the full path relative to the root (e.g., /Games/auto-tower-defense-game.html)
+            const projectUrl = `/${fullPath}`;
+
+            return { title, description, url: projectUrl };
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            fetch(apiUrl)
-                .then(response => {
-                    if (!response.ok) throw new Error(`Network error: ${response.statusText}`);
-                    return response.json();
-                })
-                .then(data => {
-                    projectGrid.innerHTML = ''; // Clear the loading indicator
-                    
-                    const htmlFiles = data.filter(item =>
-                        item.name.endsWith('.html') &&
-                        item.type === 'file' &&
-                        item.name !== 'index.html'
-                    );
+        /**
+         * Fetches contents of a given GitHub API URL (either repository root or a directory).
+         * Handles network errors gracefully.
+         * @param {string} url - The GitHub API URL to fetch from (e.g., 'https://api.github.com/.../contents/Games').
+         * @returns {Promise<Array<Object>>} A promise that resolves with an array of content items (files/dirs).
+         */
+        async function fetchContents(url) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    // Throw an error if the network response was not OK (e.g., 404, 500)
+                    throw new Error(`Failed to fetch contents: ${response.statusText} (${response.status}) from ${url}`);
+                }
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error(`Error fetching contents from ${url}:`, error);
+                // Return an empty array to ensure the app doesn't break even if a fetch fails
+                return [];
+            }
+        }
 
-                    if (htmlFiles.length === 0) {
-                        projectGrid.innerHTML = '<p class="col-span-full text-center text-gray-500">No projects found.</p>';
-                        return;
-                    }
+        /**
+         * Recursively renders a list of items (files and directories) into the tree structure.
+         * Handles expanding/collapsing folders and dynamically loading their contents.
+         * @param {Array<Object>} items - An array of GitHub API content items (files and/or directories).
+         * @param {HTMLElement} parentElement - The DOM element (usually a `<ul>`) to append the rendered items to.
+         * @param {string} currentPath - The current logical path relative to the repository root (e.g., 'Games', or '').
+         */
+        async function renderItems(items, parentElement, currentPath = '') {
+            // Sort items: directories first, then files. Both are sorted alphabetically by name.
+            items.sort((a, b) => {
+                if (a.type === 'dir' && b.type !== 'dir') return -1; // Directories come before files
+                if (a.type !== 'dir' && b.type === 'dir') return 1; // Files come after directories
+                return a.name.localeCompare(b.name); // Alphabetical sort for same types
+            });
 
-                    htmlFiles.forEach(file => {
-                        const { title, description } = getProjectDetails(file.name);
-                        const cardLink = document.createElement('a');
-                        cardLink.href = file.name;
-                        cardLink.className = 'project-card bg-white rounded-2xl p-6 shadow hover:shadow-md border border-gray-200 hover:border-indigo-300 block';
-                        
-                        cardLink.innerHTML = `
-                            <h2 class="text-xl font-semibold text-indigo-600 mb-2">${title}</h2>
-                            <p class="text-gray-600 text-sm">${description}</p>
-                        `;
-                        projectGrid.appendChild(cardLink);
+            for (const item of items) {
+                // Skip files that are not projects or should not be displayed in the list
+                if (item.name === 'index.html' || item.name === 'robots.txt' || item.name.endsWith('.svg')) {
+                    continue;
+                }
+
+                if (item.type === 'dir') {
+                    // --- Handle Directories ---
+                    const listItem = document.createElement('li');
+                    const folderDiv = document.createElement('div');
+                    // Tailwind classes for flex layout, padding, and hover effect
+                    folderDiv.className = 'folder-item flex items-center pl-2';
+                    folderDiv.setAttribute('data-expanded', 'false'); // Custom attribute to track expansion state
+
+                    // Toggle icon (triangle)
+                    const toggleIcon = document.createElement('span');
+                    toggleIcon.className = 'folder-toggle-icon text-gray-500';
+                    toggleIcon.innerHTML = '&#9658;'; // Right-pointing triangle (collapsed state)
+
+                    // Folder icon (Emoji)
+                    const folderIcon = document.createElement('span');
+                    folderIcon.className = 'folder-icon';
+                    folderIcon.textContent = '📁'; // Folder emoji
+
+                    // Folder name text
+                    const folderNameSpan = document.createElement('span');
+                    folderNameSpan.className = 'folder-name';
+                    folderNameSpan.textContent = item.name.charAt(0).toUpperCase() + item.name.slice(1); // Capitalize folder name for display
+
+                    // Append elements to the folder div
+                    folderDiv.appendChild(toggleIcon);
+                    folderDiv.appendChild(folderIcon);
+                    folderDiv.appendChild(folderNameSpan);
+                    listItem.appendChild(folderDiv);
+
+                    // Create the nested <ul> for folder contents, initially hidden
+                    const folderContentsList = document.createElement('ul');
+                    folderContentsList.className = 'folder-contents hidden';
+                    folderContentsList.dataset.loaded = 'false'; // Flag to check if contents have been loaded once
+
+                    listItem.appendChild(folderContentsList);
+                    parentElement.appendChild(listItem);
+
+                    // Add click event listener to toggle folder expansion
+                    folderDiv.addEventListener('click', async () => {
+                        const isHidden = folderContentsList.classList.contains('hidden');
+                        folderContentsList.classList.toggle('hidden'); // Toggle visibility
+                        folderDiv.setAttribute('data-expanded', isHidden ? 'true' : 'false'); // Update expansion state attribute
+
+                        if (isHidden && folderContentsList.dataset.loaded === 'false') {
+                            // Show a temporary loading indicator within the folder
+                            folderContentsList.innerHTML = `
+                                <li class="text-center text-gray-400 py-2">
+                                    <svg class="animate-spin h-5 w-5 text-indigo-400 inline-block mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Loading...
+                                </li>
+                            `;
+
+                            // Fetch contents of the clicked folder using its API URL
+                            const folderUrl = item.url;
+                            const subItems = await fetchContents(folderUrl);
+
+                            folderContentsList.innerHTML = ''; // Clear loading indicator
+                            
+                            // Construct the new full path for items within this folder
+                            const newPath = currentPath ? `${currentPath}/${item.name}` : item.name;
+                            // Recursively render the sub-items
+                            await renderItems(subItems, folderContentsList, newPath);
+                            folderContentsList.dataset.loaded = 'true'; // Mark as loaded
+                        }
                     });
-                })
-                .catch(error => {
-                    projectGrid.innerHTML = `<p class="col-span-full text-center text-red-500">Failed to load projects: ${error.message}</p>`;
-                    console.error("Failed to fetch projects:", error);
-                });
+                } else if (item.type === 'file' && item.name.endsWith('.html')) {
+                    // --- Handle HTML Files (Projects) ---
+                    const listItem = document.createElement('li');
+                    listItem.className = 'file-item';
+
+                    // Construct the full path for the file to pass to getProjectDetails
+                    const fullPathForDetails = currentPath ? `${currentPath}/${item.name}` : item.name;
+                    // Get title, description, and the correct URL for the project
+                    const { title, description, url } = getProjectDetails(fullPathForDetails);
+
+                    // Create the anchor tag for the project link
+                    const projectLink = document.createElement('a');
+                    projectLink.href = url; // Link directly to the GitHub Pages URL (e.g., /Games/my-game.html)
+                    projectLink.target = '_blank'; // Open project in a new tab
+                    projectLink.rel = 'noopener noreferrer'; // Security best practice for target="_blank"
+
+                    // Add content to the link
+                    projectLink.innerHTML = `
+                        <h3 class="text-md font-medium text-gray-700">${title}</h3>
+                        <p class="text-gray-500 text-xs mt-1">${description}</p>
+                    `;
+                    listItem.appendChild(projectLink);
+                    parentElement.appendChild(listItem);
+                }
+            }
+        }
+
+        // Initial load of repository contents when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', async () => {
+            loadingIndicator.classList.remove('hidden'); // Ensure loading indicator is visible
+
+            // Fetch the contents of the repository root
+            const rootItems = await fetchContents(baseUrl);
+
+            loadingIndicator.classList.add('hidden'); // Hide loading indicator once data is fetched
+            treeRoot.innerHTML = ''; // Clear any placeholder content
+
+            if (rootItems.length === 0) {
+                // Display a message if no content is found
+                treeRoot.innerHTML = '<li class="text-center text-gray-500 py-8">No content found in the repository. Please check the repository or API URL.</li>';
+                return;
+            }
+
+            // Render the initial set of items (top-level folders and files)
+            await renderItems(rootItems, treeRoot);
         });
     </script>
 
