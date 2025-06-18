@@ -4,20 +4,10 @@ import fetch from 'node-fetch';
 import fs from 'fs/promises'; // For asynchronous file operations
 import path from 'path';     // For path manipulation
 import { fileURLToPath } from 'url'; // To get __dirname in ES modules
-import showdown from 'showdown'; // For Markdown to HTML conversion
 
 // Polyfill for __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Converter for Markdown to HTML
-const converter = new showdown.Converter();
-converter.setOption('omitExtraWLInKeptHtml', true);
-converter.setOption('simplifiedAutoLink', true);
-converter.setOption('parseImgDimensions', true);
-converter.setOption('tables', true);
-converter.setOption('tasklists', true);
-
 
 // --- Configuration ---
 const repoOwner = 'lequang1024';
@@ -49,106 +39,56 @@ async function fetchContents(url) {
 }
 
 /**
- * Fetches the raw content of a README.md file and converts it to plain text.
- * @param {string} readmePath - The full relative path to the README.md file (e.g., 'Games/README.md').
- * @returns {Promise<string>} A promise that resolves with the plain text content of the README.md, or an empty string if not found/error.
+ * Fetches the content of an HTML file and extracts its <title> tag.
+ * @param {string} htmlPath - The full relative path to the HTML file (e.g., 'Games/my-game.html').
+ * @returns {Promise<string>} A promise that resolves with the content of the <title> tag, or an empty string if not found/error.
  */
-async function fetchReadmeContent(readmePath) {
-    const readmeUrl = rawContentBaseUrl + readmePath;
+async function fetchHtmlTitle(htmlPath) {
+    const htmlUrl = rawContentBaseUrl + htmlPath;
     try {
-        const response = await fetch(readmeUrl);
+        const response = await fetch(htmlUrl);
         if (!response.ok) {
-            if (response.status === 404) {
-                // console.warn(`No README.md found at: ${readmeUrl}`);
-            } else {
-                console.warn(`Failed to fetch README.md from ${readmeUrl}: ${response.statusText}`);
-            }
+            console.warn(`Failed to fetch HTML from ${htmlUrl}: ${response.statusText}`);
             return '';
         }
-        const markdown = await response.text();
-        // Convert Markdown to HTML, then strip HTML tags to get plain text.
-        // This is a simplified approach to get a clean text summary.
-        // For full fidelity, you might render the HTML directly.
-        let htmlContent = converter.makeHtml(markdown);
-
-        // Remove HTML tags for a plain text summary, and clean up extra whitespace
-        let plainText = htmlContent.replace(/<[^>]*>/g, '').replace(/\s\s+/g, ' ').trim();
-
-        // Limit the length of the description to avoid overly long text
-        const maxLength = 200; // Adjust as needed
-        if (plainText.length > maxLength) {
-            plainText = plainText.substring(0, maxLength).trim() + '...';
-        }
-
-        return plainText;
+        const htmlContent = await response.text();
+        const titleMatch = htmlContent.match(/<title>(.*?)<\/title>/i);
+        return titleMatch && titleMatch[1] ? titleMatch[1].trim() : '';
     } catch (error) {
-        console.error(`Error fetching or processing README content from ${readmeUrl}:`, error);
+        console.error(`Error fetching or parsing HTML title from ${htmlUrl}:`, error);
         return '';
     }
 }
 
 /**
  * Generates display details (title, description, and the correct URL) for a given file path.
- * This function now also fetches README content.
+ * The description is now taken from the HTML file's <title> tag.
  * @param {string} fullPath - The full relative path of the file (e.g., 'Games/auto-tower-defense-game.html').
  * @returns {Promise<{title: string, description: string, url: string}>} An object with the formatted title, description, and the relative URL for linking.
  */
 async function getProjectDetails(fullPath) {
     const parts = fullPath.split('/');
     const filename = parts[parts.length - 1];
-    const directoryPath = parts.slice(0, -1).join('/'); // Path to the directory containing the file
 
-    // Default title derived from the filename
-    let title = filename.replace('.html', '').replace(/-/g, ' ');
-    title = title.charAt(0).toUpperCase() + title.slice(1);
+    // Main display title derived from the filename (e.g., "Auto Tower Defense")
+    let displayTitle = filename.replace('.html', '').replace(/-/g, ' ');
+    displayTitle = displayTitle.charAt(0).toUpperCase() + displayTitle.slice(1);
 
-    // Prepend the directory name to the title for better context, if applicable
+    // Prepend the directory name to the display title for better context, if applicable
+    const directoryPath = parts.slice(0, -1).join('/');
     if (directoryPath) {
         const displayDirectory = directoryPath.split('/').pop();
-        title = `${displayDirectory.charAt(0).toUpperCase() + displayDirectory.slice(1)}: ${title}`;
+        displayTitle = `${displayDirectory.charAt(0).toUpperCase() + displayDirectory.slice(1)}: ${displayTitle}`;
     }
 
-    // Construct the path to the potential README.md for this specific project/directory
-    // We assume the README for an HTML file is in the same directory as the HTML file itself.
-    // If the HTML file is `Games/MyGame/index.html`, we look for `Games/MyGame/README.md`.
-    // If the HTML file is `Utils/qr-deeplink.html`, we look for `Utils/README.md`.
-    const readmeForHtml = `${directoryPath}/${filename.replace('.html', '')}/README.md`; // For 'index.html' in a subfolder
-    const readmeForDir = `${directoryPath}/README.md`; // For standalone HTML files directly in a folder
+    // Fetch the <title> from the HTML file to use as the description
+    const htmlPageTitle = await fetchHtmlTitle(fullPath);
+    const description = htmlPageTitle || `A project located at /${fullPath}`; // Fallback description
 
-    let description = '';
-    // Prioritize README in a dedicated subfolder (e.g., MyGame/README.md)
-    if (filename === 'index.html' && directoryPath) {
-        const specificReadmePath = `${directoryPath}/README.md`;
-        description = await fetchReadmeContent(specificReadmePath);
-    } else {
-        // For other HTML files (e.g., qr-deeplink.html), look for a README in the same directory
-        description = await fetchReadmeContent(readmeForDir);
-    }
+    // The URL for GitHub Pages is the full path relative to the root
+    const projectUrl = `/${fullPath}`;
 
-    // If no specific README, try to derive a basic description (reverting to previous logic)
-    if (!description) {
-         switch (filename) {
-            case 'qr-deeplink.html':
-                description = 'Generate QR codes that trigger deep links — ideal for app routing tests and marketing workflows.';
-                break;
-            case 'support-code-scraper-tool.html':
-                description = 'Paste logs or messages to extract 6-digit support codes and build NCalc expressions for filtering.';
-                break;
-            case 'datetime-to-ticks.html':
-                description = 'Convert ISO date strings into .NET ticks and generate filtering logic for server-side date checks.';
-                break;
-            case 'auto-tower-defense-game.html':
-                description = 'An automated tower defense game. Set up your towers and watch the battle!';
-                break;
-            default:
-                description = `A simple utility or project.`;
-        }
-    }
-
-
-    const projectUrl = `/${fullPath}`; // Relative URL for GitHub Pages
-
-    return { title, description, url: projectUrl };
+    return { title: displayTitle, description: description, url: projectUrl };
 }
 
 
@@ -162,8 +102,8 @@ async function getProjectDetails(fullPath) {
 async function processItems(items, currentPath = '') {
     const processed = [];
     for (const item of items) {
-        // Skip irrelevant files
-        if (item.name === 'index.html' || item.name === 'robots.txt' || item.name.endsWith('.svg') || item.name.endsWith('.md')) {
+        // Skip irrelevant files like the index template, robots.txt, and SVG images
+        if (item.name === 'index.html' || item.name === 'robots.txt' || item.name.endsWith('.svg')) {
             continue;
         }
 
@@ -254,15 +194,14 @@ async function generateIndexFile() {
     const treeHtml = renderTreeHtml(structuredItems);
 
     // Read the template index.html
-    const templatePath = path.join(__dirname, '..', '..', 'index.html.template'); // Adjust path to your template
     let indexTemplateContent;
     try {
-        // For local testing, you might need to adjust this path to where your actual index.html is.
-        // In the GitHub Action, it will be relative to the checkout root.
+        // Path to the template assumes it's in the repo root
         indexTemplateContent = await fs.readFile(path.join(__dirname, '..', '..', 'index_template.html'), 'utf8');
     } catch (error) {
         console.error("Error reading index_template.html:", error);
         // Fallback to a basic template if file not found
+        // Note: For a GitHub Action, ensure index_template.html is actually committed.
         indexTemplateContent = `
 <!DOCTYPE html>
 <html lang="en">
