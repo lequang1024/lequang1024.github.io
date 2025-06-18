@@ -102,8 +102,8 @@ async function getProjectDetails(fullPath) {
 async function processItems(items, currentPath = '') {
     const processed = [];
     for (const item of items) {
-        // Skip irrelevant files like the index template, robots.txt, and SVG images
-        if (item.name === 'index.html' || item.name === 'robots.txt' || item.name.endsWith('.svg')) {
+        // Skip irrelevant files like the generated index.html, index_template.html, robots.txt, and SVG images
+        if (item.name === 'index.html' || item.name === 'index_template.html' || item.name === 'robots.txt' || item.name.endsWith('.svg')) {
             continue;
         }
 
