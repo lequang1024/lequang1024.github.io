@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Purchase Data Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            color: #2d3748;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 1rem; /* Tailwind's rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Tailwind's shadow-xl */
+            padding: 2.5rem; /* Tailwind's p-10 */
+            max-width: 900px;
+            width: 100%;
+        }
+        h1 {
+            color: #2c5282; /* Tailwind's blue-800 */
+            text-align: center;
+            margin-bottom: 2rem; /* Tailwind's mb-8 */
+            font-size: 2.25rem; /* Tailwind's text-4xl */
+            font-weight: 700; /* Tailwind's font-bold */
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem; /* Tailwind's mb-2 */
+            font-weight: 600; /* Tailwind's font-semibold */
+            color: #4a5568; /* Tailwind's gray-700 */
+        }
+        textarea, input[type="number"], input[type="datetime-local"] {
+            width: 100%;
+            padding: 0.75rem; /* Tailwind's p-3 */
+            border: 1px solid #cbd5e0; /* Tailwind's border-gray-300 */
+            border-radius: 0.5rem; /* Tailwind's rounded-lg */
+            margin-bottom: 1rem; /* Tailwind's mb-4 */
+            font-size: 1rem; /* Tailwind's text-base */
+            box-sizing: border-box; /* Ensures padding doesn't add to width */
+        }
+        button {
+            width: 100%;
+            padding: 0.75rem 1.5rem; /* Tailwind's py-3 px-6 */
+            background-color: #4299e1; /* Tailwind's blue-500 */
+            color: white;
+            border: none;
+            border-radius: 0.5rem; /* Tailwind's rounded-lg */
+            font-size: 1.125rem; /* Tailwind's text-lg */
+            font-weight: 700; /* Tailwind's font-bold */
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Tailwind's shadow-md */
+        }
+        button:hover {
+            background-color: #3182ce; /* Tailwind's blue-600 */
+        }
+        .results-section {
+            margin-top: 2rem; /* Tailwind's mt-8 */
+            padding-top: 2rem; /* Tailwind's pt-8 */
+            border-top: 1px solid #e2e8f0; /* Tailwind's border-gray-200 */
+        }
+        .results-item {
+            background-color: #edf2f7; /* Tailwind's gray-100 */
+            border-left: 4px solid #4299e1; /* Tailwind's border-blue-500 */
+            padding: 1rem; /* Tailwind's p-4 */
+            margin-bottom: 1rem; /* Tailwind's mb-4 */
+            border-radius: 0.5rem; /* Tailwind's rounded-lg */
+        }
+        .summary-item {
+            font-size: 1.125rem; /* Tailwind's text-lg */
+            margin-bottom: 0.75rem; /* Tailwind's mb-3 */
+            font-weight: 500; /* Tailwind's font-medium */
+            color: #2d3748; /* Tailwind's gray-700 */
+        }
+        .summary-item strong {
+            color: #2c5282; /* Tailwind's blue-800 */
+        }
+        .error-message {
+            background-color: #fed7d7; /* Tailwind's red-200 */
+            color: #c53030; /* Tailwind's red-700 */
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        #loadingIndicator {
+            display: none;
+            text-align: center;
+            margin-top: 1rem;
+            color: #4299e1;
+            font-weight: 600;
+        }
+        /* Debug Log Panel Styling */
+        #debugLogPanel {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #1a202c; /* Darker background for contrast */
+            color: #a0aec0; /* Light gray text */
+            border-radius: 0.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-size: 0.875rem;
+            line-height: 1.25;
+            white-space: pre-wrap; /* Preserve whitespace and wrap long lines */
+            word-wrap: break-word; /* Break long words */
+            border: 1px solid #4a5568;
+        }
+        #debugLogPanel h2 {
+            color: #e2e8f0; /* Lighter heading color */
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JSON Purchase Data Analyzer</h1>
+
+        <div id="message-box" class="hidden error-message"></div>
+
+        <label for="jsonInputTextarea">Paste JSON Purchase Data here:</label>
+        <textarea id="jsonInputTextarea" rows="15" placeholder="Paste your JSON array of purchase records here..."></textarea>
+
+        <label for="daysInput">Calculate average for items within the last (days) (Optional filter for purchases within 30):</label>
+        <input type="number" id="daysInput" value="120" min="1">
+
+        <label for="currentDateInput">Current Date for Calculation (Optional):</label>
+        <input type="datetime-local" id="currentDateInput">
+
+        <button id="processButton">Process Data</button>
+
+        <div id="results" class="results-section hidden">
+            <h2 class="text-2xl font-bold mb-4 text-blue-800">Summary</h2>
+            <div class="summary-item">Latest Item Date: <strong id="latestDate"></strong></div>
+            <div class="summary-item">Current Calculation Date: <strong id="currentCalcDateDisplay"></strong></div>
+            <div class="summary-item" id="cutoffDateContainer">Cutoff Date for Average: <strong id="cutoffDate"></strong></div>
+            <div class="summary-item"><span id="averageItemsLabel">Items Included in Average</span>: <strong id="itemsInAverage"></strong></div>
+            <div class="summary-item"><span id="averageUsdLabel">Average USD Amount</span>: <strong id="averageUsd"></strong></div>
+            <div class="summary-item">Total Purchases Count (from input data): <strong id="totalPurchasesCount"></strong></div>
+
+            <h2 class="text-2xl font-bold mb-4 mt-8 text-blue-800">Transaction ID Counts</h2>
+            <div class="summary-item">GPA Transaction IDs: <strong id="gpaIdCount"></strong></div>
+            <div class="summary-item">14-Character Numeric Transaction IDs: <strong id="numeric14IdCount"></strong></div>
+            <div class="summary-item">10-Character Numeric Transaction IDs: <strong id="numeric10IdCount"></strong></div>
+
+            <h2 class="text-2xl font-bold mb-4 mt-8 text-blue-800">G-Tier Counter Values</h2>
+            <div class="summary-item">CT-Evergreen-Econ-TempComfortZone: <strong id="tempComfortZone"></strong></div>
+            <div class="summary-item">CT-Evergreen-Econ-AverageUsd: <strong id="counterAverageUsd"></strong></div>
+            <div class="summary-item">CT-Evergreen-Econ-FadedComfortZone: <strong id="fadedComfortZone"></strong></div>
+            <div class="summary-item">CT-Evergreen-Econ-ComfortZone: <strong id="comfortZone"></strong></div>
+
+            <h2 class="text-2xl font-bold mb-4 mt-8 text-blue-800">Extracted Data</h2>
+            <div id="extractedList"></div>
+        </div>
+
+        <div id="debugLogPanel">
+            <h2>Debug Log</h2>
+            <pre id="debugLogContent"></pre>
+        </div>
+    </div>
+
+    <script>
+        // Global variables to store parsed data
+        let parsedPurchaseData = [];
+
+        // Helper function to show a message box
+        function showMessage(message, isError = false) {
+            const messageBox = document.getElementById('message-box');
+            messageBox.textContent = message;
+            messageBox.classList.remove('hidden');
+            if (isError) {
+                messageBox.classList.add('error-message');
+                messageBox.classList.remove('bg-blue-200', 'text-blue-700');
+            } else {
+                messageBox.classList.remove('error-message');
+                messageBox.classList.add('bg-blue-200', 'text-blue-700');
+            }
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 5000); // Hide after 5 seconds
+        }
+
+        // Helper function to log to UI debug panel
+        function uiLog(message) {
+            const debugLogContent = document.getElementById('debugLogContent');
+            const now = new Date();
+            debugLogContent.textContent += `[${now.toLocaleTimeString()}] ${message}\n`;
+            debugLogContent.scrollTop = debugLogContent.scrollHeight; // Auto-scroll to bottom
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const jsonInputTextarea = document.getElementById('jsonInputTextarea'); // New textarea ID
+            const daysInput = document.getElementById('daysInput');
+            const currentDateInput = document.getElementById('currentDateInput');
+            const processButton = document.getElementById('processButton'); // Renamed from fetchDataButton initially
+            const resultsDiv = document.getElementById('results');
+            const latestDateSpan = document.getElementById('latestDate');
+            const currentCalcDateDisplaySpan = document.getElementById('currentCalcDateDisplay');
+            const cutoffDateContainer = document.getElementById('cutoffDateContainer');
+            const cutoffDateSpan = document.getElementById('cutoffDate');
+            const itemsInAverageSpan = document.getElementById('itemsInAverage');
+            const averageUsdSpan = document.getElementById('averageUsd');
+            const averageItemsLabel = document.getElementById('averageItemsLabel');
+            const averageUsdLabel = document.getElementById('averageUsdLabel');
+            const totalPurchasesCountSpan = document.getElementById('totalPurchasesCount');
+            const extractedListDiv = document.getElementById('extractedList');
+            const debugLogContent = document.getElementById('debugLogContent');
+
+            const gpaIdCountSpan = document.getElementById('gpaIdCount');
+            const numeric14IdCountSpan = document.getElementById('numeric14IdCount');
+            const numeric10IdCountSpan = document.getElementById('numeric10IdCount');
+
+            const tempComfortZoneSpan = document.getElementById('tempComfortZone');
+            const counterAverageUsdSpan = document.getElementById('counterAverageUsd');
+            const fadedComfortZoneSpan = document.getElementById('fadedComfortZone');
+            const comfortZoneSpan = document.getElementById('comfortZone');
+
+            // No Player ID or API Key inputs, no localStorage loading for them
+            // No pre-fill for textarea (as requested)
+            jsonInputTextarea.value = '';
+
+            // Set default value for datetime-local to current date/time
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            currentDateInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+
+            // --- Lookup Table Definitions ---
+            const lookupTables = {
+                "TransactionAmountToAvgRate": {
+                    "AsExpression": true,
+                    "Table": {
+                        "1": "0.2",
+                        "2": "0.15",
+                        "3": "0.12",
+                        "4": "0.1",
+                        "5": "0.08",
+                        "6": "0.35 / (Math.max(6, PurchaseHistoryTotalPurchasesMinutesFromNow_val) - 5)"
+                    }
+                },
+                "ComfortZoneFading": {
+                    "Table": {
+                        "0": 1,
+                        "3": 1,
+                        "7": 0.85,
+                        "10": 0.8,
+                        "14": 0.7,
+                        "21": 0.6,
+                        "30": 0.5,
+                        "45": 0.4,
+                        "60": 0.3
+                    }
+                }
+            };
+
+            // --- Helper Functions for Counter Calculations ---
+
+            function getTableValue(tableName, key, context) {
+                const tableDef = lookupTables[tableName];
+                if (!tableDef || !tableDef.Table) {
+                    uiLog(`ERROR: Table definition for ${tableName} not found.`);
+                    return 0;
+                }
+
+                const table = tableDef.Table;
+                let foundKey = null;
+                let value = 0;
+
+                let sortedKeys = Object.keys(table).map(Number).sort((a, b) => a - b);
+
+                let prevValueKey = null;
+                for (let i = 0; i < sortedKeys.length; i++) {
+                    const currentKey = sortedKeys[i];
+                    if (key === currentKey) {
+                        foundKey = currentKey;
+                        break;
+                    } else if (currentKey > key) {
+                        foundKey = prevValueKey; // Use the previously stored key that was <= `key`
+                        if (foundKey === null && sortedKeys.length > 0) { // If key is smaller than all, take the first one
+                            foundKey = sortedKeys[0];
+                        }
+                        break;
+                    }
+                    if (i === sortedKeys.length - 1) { // If `key` is larger than all table keys, take the last one
+                        foundKey = currentKey;
+                    }
+                    prevValueKey = currentKey; // Store current key as previous for next iteration
+                }
+
+                if (foundKey !== null) {
+                    value = table[foundKey.toString()];
+                    if (tableDef.AsExpression && typeof value === 'string') {
+                        try {
+                            const exprToEval = `
+                                let PurchaseHistoryTotalPurchasesMinutesFromNow_val = ${context.PurchaseHistoryTotalPurchasesMinutesFromNow_val || 0};
+                                ${value}
+                            `;
+                            const evaluatedValue = eval(exprToEval);
+                            return parseFloat(evaluatedValue);
+                        } catch (e) {
+                            uiLog(`ERROR: Error evaluating expression for ${tableName}[${foundKey}]: ${value} Error: ${e.message}`);
+                            return 0;
+                        }
+                    }
+                    return parseFloat(value);
+                }
+                return 0;
+            }
+
+            function PurchaseHistoryDaysSinceLastPurchase(latestDate, referenceDate) {
+                if (!latestDate || !referenceDate) return 0;
+                const diffTime = Math.abs(referenceDate.getTime() - latestDate.getTime());
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays;
+            }
+
+            function PurchaseHistoryTotalPurchasesMinutesFromNow(minutes, data, latestDate, referenceDate) {
+                if (!data || data.length === 0 || !referenceDate) return 0;
+                const cutoffTime = referenceDate.getTime() - (minutes * 60 * 1000);
+                return data.filter(item => item.date.getTime() >= cutoffTime && item.date.getTime() <= referenceDate.getTime()).length;
+            }
+
+            function PurchaseHistoryAverageUsd(count, data) {
+                if (!data || data.length === 0 || count <= 0) return 0;
+                const relevantPurchases = data.slice(0, Math.min(count, data.length));
+                if (relevantPurchases.length === 0) return 0;
+                const total = relevantPurchases.reduce((sum, item) => sum + item.amount, 0);
+                return total / relevantPurchases.length;
+            }
+
+            function PurchaseHistoryAverageUsdMinutesFromNow(minutes, data, referenceDate) {
+                if (!data || data.length === 0 || !referenceDate) return 0;
+                const cutoffTime = referenceDate.getTime() - (minutes * 60 * 1000);
+                const relevantPurchases = data.filter(item => item.date.getTime() >= cutoffTime && item.date.getTime() <= referenceDate.getTime());
+                if (relevantPurchases.length === 0) return 0;
+                const total = relevantPurchases.reduce((sum, item) => sum + item.amount, 0);
+                return total / relevantPurchases.length;
+            }
+
+            function PurchaseHistoryWeightedAmountUsdByExpressionTableMinutesFromNow(tableName, minutes, data, latestDate, referenceDate) {
+                uiLog(`  DEBUG: Entering PurchaseHistoryWeightedAmountUsdByExpressionTableMinutesFromNow for table: ${tableName}, minutes: ${minutes}`);
+
+                const purchaseHistory = data.filter(item => {
+                    if (!latestDate || !referenceDate) return false;
+                    const cutoffTime = referenceDate.getTime() - (minutes * 60 * 1000);
+                    return item.date.getTime() >= cutoffTime && item.date.getTime() <= referenceDate.getTime();
+                });
+                uiLog("  DEBUG: Filtered purchaseHistory for weighted average: " + JSON.stringify(purchaseHistory.map(p => ({date: p.date.toLocaleString(), amount: p.amount}))));
+
+                if (purchaseHistory.length === 0) {
+                    uiLog("  DEBUG: No purchase history for weighted average. Returning 0.");
+                    return 0;
+                }
+
+                let totalWeightedAmount = 0;
+                const PurchaseHistoryTotalPurchasesMinutesFromNow_val = PurchaseHistoryTotalPurchasesMinutesFromNow(120 * 24 * 60, data, latestDate, referenceDate);
+                uiLog(`  DEBUG: PurchaseHistoryTotalPurchasesMinutesFromNow_val for expression (120 days): ${PurchaseHistoryTotalPurchasesMinutesFromNow_val}`);
+
+                for (let i = 0; i < purchaseHistory.length; i++) {
+                    const item = purchaseHistory[i];
+                    uiLog(`  DEBUG:   Processing item ${i + 1}: Date: ${item.originalDate}, Amount: ${item.amount}`);
+                    const rate = getTableValue(tableName, i + 1, { PurchaseHistoryTotalPurchasesMinutesFromNow_val: PurchaseHistoryTotalPurchasesMinutesFromNow_val });
+                    uiLog(`  DEBUG:     Rate from ${tableName}[${i + 1}] (using context ${PurchaseHistoryTotalPurchasesMinutesFromNow_val}): ${rate}`);
+                    const weightedAmount = rate * item.amount;
+                    uiLog(`  DEBUG:     Weighted Amount: ${rate} * ${item.amount} = ${weightedAmount}`);
+                    totalWeightedAmount += weightedAmount;
+                    uiLog(`  DEBUG:     Current Total Weighted Amount: ${totalWeightedAmount}`);
+                }
+                uiLog("  DEBUG: Final totalWeightedAmount:", totalWeightedAmount);
+                return totalWeightedAmount;
+            }
+
+            // --- Event Listeners ---
+
+            processButton.addEventListener('click', () => {
+                debugLogContent.textContent = ''; // Clear debug log on new run
+                uiLog("--- Starting Processing ---");
+
+                const jsonRawData = jsonInputTextarea.value.trim();
+                if (!jsonRawData) {
+                    showMessage("Please paste JSON purchase data into the text area.", true);
+                    resultsDiv.classList.add('hidden');
+                    return;
+                }
+
+                try {
+                    const rawJsonRecords = JSON.parse(jsonRawData);
+                    if (!Array.isArray(rawJsonRecords)) {
+                        throw new Error("Input is not a valid JSON array.");
+                    }
+                    uiLog("JSON data parsed successfully. Processing records...");
+
+                    parsedPurchaseData = [];
+                    let tempLatestOverallDate = null; // Latest date from all *parsed* records
+
+                    rawJsonRecords.forEach(record => {
+                        const date = new Date(record.timestamp);
+                        if (isNaN(date.getTime())) {
+                            uiLog(`WARNING: Could not parse timestamp: ${record.timestamp}. Skipping record.`);
+                            return;
+                        }
+                        if (record.usdAmount === undefined || typeof record.usdAmount !== 'number') {
+                             uiLog(`WARNING: Record missing or invalid usdAmount: ${record.usdAmount}. Skipping record.`);
+                             return;
+                        }
+                        if (record.transactionId === undefined) {
+                            uiLog(`WARNING: Record missing transactionId. Skipping record.`);
+                            return;
+                        }
+
+                        if (!tempLatestOverallDate || date > tempLatestOverallDate) {
+                            tempLatestOverallDate = date;
+                        }
+
+                        parsedPurchaseData.push({
+                            date: date,
+                            amount: record.usdAmount,
+                            originalDate: record.timestamp,
+                            originalUSD: `$${record.usdAmount.toFixed(2)}`,
+                            transactionId: record.transactionId
+                        });
+                    });
+
+                    // Sort parsed data by date in descending order (latest first)
+                    parsedPurchaseData.sort((a, b) => b.date.getTime() - a.date.getTime());
+
+                    uiLog(`Successfully parsed and prepared ${parsedPurchaseData.length} valid records.`);
+
+                } catch (error) {
+                    showMessage(`Error parsing JSON: ${error.message}. Please ensure the JSON is valid.`, true);
+                    uiLog(`ERROR: JSON parsing failed: ${error.message}`);
+                    resultsDiv.classList.add('hidden');
+                    return;
+                }
+
+                if (parsedPurchaseData.length === 0) {
+                    showMessage("No valid purchase records found in the provided JSON data.", true);
+                    resultsDiv.classList.add('hidden');
+                    return;
+                }
+
+
+                const daysInputVal = daysInput.value.trim();
+                const days = parseInt(daysInputVal, 10);
+
+                const currentDateInputVal = currentDateInput.value.trim();
+                let currentCalcDate = new Date(); // Default to actual current date
+                if (currentDateInputVal) {
+                    currentCalcDate = new Date(currentDateInputVal);
+                    if (isNaN(currentCalcDate.getTime())) {
+                        showMessage("Invalid date entered. Please use a valid date/time format for 'Current Date for Calculation'.", true);
+                        resultsDiv.classList.add('hidden');
+                        return;
+                    }
+                }
+                currentCalcDateDisplaySpan.textContent = currentCalcDate.toLocaleString();
+                uiLog("Current Date for Calculation (User Provided or Default): " + currentCalcDate.toLocaleString());
+
+                if (isNaN(days) || days <= 0) {
+                    showMessage("Please enter a valid number of days (a positive integer), or ensure it defaults to 120.", true);
+                    resultsDiv.classList.add('hidden');
+                    return;
+                }
+
+                extractedListDiv.innerHTML = ''; // Clear previous extracted list
+                resultsDiv.classList.add('hidden'); // Hide results until processing is done
+                showMessage("Processing data...", false);
+
+                // Filter data to only include transactions on or before currentCalcDate
+                let dataFilteredByCalcDate = parsedPurchaseData.filter(item => item.date.getTime() <= currentCalcDate.getTime());
+                dataFilteredByCalcDate.sort((a, b) => b.date.getTime() - a.date.getTime()); // Re-sort after filtering by date
+                uiLog("Data filtered by Current Calculation Date and sorted: " + JSON.stringify(dataFilteredByCalcDate.map(d => ({date: d.originalDate, amount: d.amount}))));
+
+
+                if (dataFilteredByCalcDate.length === 0) {
+                    showMessage("No valid transactions found on or before the Current Calculation Date. Please adjust your date or input data.", true);
+                    return;
+                }
+
+                // Determine latestOverallDate based *only* on the data filtered by currentCalcDate for G-Tier calculations
+                const latestOverallDate = dataFilteredByCalcDate.length > 0 ? dataFilteredByCalcDate[0].date : null;
+
+                let gpaTransactionCount = 0;
+                let numeric14CharTransactionCount = 0;
+                let numeric10CharTransactionCount = 0;
+                let totalPurchases = dataFilteredByCalcDate.length; // Total purchases *after* filtering by currentCalcDate
+
+                const gpaRegex = /^GPA\.[0-9A-Za-z-]{19,25}$/;
+                const numeric14Regex = /^\d{10,14}$/; // Adjusted to match 10 or 14 digits, as 10-char was requested
+                const numeric10Regex = /^\d{10}$/; // Stricter for exactly 10 digits if needed separately, but 10-14 is more robust
+
+                // Recount transaction IDs based on filtered data
+                dataFilteredByCalcDate.forEach(record => {
+                    if (gpaRegex.test(record.transactionId)) {
+                        gpaTransactionCount++;
+                    } else if (numeric14Regex.test(record.transactionId)) {
+                        // Check if it's strictly 14 characters
+                        if (record.transactionId.length === 14) {
+                            numeric14CharTransactionCount++;
+                        } else if (record.transactionId.length === 10) { // Check for 10 characters if not 14
+                            numeric10CharTransactionCount++;
+                        }
+                    }
+                });
+
+                let totalUsd = 0;
+                let itemCount = 0;
+                const includedItems = [];
+                const maxPurchases = 30;
+
+                let dateFilteredForAverage = dataFilteredByCalcDate;
+                let cutoffDateTimeForAverage = null;
+
+                // Apply the days filter if provided, relative to currentCalcDate
+                if (days !== null) {
+                    cutoffDateTimeForAverage = currentCalcDate ? new Date(currentCalcDate.getTime() - days * 24 * 60 * 60 * 1000) : null;
+                    dateFilteredForAverage = dataFilteredByCalcDate.filter(item => cutoffDateTimeForAverage && item.date >= cutoffDateTimeForAverage);
+                    cutoffDateContainer.style.display = 'block';
+                    cutoffDateSpan.textContent = cutoffDateTimeForAverage ? cutoffDateTimeForAverage.toLocaleString() : 'N/A';
+                    averageItemsLabel.textContent = `Items Included in Average (Last ${Math.min(maxPurchases, dateFilteredForAverage.length)} purchases within ${days} days)`;
+                    averageUsdLabel.textContent = `Average USD Amount (Last ${Math.min(maxPurchases, dateFilteredForAverage.length)} purchases within ${days} days)`;
+                    uiLog(`Filtering for average by ${days} days from Current Calculation Date. Cutoff Date: ` + (cutoffDateTimeForAverage ? cutoffDateTimeForAverage.toLocaleString() : 'N/A'));
+                    uiLog("Date Filtered Data for Average Calculation: " + JSON.stringify(dateFilteredForAverage.map(d => ({date: d.originalDate, amount: d.amount}))));
+                } else {
+                    cutoffDateContainer.style.display = 'none';
+                    averageItemsLabel.textContent = `Items Included in Average (Last ${maxPurchases} Purchases)`;
+                    averageUsdLabel.textContent = `Average USD Amount (Last ${maxPurchases} Purchases)`;
+                    uiLog("Filtering for average by last 30 purchases (no days specified, default).");
+                }
+
+                // Apply the 30 purchases limit on top of dateFilteredForAverage
+                const finalFilteredDataForAverage = dateFilteredForAverage.slice(0, maxPurchases);
+
+                for (let i = 0; i < finalFilteredDataForAverage.length; i++) {
+                    const item = finalFilteredDataForAverage[i];
+                    totalUsd += item.amount;
+                    itemCount++;
+                    includedItems.push(item);
+                }
+                uiLog("Final Items included for average calculation: " + JSON.stringify(includedItems.map(d => ({date: d.originalDate, amount: d.amount}))));
+
+
+                const average = itemCount > 0 ? (totalUsd / itemCount) : 0;
+                uiLog(`Calculated Average USD: $${average.toFixed(2)} (from ${itemCount} items)`);
+
+                latestDateSpan.textContent = latestOverallDate ? latestOverallDate.toLocaleString() : 'N/A';
+                itemsInAverageSpan.textContent = itemCount;
+                averageUsdSpan.textContent = `$${average.toFixed(2)}`;
+                totalPurchasesCountSpan.textContent = totalPurchases;
+                uiLog("Total Purchases (overall): " + totalPurchases);
+
+
+                gpaIdCountSpan.textContent = gpaTransactionCount;
+                numeric14IdCountSpan.textContent = numeric14CharTransactionCount;
+                numeric10IdCountSpan.textContent = numeric10CharTransactionCount;
+                uiLog(`Transaction ID Counts: GPA: ${gpaTransactionCount}, 14-char: ${numeric14CharTransactionCount}, 10-char: ${numeric10CharTransactionCount}`);
+
+                // --- Calculate G-Tier Counter Values ---
+                uiLog("\n--- Calculating G-Tier Counter Values ---");
+
+                // All G-Tier calculations now use 'dataFilteredByCalcDate' (transactions <= currentCalcDate)
+                const phDaysSinceLastPurchase = PurchaseHistoryDaysSinceLastPurchase(latestOverallDate, currentCalcDate);
+                uiLog("PurchaseHistoryDaysSinceLastPurchase: " + phDaysSinceLastPurchase);
+
+                const phTotalPurchases120Days = PurchaseHistoryTotalPurchasesMinutesFromNow(120 * 24 * 60, dataFilteredByCalcDate, latestOverallDate, currentCalcDate);
+                uiLog("PurchaseHistoryTotalPurchasesMinutesFromNow (120 days): " + phTotalPurchases120Days);
+
+                const phAverageUsd2 = PurchaseHistoryAverageUsd(2, dataFilteredByCalcDate);
+                uiLog("PurchaseHistoryAverageUsd (last 2 purchases): " + phAverageUsd2.toFixed(2));
+
+                const phAverageUsd120Days = PurchaseHistoryAverageUsdMinutesFromNow(120 * 24 * 60, dataFilteredByCalcDate, currentCalcDate);
+                uiLog("PurchaseHistoryAverageUsdMinutesFromNow (120 days): " + phAverageUsd120Days.toFixed(2));
+
+                const phWeightedAmountUsd120Days = PurchaseHistoryWeightedAmountUsdByExpressionTableMinutesFromNow('TransactionAmountToAvgRate', 120 * 24 * 60, dataFilteredByCalcDate, latestOverallDate, currentCalcDate);
+                uiLog("PurchaseHistoryWeightedAmountUsdByExpressionTableMinutesFromNow (120 days) Result: " + phWeightedAmountUsd120Days.toFixed(2));
+
+
+                let tempComfortZone = 0;
+                if (phDaysSinceLastPurchase > 120) {
+                    tempComfortZone = 0;
+                    uiLog("TempComfortZone Logic: Days since last purchase > 120. TempComfortZone = 0.");
+                } else if (phTotalPurchases120Days < 3) {
+                    tempComfortZone = 100 * phAverageUsd2;
+                    uiLog("TempComfortZone Logic: Total purchases in 120 days < 3. TempComfortZone = 100 * AverageUsd(2).");
+                } else if (phTotalPurchases120Days < 10) {
+                    tempComfortZone = 100 * phAverageUsd120Days;
+                    uiLog("TempComfortZone Logic: Total purchases in 120 days < 10. TempComfortZone = 100 * AverageUsdMinutesFromNow(120 days).");
+                } else {
+                    tempComfortZone = 100 * phWeightedAmountUsd120Days;
+                    uiLog("TempComfortZone Logic: Total purchases in 120 days >= 10. TempComfortZone = 100 * WeightedAmountUsdByExpressionTableMinutesFromNow.");
+                }
+                uiLog("CT-Evergreen-Econ-TempComfortZone: " + tempComfortZone.toFixed(2));
+
+                const counterAverageUsd = 100 * phAverageUsd120Days;
+                uiLog("CT-Evergreen-Econ-AverageUsd: " + counterAverageUsd.toFixed(2));
+
+                let fadedComfortZone = 0;
+                if (phDaysSinceLastPurchase >= 61) {
+                    fadedComfortZone = 199;
+                    uiLog("FadedComfortZone Logic: Days since last purchase >= 61. FadedComfortZone = 199.");
+                } else {
+                    const fadingRate = getTableValue('ComfortZoneFading', phDaysSinceLastPurchase, { PurchaseHistoryTotalPurchasesMinutesFromNow_val: phTotalPurchases120Days });
+                    uiLog(`FadedComfortZone Logic: Fading Rate (for ${phDaysSinceLastPurchase} days): ${fadingRate.toFixed(2)}.`);
+                    fadedComfortZone = tempComfortZone * fadingRate;
+                    uiLog(`FadedComfortZone Calculation: TempComfortZone (${tempComfortZone.toFixed(2)}) * FadingRate (${fadingRate.toFixed(2)}) = ${fadedComfortZone.toFixed(2)}.`);
+                }
+                uiLog("CT-Evergreen-Econ-FadedComfortZone (before ComfortZone logic): " + fadedComfortZone.toFixed(2));
+
+
+                let comfortZone = 0;
+                if ((fadedComfortZone > counterAverageUsd * 1.5) || (fadedComfortZone < counterAverageUsd * 0.5)) {
+                    comfortZone = (fadedComfortZone + counterAverageUsd) / 2;
+                    uiLog(`ComfortZone Logic: FadedComfortZone (${fadedComfortZone.toFixed(2)}) is outside 0.5x to 1.5x of AverageUsd (${counterAverageUsd.toFixed(2)}). ComfortZone = (FadedComfortZone + AverageUsd) / 2.`);
+                } else {
+                    comfortZone = fadedComfortZone;
+                    uiLog(`ComfortZone Logic: FadedComfortZone (${fadedComfortZone.toFixed(2)}) is within 0.5x to 1.5x of AverageUsd (${counterAverageUsd.toFixed(2)}). ComfortZone = FadedComfortZone.`);
+                }
+                uiLog("CT-Evergreen-Econ-ComfortZone (before AssureMonitizer): " + comfortZone.toFixed(2));
+
+                if (totalPurchases > 0) { // totalPurchases here refers to purchases filtered by currentCalcDate
+                    const originalComfortZone = comfortZone;
+                    comfortZone = Math.max(comfortZone, 199);
+                    if (comfortZone !== originalComfortZone) {
+                        uiLog(`ComfortZone Logic (AssureMonitizer): Total purchases (${totalPurchases}) > 0 and ComfortZone (${originalComfortZone.toFixed(2)}) was < 199. Adjusted ComfortZone to ${comfortZone.toFixed(2)}.`);
+                    } else {
+                        uiLog("ComfortZone Logic (AssureMonitizer): No adjustment needed.");
+                    }
+                }
+                uiLog("CT-Evergreen-Econ-ComfortZone (final): " + comfortZone.toFixed(2));
+
+
+                tempComfortZoneSpan.textContent = tempComfortZone.toFixed(2);
+                counterAverageUsdSpan.textContent = counterAverageUsd.toFixed(2);
+                fadedComfortZoneSpan.textContent = fadedComfortZone.toFixed(2);
+                comfortZoneSpan.textContent = comfortZone.toFixed(2);
+
+
+                // Display all extracted data, highlighting included items
+                // Use parsedData (filtered by currentCalcDate) for display, but highlight based on finalFilteredDataForAverage
+                dataFilteredByCalcDate.forEach(item => { // Changed to dataFilteredByCalcDate for display
+                    const div = document.createElement('div');
+                    div.className = 'results-item';
+                    div.innerHTML = `<strong>Date:</strong> ${item.originalDate} <br> <strong>Transaction ID:</strong> ${item.transactionId} <br> <strong>USD Amount:</strong> ${item.originalUSD}`;
+                    if (includedItems.includes(item)) {
+                         div.style.backgroundColor = '#dbeafe';
+                         div.style.borderColor = '#60a5fa';
+                    }
+                    extractedListDiv.appendChild(div);
+                });
+
+                resultsDiv.classList.remove('hidden');
+                showMessage("Processing Complete", false);
+                uiLog("--- Processing Complete ---");
+            });
+        });
+    </script>
+</body>
+</html>
