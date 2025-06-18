@@ -1,0 +1,45 @@
+# .github/workflows/generate-index.yml
+
+name: Generate Project Index
+
+# Controls when the workflow will run
+on:
+  push:
+    branches:
+      - main # Trigger on pushes to the 'main' branch (adjust if your primary branch is 'master')
+  workflow_dispatch: # Allows manual triggering of the workflow from the GitHub UI
+
+jobs:
+  build-index:
+    runs-on: ubuntu-latest # Run on a fresh Ubuntu virtual machine
+
+    steps:
+      # Step 1: Checkout the repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Specify the Node.js version
+
+      # Step 3: Install necessary Node.js packages for the script
+      - name: Install dependencies
+        run: |
+          npm install node-fetch # Used to make HTTP requests in the Node.js script
+          npm install showdown   # Used for basic Markdown to HTML conversion of READMEs
+
+      # Step 4: Run the Node.js script to generate index.html
+      - name: Run index generator script
+        run: node .github/scripts/generate-index.js
+
+      # Step 5: Commit and push the changes (the newly generated index.html)
+      - name: Commit and push generated index.html
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "CI: Auto-generate project index page" # Commit message for the automated commit
+          branch: main # Ensure it commits back to the 'main' branch
+          # By default, this action uses the GITHUB_TOKEN which has sufficient
+          # permissions to push to the repository if your repo settings allow.
+          # Ensure your GITHUB_TOKEN has `contents: write` permission for this repo.
