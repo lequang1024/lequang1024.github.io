@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google Analytics Tag -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL3LWXVBHR"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-LL3LWXVBHR');
+    </script>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quang Le — Project Tools</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+    <style>
+        /* Base font for the body */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Styling for individual project cards (if any are still rendered this way, though the tree view changes this) */
+        .project-card {
+            transition: all 0.2s ease;
+        }
+        .project-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Specific styles for the tree view folders */
+        .folder-item {
+            cursor: pointer;
+            user-select: none; /* Prevents text selection on double-click */
+            padding: 8px 0;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.1s ease;
+        }
+        .folder-item:hover {
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+        }
+
+        /* Style for the expand/collapse icon */
+        .folder-toggle-icon {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0; /* Prevents icon from shrinking */
+            display: inline-block;
+            transition: transform 0.2s ease;
+            transform-origin: center center;
+        }
+        /* Rotates the icon when folder is expanded */
+        .folder-item[data-expanded="true"] .folder-toggle-icon {
+            transform: rotate(90deg);
+        }
+        /* Specific folder icon */
+        .folder-icon {
+            margin-left: 4px;
+            margin-right: 8px;
+            font-size: 1.2em; /* Adjust size for emoji */
+            line-height: 1; /* Ensure emoji aligns correctly */
+            flex-shrink: 0;
+        }
+
+        /* Style for folder name text */
+        .folder-name {
+            font-weight: 600; /* Tailwind font-semibold */
+            color: #4f46e5; /* Tailwind indigo-600 */
+        }
+
+        /* Indentation for nested items within a folder */
+        .folder-contents {
+            margin-left: 24px; /* Indent nested items */
+            list-style: none; /* Remove default list bullets */
+            padding: 0;
+            overflow: hidden; /* Hide overflow when collapsing */
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+        }
+        /* Initially hidden state for folder contents */
+        .folder-contents.hidden {
+            max-height: 0;
+            opacity: 0;
+        }
+        /* Expanded state for folder contents */
+        .folder-contents:not(.hidden) {
+            max-height: 1000px; /* A large enough value to allow content to show */
+            opacity: 1;
+        }
+
+        /* Styling for individual file items */
+        .file-item {
+            padding: 6px 0;
+            border-radius: 8px;
+            margin-bottom: 2px;
+        }
+        .file-item a {
+            display: block;
+            padding: 4px 8px; /* Padding for the clickable area */
+            border-radius: 8px;
+            color: #374151; /* Tailwind gray-700 */
+            text-decoration: none;
+            transition: background-color 0.1s ease, color 0.1s ease;
+        }
+        .file-item a:hover {
+            background-color: #e5e7eb; /* Tailwind gray-200 */
+            color: #1f2937; /* Tailwind gray-800 */
+        }
+        /* Style for the description (README content) */
+        .project-description {
+            font-size: 0.75rem; /* text-xs */
+            color: #6b7280; /* text-gray-500 */
+            margin-top: 4px;
+            white-space: pre-wrap; /* Preserve whitespace and line breaks from README */
+            max-height: 60px; /* Limit height to prevent overly long descriptions */
+            overflow: hidden; /* Hide overflow */
+            text-overflow: ellipsis; /* Add ellipsis for overflow */
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 text-gray-800 min-h-screen flex flex-col items-center justify-center p-6">
+
+    <div class="w-full max-w-4xl">
+        <header class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-500">
+                Quang Le's Tools
+            </h1>
+            <p class="mt-3 text-gray-600 text-lg">
+                Simple, useful utilities — hosted on GitHub Pages
+            </p>
+        </header>
+
+        <main id="project-tree" class="bg-white rounded-2xl p-6 shadow border border-gray-200">
+            <ul class="list-none p-0 m-0">
+                <li>
+                    <div class="folder-item flex items-center pl-2" data-expanded="false">
+                        <span class="folder-toggle-icon text-gray-500">&#9658;</span>
+                        <span class="folder-icon">📁</span>
+                        <span class="folder-name">Games</span>
+                    </div>
+                    <div class="folder-contents hidden">
+                        <ul class="list-none p-0 m-0">
+                <li>
+                    <a href="/Games/auto-tower-defense-game.html" target="_blank" rel="noopener noreferrer" class="file-item block px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-200">
+                        <h3 class="text-md font-medium">Games: Auto tower defense game</h3>
+                        <p class="project-description">An automated tower defense game. Set up your towers and watch the battle!</p>
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="/Games/bitcoin.html" target="_blank" rel="noopener noreferrer" class="file-item block px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-200">
+                        <h3 class="text-md font-medium">Games: Bitcoin</h3>
+                        <p class="project-description">A simple utility or project.</p>
+                    </a>
+                </li>
+            </ul>
+                    </div>
+                </li>
+            
+                <li>
+                    <div class="folder-item flex items-center pl-2" data-expanded="false">
+                        <span class="folder-toggle-icon text-gray-500">&#9658;</span>
+                        <span class="folder-icon">📁</span>
+                        <span class="folder-name">Utils</span>
+                    </div>
+                    <div class="folder-contents hidden">
+                        <ul class="list-none p-0 m-0">
+                <li>
+                    <a href="/Utils/baby feeding template printable.html" target="_blank" rel="noopener noreferrer" class="file-item block px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-200">
+                        <h3 class="text-md font-medium">Utils: Baby feeding template printable</h3>
+                        <p class="project-description">A simple utility or project.</p>
+                    </a>
+                </li>
+            </ul>
+                    </div>
+                </li>
+            
+                <li>
+                    <div class="folder-item flex items-center pl-2" data-expanded="false">
+                        <span class="folder-toggle-icon text-gray-500">&#9658;</span>
+                        <span class="folder-icon">📁</span>
+                        <span class="folder-name">Work related</span>
+                    </div>
+                    <div class="folder-contents hidden">
+                        <ul class="list-none p-0 m-0">
+                <li>
+                    <div class="folder-item flex items-center pl-4" data-expanded="false">
+                        <span class="folder-toggle-icon text-gray-500">&#9658;</span>
+                        <span class="folder-icon">📁</span>
+                        <span class="folder-name">Econ</span>
+                    </div>
+                    <div class="folder-contents hidden">
+                        <ul class="list-none p-0 m-0">
+                <li>
+                    <a href="/Work related/Econ/g-tier-json.html" target="_blank" rel="noopener noreferrer" class="file-item block px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-200">
+                        <h3 class="text-md font-medium">Econ: G tier json</h3>
+                        <p class="project-description">A simple utility or project.</p>
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="/Work related/Econ/g-tier.html" target="_blank" rel="noopener noreferrer" class="file-item block px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-200">
+                        <h3 class="text-md font-medium">Econ: G tier</h3>
+                        <p class="project-description">A simple utility or project.</p>
+                    </a>
+                </li>
+            </ul>
+                    </div>
+                </li>
+            
+                <li>
+                    <a href="/Work related/datetime-to-ticks.html" target="_blank" rel="noopener noreferrer" class="file-item block px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-200">
+                        <h3 class="text-md font-medium">Work related: Datetime to ticks</h3>
+                        <p class="project-description">Okay, I understand you'd like the content of the selected text from the Canvas in a non-Canvas format. Here it is:
+.NET Datetime to Ticks Converter
+This simple web-based utility helps developers and u...</p>
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="/Work related/extract psaid.html" target="_blank" rel="noopener noreferrer" class="file-item block px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-200">
+                        <h3 class="text-md font-medium">Work related: Extract psaid</h3>
+                        <p class="project-description">Okay, I understand you'd like the content of the selected text from the Canvas in a non-Canvas format. Here it is:
+.NET Datetime to Ticks Converter
+This simple web-based utility helps developers and u...</p>
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="/Work related/support-code-scraper-tool.html" target="_blank" rel="noopener noreferrer" class="file-item block px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-200">
+                        <h3 class="text-md font-medium">Work related: Support code scraper tool</h3>
+                        <p class="project-description">Okay, I understand you'd like the content of the selected text from the Canvas in a non-Canvas format. Here it is:
+.NET Datetime to Ticks Converter
+This simple web-based utility helps developers and u...</p>
+                    </a>
+                </li>
+            </ul>
+                    </div>
+                </li>
+            
+                <li>
+                    <a href="/index_template.html" target="_blank" rel="noopener noreferrer" class="file-item block px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-200">
+                        <h3 class="text-md font-medium">Index_template</h3>
+                        <p class="project-description">A simple utility or project.</p>
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="/qr-deeplink.html" target="_blank" rel="noopener noreferrer" class="file-item block px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-200">
+                        <h3 class="text-md font-medium">Qr deeplink</h3>
+                        <p class="project-description">Generate QR codes that trigger deep links — ideal for app routing tests and marketing workflows.</p>
+                    </a>
+                </li>
+            </ul>
+        </main>
+
+        <footer class="mt-16 text-center text-sm text-gray-500">
+            &copy; <script>document.write(new Date().getFullYear())</script> Quang Le. Built with ❤️ using GitHub Pages.
+        </footer>
+    </div>
+
+    <script>
+        // Client-side JavaScript for handling folder expansion/collapse
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.folder-item').forEach(folderDiv => {
+                folderDiv.addEventListener('click', () => {
+                    const folderContentsList = folderDiv.nextElementSibling; // The <ul> immediately after the folderDiv
+                    const isHidden = folderContentsList.classList.contains('hidden');
+                    folderContentsList.classList.toggle('hidden');
+                    folderDiv.setAttribute('data-expanded', isHidden ? 'true' : 'false');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
