@@ -115,6 +115,16 @@
             background-color: #e5e7eb; /* Tailwind gray-200 */
             color: #1f2937; /* Tailwind gray-800 */
         }
+        /* Style for the description (README content) */
+        .project-description {
+            font-size: 0.75rem; /* text-xs */
+            color: #6b7280; /* text-gray-500 */
+            margin-top: 4px;
+            white-space: pre-wrap; /* Preserve whitespace and line breaks from README */
+            max-height: 60px; /* Limit height to prevent overly long descriptions */
+            overflow: hidden; /* Hide overflow */
+            text-overflow: ellipsis; /* Add ellipsis for overflow */
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-slate-100 text-gray-800 min-h-screen flex items-center justify-center p-6">
@@ -152,37 +162,13 @@
 
         const repoOwner = 'lequang1024';
         const repoName = 'lequang1024.github.io';
-        const baseUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/`;
+        // Base URL for GitHub API content listing
+        const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/`;
+        // Base URL for raw content (used for README.md files)
+        const rawContentBaseUrl = `https://raw.githubusercontent.com/${repoOwner}/${repoName}/main/`; // Assuming 'main' branch
+
         const treeRoot = document.getElementById('tree-root');
         const loadingIndicator = document.getElementById('loading-indicator');
-
-        /**
-         * Generates display details (title, and the correct URL) for a given file path.
-         * This function is crucial for providing user-friendly names,
-         * especially for files nested within directories.
-         * @param {string} fullPath - The full relative path of the file (e.g., 'Games/auto-tower-defense-game.html').
-         * @returns {{title: string, url: string}} An object with the formatted title and the relative URL for linking.
-         */
-        function getProjectDetails(fullPath) {
-            const parts = fullPath.split('/');
-            const filename = parts[parts.length - 1]; // Extracts the filename (e.g., 'auto-tower-defense-game.html')
-            const directoryPrefix = parts.length > 1 ? parts[0] : ''; // Gets the top-level directory (e.g., 'Games')
-
-            // Default title derived from the filename
-            let title = filename.replace('.html', '').replace(/-/g, ' ');
-            title = title.charAt(0).toUpperCase() + title.slice(1); // Capitalize first letter
-
-            // Prepend the directory name to the title for better context in the tree view, if applicable
-            if (directoryPrefix) {
-                const displayDirectory = directoryPrefix.charAt(0).toUpperCase() + directoryPrefix.slice(1);
-                title = `${displayDirectory}: ${title}`;
-            }
-
-            // The URL for GitHub Pages is the full path relative to the root (e.g., /Games/auto-tower-defense-game.html)
-            const projectUrl = `/${fullPath}`;
-
-            return { title, url: projectUrl }; // Removed description from return object
-        }
 
         /**
          * Fetches contents of a given GitHub API URL (either repository root or a directory).
@@ -194,16 +180,74 @@
             try {
                 const response = await fetch(url);
                 if (!response.ok) {
-                    // Throw an error if the network response was not OK (e.g., 404, 500)
                     throw new Error(`Failed to fetch contents: ${response.statusText} (${response.status}) from ${url}`);
                 }
                 const data = await response.json();
                 return data;
             } catch (error) {
                 console.error(`Error fetching contents from ${url}:`, error);
-                // Return an empty array to ensure the app doesn't break even if a fetch fails
-                return [];
+                return []; // Return empty array on error to prevent breaking
             }
+        }
+
+        /**
+         * Fetches the raw content of a README.md file.
+         * @param {string} readmePath - The full relative path to the README.md file (e.g., 'Games/README.md').
+         * @returns {Promise<string>} A promise that resolves with the content of the README.md, or an empty string if not found/error.
+         */
+        async function fetchReadmeContent(readmePath) {
+            const readmeUrl = rawContentBaseUrl + readmePath;
+            try {
+                const response = await fetch(readmeUrl);
+                if (!response.ok) {
+                    // It's common for README.md not to exist for every sub-directory/file
+                    // console.warn(`No README.md found or failed to fetch: ${readmeUrl}`);
+                    return ''; // Return empty string if README doesn't exist or fetch fails
+                }
+                const text = await response.text();
+                // Basic markdown to plain text conversion: remove headings, links, bold, italics.
+                // This is a very simplified parser. For full markdown rendering, a library would be needed.
+                let cleanedText = text
+                    .replace(/^[#]+\s.*$/gm, '') // Remove Markdown headings (e.g., # My Title)
+                    .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Remove Markdown links (e.g., [text](url) -> text)
+                    .replace(/[\*\_~`]/g, ''); // Remove common Markdown formatting like bold/italics/code
+                return cleanedText.trim(); // Trim any leading/trailing whitespace
+            } catch (error) {
+                console.error(`Error fetching README content from ${readmeUrl}:`, error);
+                return '';
+            }
+        }
+
+        /**
+         * Generates display details (title, description, and the correct URL) for a given file path.
+         * This function is crucial for providing user-friendly names and descriptions,
+         * especially for files nested within directories.
+         * @param {string} fullPath - The full relative path of the file (e.g., 'Games/auto-tower-defense-game.html').
+         * @returns {Promise<{title: string, description: string, url: string}>} An object with the formatted title, description, and the relative URL for linking.
+         */
+        async function getProjectDetails(fullPath) {
+            const parts = fullPath.split('/');
+            const filename = parts[parts.length - 1]; // Extracts the filename (e.g., 'auto-tower-defense-game.html')
+            const directoryPath = parts.slice(0, -1).join('/'); // Path to the directory containing the file
+            
+            // Default title derived from the filename
+            let title = filename.replace('.html', '').replace(/-/g, ' ');
+            title = title.charAt(0).toUpperCase() + title.slice(1); // Capitalize first letter
+
+            // Prepend the directory name to the title for better context in the tree view, if applicable
+            if (directoryPath) {
+                const displayDirectory = directoryPath.split('/').pop(); // Get just the last directory name
+                title = `${displayDirectory.charAt(0).toUpperCase() + displayDirectory.slice(1)}: ${title}`;
+            }
+
+            // Construct the path to the potential README.md for this specific project/directory
+            const readmePath = directoryPath ? `${directoryPath}/README.md` : 'README.md';
+            const description = await fetchReadmeContent(readmePath); // Fetch README content asynchronously
+
+            // The URL for GitHub Pages is the full path relative to the root (e.g., /Games/auto-tower-defense-game.html)
+            const projectUrl = `/${fullPath}`;
+
+            return { title, description, url: projectUrl };
         }
 
         /**
@@ -302,8 +346,8 @@
 
                     // Construct the full path for the file to pass to getProjectDetails
                     const fullPathForDetails = currentPath ? `${currentPath}/${item.name}` : item.name;
-                    // Get title and the correct URL for the project
-                    const { title, url } = getProjectDetails(fullPathForDetails);
+                    // Get title, description, and the correct URL for the project (now async)
+                    const { title, description, url } = await getProjectDetails(fullPathForDetails);
 
                     // Create the anchor tag for the project link
                     const projectLink = document.createElement('a');
@@ -311,9 +355,10 @@
                     projectLink.target = '_blank'; // Open project in a new tab
                     projectLink.rel = 'noopener noreferrer'; // Security best practice for target="_blank"
 
-                    // Add content to the link (only title, no description)
+                    // Add content to the link (title and description)
                     projectLink.innerHTML = `
                         <h3 class="text-md font-medium text-gray-700">${title}</h3>
+                        ${description ? `<p class="project-description">${description}</p>` : ''}
                     `;
                     listItem.appendChild(projectLink);
                     parentElement.appendChild(listItem);
@@ -326,7 +371,7 @@
             loadingIndicator.classList.remove('hidden'); // Ensure loading indicator is visible
 
             // Fetch the contents of the repository root
-            const rootItems = await fetchContents(baseUrl);
+            const rootItems = await fetchContents(apiUrl);
 
             loadingIndicator.classList.add('hidden'); // Hide loading indicator once data is fetched
             treeRoot.innerHTML = ''; // Clear any placeholder content
