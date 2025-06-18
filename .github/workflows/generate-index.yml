@@ -9,6 +9,10 @@ on:
       - main # Trigger on pushes to the 'main' branch (adjust if your primary branch is 'master')
   workflow_dispatch: # Allows manual triggering of the workflow from the GitHub UI
 
+# Explicitly grant permissions to the GITHUB_TOKEN
+permissions:
+  contents: write # This grants write access to the repository contents
+
 jobs:
   build-index:
     runs-on: ubuntu-latest # Run on a fresh Ubuntu virtual machine
@@ -40,6 +44,4 @@ jobs:
         with:
           commit_message: "CI: Auto-generate project index page" # Commit message for the automated commit
           branch: main # Ensure it commits back to the 'main' branch
-          # By default, this action uses the GITHUB_TOKEN which has sufficient
-          # permissions to push to the repository if your repo settings allow.
-          # Ensure your GITHUB_TOKEN has `contents: write` permission for this repo.
+          # The `contents: write` permission above should resolve the issue.
