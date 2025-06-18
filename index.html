@@ -157,42 +157,20 @@
         const loadingIndicator = document.getElementById('loading-indicator');
 
         /**
-         * Generates display details (title, description, and the correct URL) for a given file path.
-         * This function is crucial for providing user-friendly names and descriptions,
+         * Generates display details (title, and the correct URL) for a given file path.
+         * This function is crucial for providing user-friendly names,
          * especially for files nested within directories.
          * @param {string} fullPath - The full relative path of the file (e.g., 'Games/auto-tower-defense-game.html').
-         * @returns {{title: string, description: string, url: string}} An object with the formatted title, description, and the relative URL for linking.
+         * @returns {{title: string, url: string}} An object with the formatted title and the relative URL for linking.
          */
         function getProjectDetails(fullPath) {
             const parts = fullPath.split('/');
             const filename = parts[parts.length - 1]; // Extracts the filename (e.g., 'auto-tower-defense-game.html')
             const directoryPrefix = parts.length > 1 ? parts[0] : ''; // Gets the top-level directory (e.g., 'Games')
 
-            // Default title and description derived from the filename
+            // Default title derived from the filename
             let title = filename.replace('.html', '').replace(/-/g, ' ');
             title = title.charAt(0).toUpperCase() + title.slice(1); // Capitalize first letter
-            let description = `A simple utility or project.`;
-
-            // Specific overrides for known files to provide custom titles and descriptions
-            switch (filename) {
-                case 'qr-deeplink.html':
-                    title = 'QR Code Deeplink Generator';
-                    description = 'Generate QR codes that trigger deep links — ideal for app routing tests and marketing workflows.';
-                    break;
-                case 'support-code-scraper-tool.html':
-                    title = 'Support Code Scraper';
-                    description = 'Paste logs or messages to extract 6-digit support codes and build NCalc expressions for filtering.';
-                    break;
-                case 'datetime-to-ticks.html':
-                    title = 'Datetime to Ticks Converter';
-                    description = 'Convert ISO date strings into .NET ticks and generate filtering logic for server-side date checks.';
-                    break;
-                case 'auto-tower-defense-game.html':
-                    title = 'Auto Tower Defense';
-                    description = 'An automated tower defense game. Set up your towers and watch the battle!';
-                    break;
-                // Add more cases here for any other specific files you want to customize
-            }
 
             // Prepend the directory name to the title for better context in the tree view, if applicable
             if (directoryPrefix) {
@@ -203,7 +181,7 @@
             // The URL for GitHub Pages is the full path relative to the root (e.g., /Games/auto-tower-defense-game.html)
             const projectUrl = `/${fullPath}`;
 
-            return { title, description, url: projectUrl };
+            return { title, url: projectUrl }; // Removed description from return object
         }
 
         /**
@@ -324,8 +302,8 @@
 
                     // Construct the full path for the file to pass to getProjectDetails
                     const fullPathForDetails = currentPath ? `${currentPath}/${item.name}` : item.name;
-                    // Get title, description, and the correct URL for the project
-                    const { title, description, url } = getProjectDetails(fullPathForDetails);
+                    // Get title and the correct URL for the project
+                    const { title, url } = getProjectDetails(fullPathForDetails);
 
                     // Create the anchor tag for the project link
                     const projectLink = document.createElement('a');
@@ -333,10 +311,9 @@
                     projectLink.target = '_blank'; // Open project in a new tab
                     projectLink.rel = 'noopener noreferrer'; // Security best practice for target="_blank"
 
-                    // Add content to the link
+                    // Add content to the link (only title, no description)
                     projectLink.innerHTML = `
                         <h3 class="text-md font-medium text-gray-700">${title}</h3>
-                        <p class="text-gray-500 text-xs mt-1">${description}</p>
                     `;
                     listItem.appendChild(projectLink);
                     parentElement.appendChild(listItem);
