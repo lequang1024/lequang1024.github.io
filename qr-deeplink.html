@@ -132,7 +132,7 @@
                 <div>
                     <h2 class="text-xl font-semibold text-gray-700 mb-3">Additional Query Parameters ("Cheats")</h2>
                     <div id="additionalParamsContainer" class="space-y-4">
-                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -290,8 +290,8 @@
                     }); 
                     if(param.type === 'select') { 
                         valueElement.addEventListener('change', () => { 
-                           generateAndDisplayQrCode();
-                           scheduleAliveCheck(); 
+                            generateAndDisplayQrCode();
+                            scheduleAliveCheck(); 
                         });
                     }
                 }
@@ -440,7 +440,7 @@
             }
 
             if (!hostToCheck) {
-                if (checkToken === currentAliveCheckToken) { 
+                if (checkToken === currentAliveCheckToken) {
                     aliveStatusDiv.textContent = '';
                     aliveStatusDiv.className = 'mt-2 text-sm';
                 }
@@ -459,30 +459,75 @@
             }
 
             try {
-                await fetch(checkUrl, { method: 'HEAD', mode: 'no-cors' }); 
-                if (checkToken === currentAliveCheckToken) { 
-                    aliveStatusDiv.textContent = 'Status: Alive 😻';
-                    aliveStatusDiv.className = 'mt-2 text-sm status-alive';
-                    if (typeof gtag === 'function') {
-                        gtag('event', 'server_reachable', {
-                            'event_category': 'engagement',
-                            'event_label': 'Alive Check Success',
-                            'host': hostToCheck,
-                            'deep_link_url': currentDeepLinkUrl // Added currentDeepLinkUrl
-                        });
+                let fetchOptions = { method: 'HEAD' };
+                let isCustomCheck = false;
+
+                if (selectedEnvironment === "custom") {
+                    // For custom URLs, remove no-cors and expect a real response
+                    isCustomCheck = true;
+                    // No 'mode' specified means default 'cors' mode
+                } else {
+                    // For other environments, use no-cors to avoid CORS issues for cross-origin checks
+                    fetchOptions.mode = 'no-cors';
+                }
+
+                const response = await fetch(checkUrl, fetchOptions);
+
+                if (checkToken === currentAliveCheckToken) {
+                    let statusMessage = '';
+                    let statusClass = '';
+
+                    if (isCustomCheck) {
+                        if (response.status === 200) {
+                            statusMessage = 'Status: Alive 😻 (HTTP 200)';
+                            statusClass = 'mt-2 text-sm status-alive';
+                            if (typeof gtag === 'function') {
+                                gtag('event', 'server_reachable', {
+                                    'event_category': 'engagement',
+                                    'event_label': 'Alive Check Success (Custom 200)',
+                                    'host': hostToCheck,
+                                    'deep_link_url': currentDeepLinkUrl
+                                });
+                            }
+                        } else {
+                            statusMessage = `Status: Dead 💀 (HTTP ${response.status})`;
+                            statusClass = 'mt-2 text-sm status-not-alive';
+                            if (typeof gtag === 'function') {
+                                gtag('event', 'server_unreachable', {
+                                    'event_category': 'engagement',
+                                    'event_label': `Alive Check Failed (Custom ${response.status})`,
+                                    'host': hostToCheck,
+                                    'deep_link_url': currentDeepLinkUrl
+                                });
+                            }
+                        }
+                    } else {
+                        // For non-custom, success means the request went through (even if it's opaque due to no-cors)
+                        statusMessage = 'Status: Alive 😻';
+                        statusClass = 'mt-2 text-sm status-alive';
+                        if (typeof gtag === 'function') {
+                            gtag('event', 'server_reachable', {
+                                'event_category': 'engagement',
+                                'event_label': 'Alive Check Success (No-CORS)',
+                                'host': hostToCheck,
+                                'deep_link_url': currentDeepLinkUrl
+                            });
+                        }
                     }
+                    aliveStatusDiv.textContent = statusMessage;
+                    aliveStatusDiv.className = statusClass;
                 }
             } catch (error) {
                 console.error('Alive check failed (Network Error):', error);
                 if (checkToken === currentAliveCheckToken) { 
-                    aliveStatusDiv.textContent = 'Status: Dead 💀';
+                    aliveStatusDiv.textContent = 'Status: Dead 💀 (Network Error)';
                     aliveStatusDiv.className = 'mt-2 text-sm status-not-alive';
                     if (typeof gtag === 'function') {
                         gtag('event', 'server_unreachable', {
                             'event_category': 'engagement',
-                            'event_label': 'Alive Check Failed',
+                            'event_label': 'Alive Check Failed (Network Error)',
                             'host': hostToCheck,
-                            'deep_link_url': currentDeepLinkUrl // Added currentDeepLinkUrl
+                            'deep_link_url': currentDeepLinkUrl
                         });
                     }
                 }
