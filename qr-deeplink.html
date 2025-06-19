@@ -19,6 +19,7 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6; /* Tailwind bg-gray-100 */
+            padding-bottom: 70px; /* Add padding to body to prevent floating button from covering content */
         }
         #qrcode img {
             margin: auto;
@@ -77,6 +78,7 @@
         .status-checking { color: #6b7280; /* gray-500 */ }
         .status-alive { color: #10b981; /* green-500 */ }
         .status-not-alive { color: #ef4444; /* red-500 */ }
+
         #grafanaLinkContainer {
             margin-top: 0.5rem; /* mt-2 */
         }
@@ -85,6 +87,83 @@
             margin-right: 0.25rem; /* space between icon and text */
             display: inline-block;
         }
+
+        /* Floating Start Game Button Container */
+        #startGameFixedContainer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #startGameFixedContainer #startGameBtn {
+            background-color: transparent;
+            color: #4f46e5; /* Indigo text */
+            font-weight: 600; /* Semibold font weight */
+            padding: 10px 15px; /* Comfortable padding */
+            border-radius: 0.5rem; /* Rounded corners */
+            border: 2px solid #4f46e5; /* Border to make it visible without background */
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            position: relative; /* For tooltip positioning */
+            display: flex;
+            align-items: center;
+            gap: 4px; /* Space between icon and text if we decide to add one */
+        }
+
+        #startGameFixedContainer #startGameBtn:hover {
+            background-color: #e0e7ff; /* Light indigo background on hover */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow on hover */
+        }
+
+        /* Tooltip for desktop only */
+        #startGameFixedContainer .button-tooltip {
+            display: none; /* Hidden by default */
+            position: absolute;
+            bottom: calc(100% + 10px); /* Position above the button */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 5px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease-in-out;
+            font-size: 0.875rem; /* text-sm */
+        }
+
+        #startGameFixedContainer #startGameBtn:hover + .button-tooltip {
+            opacity: 1; /* Show on hover */
+            display: block; /* Ensure it becomes visible */
+        }
+
+        /* Hide the original "Start Game" button and its hint */
+        .hidden-on-fixed {
+            display: none !important;
+        }
+
+        /* Responsive adjustments for mobile */
+        @media (max-width: 767px) { /* Adjust breakpoint as needed for mobile */
+            #startGameFixedContainer {
+                bottom: 15px;
+                right: 15px;
+            }
+
+            #startGameFixedContainer #startGameBtn {
+                padding: 12px 18px; /* Slightly larger touch target on mobile */
+                font-size: 1rem; /* Base font size for mobile button */
+            }
+
+            #startGameFixedContainer .button-tooltip {
+                display: none; /* Ensure tooltip is hidden on mobile */
+            }
+        }
+
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
@@ -151,23 +230,23 @@
                         </button>
                     </div>
                 </div>
-                <div class="mt-6 flex flex-col sm:flex-row justify-center items-center gap-4">
-                    <button id="startGameBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 text-sm rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out w-full sm:w-auto">
-                        Start Game
-                    </button>
-                    <!-- Sub-text for Start Game button -->
-                    <p class="text-xs text-gray-500 text-center mt-2 w-full sm:hidden">
-                        (To start game with this button, open this website in your mobile device's browser)
-                    </p>
+                <div class="mt-6 flex flex-col sm:flex-row justify-center items-center gap-4 button-group-original">
+                    <!-- Removed original Start Game button -->
                     <button id="resetBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 text-sm rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition duration-150 ease-in-out w-full sm:w-auto">
                         Reset All Settings
                     </button>
                 </div>
-                <!-- Sub-text for Start Game button for larger screens -->
-                <p class="text-xs text-gray-500 text-center mt-2 hidden sm:block">
-                    (To start game with this button, open this website in your mobile device's browser)
-                </p>
             </div>
+        </div>
+    </div>
+
+    <!-- Floating Start Game Button Container -->
+    <div id="startGameFixedContainer">
+        <button id="startGameBtn">
+            Start Game
+        </button>
+        <div class="button-tooltip">
+            (To start game with this button, open this website in your mobile device's browser)
         </div>
     </div>
 
@@ -180,7 +259,7 @@
         const customBackendUrlGroup = document.getElementById('customBackendUrlGroup');
         const additionalParamsContainer = document.getElementById('additionalParamsContainer');
         const resetBtn = document.getElementById('resetBtn');
-        const startGameBtn = document.getElementById('startGameBtn'); 
+        const startGameBtn = document.getElementById('startGameBtn'); // The FIXED button now serves both
         const qrcodeDiv = document.getElementById('qrcode');
         const generatedUrlP = document.getElementById('generatedUrl');
         const aliveStatusDiv = document.getElementById('aliveStatus'); 
@@ -459,17 +538,12 @@
             }
 
             try {
-                let fetchOptions = {}; // Initialize with an empty object
-
-                let isCustomCheck = false;
+                let fetchOptions = {}; 
 
                 if (selectedEnvironment === "custom") {
-                    // For custom URLs, use GET and remove no-cors to expect a real response
-                    isCustomCheck = true;
                     fetchOptions.method = 'GET'; // Use GET for custom backend URL
                     // No 'mode' specified means default 'cors' mode
                 } else {
-                    // For other environments, use HEAD and no-cors to avoid CORS issues for cross-origin checks
                     fetchOptions.method = 'HEAD';
                     fetchOptions.mode = 'no-cors';
                 }
@@ -480,45 +554,30 @@
                     let statusMessage = '';
                     let statusClass = '';
 
-                    if (isCustomCheck) {
+                    if (selectedEnvironment === "custom") {
                         if (response.status === 200) {
                             statusMessage = 'Status: Alive 😻 (HTTP 200)';
                             statusClass = 'mt-2 text-sm status-alive';
-                            if (typeof gtag === 'function') {
-                                gtag('event', 'server_reachable', {
-                                    'event_category': 'engagement',
-                                    'event_label': 'Alive Check Success (Custom 200)',
-                                    'host': hostToCheck,
-                                    'deep_link_url': currentDeepLinkUrl
-                                });
-                            }
                         } else {
                             statusMessage = `Status: Dead 💀 (HTTP ${response.status})`;
                             statusClass = 'mt-2 text-sm status-not-alive';
-                            if (typeof gtag === 'function') {
-                                gtag('event', 'server_unreachable', {
-                                    'event_category': 'engagement',
-                                    'event_label': `Alive Check Failed (Custom ${response.status})`,
-                                    'host': hostToCheck,
-                                    'deep_link_url': currentDeepLinkUrl
-                                });
-                            }
                         }
                     } else {
-                        // For non-custom, success means the request went through (even if it's opaque due to no-cors)
                         statusMessage = 'Status: Alive 😻';
                         statusClass = 'mt-2 text-sm status-alive';
-                        if (typeof gtag === 'function') {
-                            gtag('event', 'server_reachable', {
-                                'event_category': 'engagement',
-                                'event_label': 'Alive Check Success (No-CORS)',
-                                'host': hostToCheck,
-                                'deep_link_url': currentDeepLinkUrl
-                            });
-                        }
                     }
+
                     aliveStatusDiv.textContent = statusMessage;
                     aliveStatusDiv.className = statusClass;
+
+                    if (typeof gtag === 'function') {
+                        gtag('event', 'server_reachable', {
+                            'event_category': 'engagement',
+                            'event_label': `Alive Check Status: ${statusMessage}`,
+                            'host': hostToCheck,
+                            'deep_link_url': currentDeepLinkUrl
+                        });
+                    }
                 }
             } catch (error) {
                 console.error('Alive check failed (Network Error):', error);
@@ -693,18 +752,18 @@
             generateAndDisplayQrCode(); 
         });
 
+        // Event listener for the fixed Start Game button
         startGameBtn.addEventListener('click', () => {
             if (currentDeepLinkUrl) {
                 if (typeof gtag === 'function') {
                     gtag('event', 'start_game_clicked', {
                         'event_category': 'engagement',
-                        'event_label': 'Start Game Button',
+                        'event_label': 'Start Game Button', // Changed label as it's now unified
                         'deep_link_url': currentDeepLinkUrl
                     });
                 }
                 window.location.href = currentDeepLinkUrl;
             } else {
-                // Use a custom modal or message box instead of alert()
                 console.warn("Please generate a valid QR code and URL first, or check for errors.");
             }
         });
