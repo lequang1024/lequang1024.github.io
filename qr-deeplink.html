@@ -100,12 +100,14 @@
         }
 
         #startGameFixedContainer #startGameBtn {
-            background-color: transparent;
+            background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent white */
+            backdrop-filter: blur(5px); /* Glassy blur effect */
+            -webkit-backdrop-filter: blur(5px); /* Safari support */
             color: #4f46e5; /* Indigo text */
             font-weight: 600; /* Semibold font weight */
             padding: 10px 15px; /* Comfortable padding */
             border-radius: 0.5rem; /* Rounded corners */
-            border: 2px solid #4f46e5; /* Border to make it visible without background */
+            border: 1px solid rgba(79, 70, 229, 0.5); /* Slightly transparent indigo border */
             transition: all 0.2s ease-in-out;
             cursor: pointer;
             position: relative; /* For tooltip positioning */
@@ -115,7 +117,7 @@
         }
 
         #startGameFixedContainer #startGameBtn:hover {
-            background-color: #e0e7ff; /* Light indigo background on hover */
+            background-color: rgba(255, 255, 255, 0.4); /* More opaque on hover */
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow on hover */
         }
 
@@ -157,6 +159,8 @@
             #startGameFixedContainer #startGameBtn {
                 padding: 12px 18px; /* Slightly larger touch target on mobile */
                 font-size: 1rem; /* Base font size for mobile button */
+                background-color: rgba(255, 255, 255, 0.3); /* Slightly more opaque on mobile */
+                border: 1px solid rgba(79, 70, 229, 0.6); /* Slightly more opaque border on mobile */
             }
 
             #startGameFixedContainer .button-tooltip {
