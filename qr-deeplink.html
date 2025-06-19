@@ -459,15 +459,18 @@
             }
 
             try {
-                let fetchOptions = { method: 'HEAD' };
+                let fetchOptions = {}; // Initialize with an empty object
+
                 let isCustomCheck = false;
 
                 if (selectedEnvironment === "custom") {
-                    // For custom URLs, remove no-cors and expect a real response
+                    // For custom URLs, use GET and remove no-cors to expect a real response
                     isCustomCheck = true;
+                    fetchOptions.method = 'GET'; // Use GET for custom backend URL
                     // No 'mode' specified means default 'cors' mode
                 } else {
-                    // For other environments, use no-cors to avoid CORS issues for cross-origin checks
+                    // For other environments, use HEAD and no-cors to avoid CORS issues for cross-origin checks
+                    fetchOptions.method = 'HEAD';
                     fetchOptions.mode = 'no-cors';
                 }
 
