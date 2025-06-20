@@ -139,9 +139,12 @@
             font-size: 0.875rem; /* text-sm */
         }
 
-        #startGameFixedContainer #startGameBtn:hover + .button-tooltip {
-            opacity: 1; /* Show on hover */
-            display: block; /* Ensure it becomes visible */
+        /* Only show tooltip on devices that support hover (e.g., desktop) */
+        @media (hover: hover) {
+            #startGameFixedContainer #startGameBtn:hover + .button-tooltip {
+                opacity: 1; /* Show on hover */
+                display: block; /* Ensure it becomes visible */
+            }
         }
 
         /* Hide the original "Start Game" button and its hint */
