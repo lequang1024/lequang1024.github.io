@@ -147,6 +147,8 @@
             <div class="summary-item"><span id="averageItemsLabel">Items Included in Average</span>: <strong id="itemsInAverage"></strong></div>
             <div class="summary-item"><span id="averageUsdLabel">Average USD Amount</span>: <strong id="averageUsd"></strong></div>
             <div class="summary-item">Total Purchases Count (from input data): <strong id="totalPurchasesCount"></strong></div>
+            <div class="summary-item">Determined GS Tier: <strong id="gsTier"></strong></div>
+
 
             <h2 class="text-2xl font-bold mb-4 mt-8 text-blue-800">Transaction ID Counts</h2>
             <div class="summary-item">GPA Transaction IDs: <strong id="gpaIdCount"></strong></div>
@@ -199,10 +201,10 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const jsonInputTextarea = document.getElementById('jsonInputTextarea'); // New textarea ID
+            const jsonInputTextarea = document.getElementById('jsonInputTextarea');
             const daysInput = document.getElementById('daysInput');
             const currentDateInput = document.getElementById('currentDateInput');
-            const processButton = document.getElementById('processButton'); // Renamed from fetchDataButton initially
+            const processButton = document.getElementById('processButton');
             const resultsDiv = document.getElementById('results');
             const latestDateSpan = document.getElementById('latestDate');
             const currentCalcDateDisplaySpan = document.getElementById('currentCalcDateDisplay');
@@ -213,6 +215,7 @@
             const averageItemsLabel = document.getElementById('averageItemsLabel');
             const averageUsdLabel = document.getElementById('averageUsdLabel');
             const totalPurchasesCountSpan = document.getElementById('totalPurchasesCount');
+            const gsTierSpan = document.getElementById('gsTier'); // New GS Tier display
             const extractedListDiv = document.getElementById('extractedList');
             const debugLogContent = document.getElementById('debugLogContent');
 
@@ -225,7 +228,6 @@
             const fadedComfortZoneSpan = document.getElementById('fadedComfortZone');
             const comfortZoneSpan = document.getElementById('comfortZone');
 
-            // No Player ID or API Key inputs, no localStorage loading for them
             // No pre-fill for textarea (as requested)
             jsonInputTextarea.value = '';
 
@@ -266,6 +268,34 @@
                 }
             };
 
+            // --- GS Tier Segment Definitions ---
+            const gsSegments = [
+                { "SegmentId": "gs_0", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 99" },
+                { "SegmentId": "gs_2", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 199" },
+                { "SegmentId": "gs_4", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 399" },
+                { "SegmentId": "gs_7", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 699" },
+                { "SegmentId": "gs_10", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 999" },
+                { "SegmentId": "gs_15", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 1499" },
+                { "SegmentId": "gs_20", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 1999" },
+                { "SegmentId": "gs_25", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 2499" },
+                { "SegmentId": "gs_30", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 2999" },
+                { "SegmentId": "gs_35", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 3499" },
+                { "SegmentId": "gs_40", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 3999" },
+                { "SegmentId": "gs_45", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 4499" },
+                { "SegmentId": "gs_50", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 4999" },
+                { "SegmentId": "gs_60", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 5999" },
+                { "SegmentId": "gs_70", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 6999" },
+                { "SegmentId": "gs_85", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 8499" },
+                { "SegmentId": "gs_100", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 9999" },
+                { "SegmentId": "gs_125", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 12499" },
+                { "SegmentId": "gs_150", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 14999" },
+                { "SegmentId": "gs_200", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 19999" },
+                { "SegmentId": "gs_250", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 24999" },
+                { "SegmentId": "gs_300", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') <= 29999" },
+                { "SegmentId": "gs_301", "ConditionExpression": "Ctr('CT-Evergreen-Econ-ComfortZone') >= 29999" }
+            ];
+
+
             // --- Helper Functions for Counter Calculations ---
 
             function getTableValue(tableName, key, context) {
@@ -288,16 +318,16 @@
                         foundKey = currentKey;
                         break;
                     } else if (currentKey > key) {
-                        foundKey = prevValueKey; // Use the previously stored key that was <= `key`
-                        if (foundKey === null && sortedKeys.length > 0) { // If key is smaller than all, take the first one
+                        foundKey = prevValueKey;
+                        if (foundKey === null && sortedKeys.length > 0) {
                             foundKey = sortedKeys[0];
                         }
                         break;
                     }
-                    if (i === sortedKeys.length - 1) { // If `key` is larger than all table keys, take the last one
+                    if (i === sortedKeys.length - 1) {
                         foundKey = currentKey;
                     }
-                    prevValueKey = currentKey; // Store current key as previous for next iteration
+                    prevValueKey = currentKey;
                 }
 
                 if (foundKey !== null) {
@@ -381,6 +411,28 @@
                 }
                 uiLog("  DEBUG: Final totalWeightedAmount:", totalWeightedAmount);
                 return totalWeightedAmount;
+            }
+
+            // Function to determine GS Tier
+            function determineGsTier(comfortZoneValue) {
+                uiLog(`  DEBUG: Determining GS Tier for ComfortZone: ${comfortZoneValue.toFixed(2)}`);
+                for (const segment of gsSegments) {
+                    // Replace Ctr('CT-Evergreen-Econ-ComfortZone') with the actual comfortZoneValue
+                    const condition = segment.ConditionExpression.replace(/Ctr\('CT-Evergreen-Econ-ComfortZone'\)/g, comfortZoneValue);
+                    try {
+                        const isTrue = eval(condition);
+                        uiLog(`  DEBUG:   Evaluating condition "${segment.ConditionExpression}" (as "${condition}") for ${segment.SegmentId}: ${isTrue}`);
+                        if (isTrue) {
+                            uiLog(`  DEBUG:   GS Tier determined: ${segment.SegmentId}`);
+                            return segment.SegmentId;
+                        }
+                    } catch (e) {
+                        uiLog(`ERROR: Failed to evaluate GS Tier condition for ${segment.SegmentId}: ${condition}. Error: ${e.message}`);
+                        return "Error (Check Console)";
+                    }
+                }
+                uiLog("  DEBUG: No GS Tier condition matched. Returning 'N/A'.");
+                return "N/A"; // Default if no condition is met
             }
 
             // --- Event Listeners ---
@@ -499,18 +551,16 @@
                 let totalPurchases = dataFilteredByCalcDate.length; // Total purchases *after* filtering by currentCalcDate
 
                 const gpaRegex = /^GPA\.[0-9A-Za-z-]{19,25}$/;
-                const numeric14Regex = /^\d{10,14}$/; // Adjusted to match 10 or 14 digits, as 10-char was requested
-                const numeric10Regex = /^\d{10}$/; // Stricter for exactly 10 digits if needed separately, but 10-14 is more robust
+                const numericAnyLengthRegex = /^\d+$/; // To check if it's purely numeric for length checks
 
                 // Recount transaction IDs based on filtered data
                 dataFilteredByCalcDate.forEach(record => {
                     if (gpaRegex.test(record.transactionId)) {
                         gpaTransactionCount++;
-                    } else if (numeric14Regex.test(record.transactionId)) {
-                        // Check if it's strictly 14 characters
+                    } else if (numericAnyLengthRegex.test(record.transactionId)) {
                         if (record.transactionId.length === 14) {
                             numeric14CharTransactionCount++;
-                        } else if (record.transactionId.length === 10) { // Check for 10 characters if not 14
+                        } else if (record.transactionId.length === 10) {
                             numeric10CharTransactionCount++;
                         }
                     }
@@ -641,6 +691,11 @@
                 }
                 uiLog("CT-Evergreen-Econ-ComfortZone (final): " + comfortZone.toFixed(2));
 
+                // Determine and display GS Tier
+                const gsTierResult = determineGsTier(comfortZone);
+                gsTierSpan.textContent = gsTierResult;
+                uiLog(`Calculated GS Tier: ${gsTierResult}`);
+
 
                 tempComfortZoneSpan.textContent = tempComfortZone.toFixed(2);
                 counterAverageUsdSpan.textContent = counterAverageUsd.toFixed(2);
@@ -649,7 +704,6 @@
 
 
                 // Display all extracted data, highlighting included items
-                // Use parsedData (filtered by currentCalcDate) for display, but highlight based on finalFilteredDataForAverage
                 dataFilteredByCalcDate.forEach(item => { // Changed to dataFilteredByCalcDate for display
                     const div = document.createElement('div');
                     div.className = 'results-item';
