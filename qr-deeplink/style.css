@@ -1,0 +1,160 @@
+/* style.css */
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f3f4f6; /* Tailwind bg-gray-100 */
+    padding-bottom: 70px; /* Add padding to body to prevent floating button from covering content */
+}
+#qrcode img {
+    margin: auto;
+    display: block; /* Ensure it behaves as a block for margin auto to work */
+}
+#generatedUrl {
+    word-break: break-all;
+}
+#generatedUrl a, #grafanaLink { /* Style for the clickable link */
+    color: #4f46e5; /* Tailwind indigo-600 */
+    text-decoration: underline;
+}
+#generatedUrl a:hover, #grafanaLink:hover {
+    color: #3730a3; /* Tailwind indigo-800 */
+}
+.param-group {
+    border: 1px solid #e5e7eb; /* Tailwind border-gray-200 */
+    border-radius: 0.5rem; /* Tailwind rounded-lg */
+    padding: 1rem; /* Tailwind p-4 */
+    margin-bottom: 1rem; /* Tailwind mb-4 */
+    background-color: #ffffff; /* Tailwind bg-white */
+}
+.param-group label.block {
+    font-weight: 500; /* Tailwind font-medium */
+}
+/* Ensure select dropdowns are visible in dark mode if user has it enabled */
+select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+/* Error Styling for Inputs */
+.input-error {
+    border-color: #ef4444 !important; /* Tailwind red-500, !important for emphasis */
+    border-width: 2px !important;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.4) !important;
+}
+.error-message {
+    color: #ef4444; /* Tailwind red-500 */
+    font-size: 0.875rem; /* Tailwind text-sm */
+    font-weight: bold;
+}
+.hidden-field {
+    display: none;
+}
+#aliveStatus {
+    font-size: 0.875rem; /* text-sm */
+    margin-top: 0.5rem; /* mt-2 */
+    text-align: left;
+}
+.status-checking { color: #6b7280; /* gray-500 */ }
+.status-alive { color: #10b981; /* green-500 */ }
+.status-not-alive { color: #ef4444; /* red-500 */ }
+
+#grafanaLinkContainer {
+    margin-top: 0.5rem; /* mt-2 */
+}
+#grafanaLink img {
+    vertical-align: middle;
+    margin-right: 0.25rem; /* space between icon and text */
+    display: inline-block;
+}
+
+/* Floating Start Game Button Container */
+#startGameFixedContainer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#startGameFixedContainer #startGameBtn {
+    background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent white */
+    backdrop-filter: blur(5px); /* Glassy blur effect */
+    -webkit-backdrop-filter: blur(5px); /* Safari support */
+    color: #4f46e5; /* Indigo text */
+    font-weight: 600; /* Semibold font weight */
+    padding: 10px 15px; /* Comfortable padding */
+    border-radius: 0.5rem; /* Rounded corners */
+    border: 1px solid rgba(79, 70, 229, 0.5); /* Slightly transparent indigo border */
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    position: relative; /* For tooltip positioning */
+    display: flex;
+    align-items: center;
+    gap: 4px; /* Space between icon and text if we decide to add one */
+}
+
+#startGameFixedContainer #startGameBtn:hover {
+    background-color: rgba(255, 255, 255, 0.4); /* More opaque on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow on hover */
+}
+
+/* Tooltip for desktop only */
+#startGameFixedContainer .button-tooltip {
+    display: none; /* Hidden by default */
+    position: absolute;
+    bottom: calc(100% + 10px); /* Position above the button */
+    right: 0; /* Align right edge of tooltip with right edge of button */
+    max-width: 200px; /* Constrain width */
+    text-align: center; /* Center text within tooltip */
+    background-color: #333;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 5px;
+    white-space: normal; /* Allow text to wrap */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease-in-out;
+    font-size: 0.875rem; /* text-sm */
+}
+
+/* Only show tooltip on devices that support hover and have fine pointer (e.g., desktop with mouse) */
+@media (hover: hover) and (pointer: fine) {
+    #startGameFixedContainer #startGameBtn:hover + .button-tooltip {
+        opacity: 1; /* Show on hover */
+        display: block; /* Ensure it becomes visible */
+    }
+}
+
+/* Hide tooltip explicitly for coarse pointer devices (e.g., touchscreens) */
+@media (pointer: coarse) {
+    #startGameFixedContainer .button-tooltip {
+        display: none !important; /* Ensure it's hidden */
+    }
+}
+
+/* Hide the original "Start Game" button and its hint */
+.hidden-on-fixed {
+    display: none !important;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 767px) { /* Adjust breakpoint as needed for mobile */
+    #startGameFixedContainer {
+        bottom: 15px;
+        right: 15px;
+    }
+
+    #startGameFixedContainer #startGameBtn {
+        padding: 12px 18px; /* Slightly larger touch target on mobile */
+        font-size: 1rem; /* Base font size for mobile button */
+        background-color: rgba(255, 255, 255, 0.3); /* Slightly more opaque on mobile */
+        border: 1px solid rgba(79, 70, 229, 0.6); /* Slightly more opaque border on mobile */
+    }
+}
