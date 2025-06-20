@@ -126,24 +126,32 @@
             display: none; /* Hidden by default */
             position: absolute;
             bottom: calc(100% + 10px); /* Position above the button */
-            left: 50%;
-            transform: translateX(-50%);
+            right: 0; /* Align right edge of tooltip with right edge of button */
+            max-width: 200px; /* Constrain width */
+            text-align: center; /* Center text within tooltip */
             background-color: #333;
             color: #fff;
             padding: 8px 12px;
             border-radius: 5px;
-            white-space: nowrap;
+            white-space: normal; /* Allow text to wrap */
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.2s ease-in-out;
             font-size: 0.875rem; /* text-sm */
         }
 
-        /* Only show tooltip on devices that support hover (e.g., desktop) */
-        @media (hover: hover) {
+        /* Only show tooltip on devices that support hover and have fine pointer (e.g., desktop with mouse) */
+        @media (hover: hover) and (pointer: fine) {
             #startGameFixedContainer #startGameBtn:hover + .button-tooltip {
                 opacity: 1; /* Show on hover */
                 display: block; /* Ensure it becomes visible */
+            }
+        }
+
+        /* Hide tooltip explicitly for coarse pointer devices (e.g., touchscreens) */
+        @media (pointer: coarse) {
+            #startGameFixedContainer .button-tooltip {
+                display: none !important; /* Ensure it's hidden */
             }
         }
 
@@ -164,10 +172,6 @@
                 font-size: 1rem; /* Base font size for mobile button */
                 background-color: rgba(255, 255, 255, 0.3); /* Slightly more opaque on mobile */
                 border: 1px solid rgba(79, 70, 229, 0.6); /* Slightly more opaque border on mobile */
-            }
-
-            #startGameFixedContainer .button-tooltip {
-                display: none; /* Ensure tooltip is hidden on mobile */
             }
         }
 
