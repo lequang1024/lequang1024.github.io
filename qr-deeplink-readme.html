@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>README - Deep Link QR Code Generator</title>
+    <!-- We don't need the Tailwind script for this static page, as we are defining the styles directly -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* bg-gray-100 */
+        }
+        .prose {
+            max-width: 80ch; /* Optimal reading width */
+        }
+        .prose h1 { 
+            font-size: 2.25rem; /* text-4xl */
+            line-height: 2.5rem;
+            font-weight: 700; /* font-bold */
+            margin-bottom: 1rem; /* mb-4 */
+            color: rgb(31 41 55); /* text-gray-800 */
+        }
+        .prose h2 { 
+            font-size: 1.5rem; /* text-2xl */
+            line-height: 2rem;
+            font-weight: 700; /* font-bold */
+            margin-top: 2rem; /* mt-8 */
+            margin-bottom: 0.75rem; /* mb-3 */
+            color: rgb(55 65 81); /* text-gray-700 */
+            border-bottom-width: 1px;
+            padding-bottom: 0.5rem; /* pb-2 */
+        }
+        .prose h3 { 
+            font-size: 1.25rem; /* text-xl */
+            line-height: 1.75rem;
+            font-weight: 600; /* font-semibold */
+            margin-top: 1.5rem; /* mt-6 */
+            margin-bottom: 0.5rem; /* mb-2 */
+            color: rgb(55 65 81); /* text-gray-700 */
+        }
+        .prose p { 
+            font-size: 1rem; /* text-base */
+            line-height: 1.625; /* leading-relaxed */
+            color: rgb(75 85 99); /* text-gray-600 */
+            margin-bottom: 1rem; /* mb-4 */
+        }
+        .prose a { 
+            color: rgb(79 70 229); /* text-indigo-600 */
+            text-decoration: underline;
+        }
+        .prose a:hover {
+            color: rgb(55 48 163); /* hover:text-indigo-800 */
+        }
+        .prose ul { 
+            list-style-type: disc;
+            list-style-position: inside;
+            padding-left: 1rem; /* pl-4 */
+            color: rgb(75 85 99); /* text-gray-600 */
+        }
+        .prose ol {
+            list-style-type: decimal;
+            list-style-position: inside;
+            padding-left: 1rem; /* pl-4 */
+            color: rgb(75 85 99); /* text-gray-600 */
+        }
+        .prose li { 
+            margin-bottom: 0.5rem; /* mb-2 */
+        }
+        .prose code { 
+            background-color: rgb(229 231 235); /* bg-gray-200 */
+            color: rgb(31 41 55); /* text-gray-800 */
+            border-radius: 0.25rem; /* rounded */
+            padding: 0.25rem 0.375rem; /* px-1.5 py-1 */
+            font-size: 0.875rem; /* text-sm */
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        .prose pre { 
+            background-color: rgb(31 41 55); /* bg-gray-800 */
+            color: rgb(255 255 255); /* text-white */
+            padding: 1rem; /* p-4 */
+            border-radius: 0.5rem; /* rounded-lg */
+            overflow-x: auto;
+        }
+        .prose .note { 
+            background-color: rgb(254 252 232); /* bg-yellow-100 */
+            border-left: 4px solid rgb(234 179 8); /* border-yellow-500 */
+            color: rgb(133 77 14); /* text-yellow-800 */
+            padding: 1rem; /* p-4 */
+            border-top-right-radius: 0.5rem; /* rounded-r-lg */
+            border-bottom-right-radius: 0.5rem;
+            margin-top: 1rem; /* my-4 */
+            margin-bottom: 1rem;
+        }
+        .prose .file-structure { 
+            background-color: rgb(243 244 246); /* bg-gray-100 */
+            border: 1px solid rgb(229 231 235); /* border-gray-200 */
+            border-radius: 0.5rem; /* rounded-lg */
+            padding: 1rem; /* p-4 */
+        }
+    </style>
+</head>
+<body class="bg-gray-50 flex justify-center p-4 sm:p-8">
+
+    <main class="prose bg-white p-8 rounded-xl shadow-lg">
+        <h1>Deep Link QR Code Generator Documentation</h1>
+        
+        <p>This document provides an overview and usage instructions for the Advanced Deep Link QR Code Generator tool. Read it. Or don't. I'm a document, not a cop.</p>
+        
+        <h2>Overview</h2>
+        <p>
+            The Deep Link QR Code Generator is a client-side web tool designed to simplify the creation and testing of game deep links. It was created because typing long URLs is a terrible way to spend your finite time on this planet. It allows developers and QA testers to dynamically build complex URLs, generate a scannable QR code, and launch the game on a mobile device. The tool is fully client-side and uses local storage to remember your settings, so your countless cheat parameters are safe... until you clear your cache.
+        </p>
+        
+        <h2>Key Features</h2>
+        <ul>
+            <li><strong>Dynamic URL Generation:</strong> Automatically builds the deep link as you change parameters, because who has time to press a "generate" button anymore?</li>
+            <li><strong>Environment Selection:</strong> Easily switch between <code>Trunk</code>, <code>Trunk Liveops</code>, <code>QA3</code>, or provide a <code>Custom Backend URL</code> for when you're feeling adventurous.</li>
+            <li><strong>PR Number Support:</strong> Automatically formats the backend host with a PR number. Magic!</li>
+            <li><strong>Extensive Cheat Parameters:</strong> A comprehensive list of optional query parameters you can enable. Use your power wisely.</li>
+            <li><strong>Live QR Code:</strong> The QR code updates in real-time. Don't stare at it too long, it might stare back.</li>
+            <li><strong>Sharable Links:</strong> Generate a unique URL that contains all your current settings. Perfect for annoying your colleagues with your very specific testing setup.</li>
+            <li><strong>Server Alive Check:</strong> Automatically pings the server to see if it's awake. It's more responsive than some people before their morning coffee.</li>
+            <li><strong>Grafana Log Integration:</strong> Provides a direct link to Grafana logs. Dive into a sea of logs and question all your life choices.</li>
+            <li><strong>Local Storage Persistence:</strong> Remembers your last-used configuration. It has a better memory than you do.</li>
+        </ul>
+        
+        <h2>How to Use</h2>
+
+        <h3>Base Configuration</h3>
+        <ol>
+            <li><strong>Select an Environment:</strong> Pick your poison from the dropdown.</li>
+            <li><strong>PR Number (for Trunk/QA3):</strong> If you must, enter a PR number here.</li>
+            <li><strong>Custom Backend URL:</strong> For those who like to live dangerously. Go on, enter your secret server address. No one's looking.</li>
+        </ol>
+
+        <h3>Additional Query Parameters</h3>
+        <p>
+            Here's where the real "fun" begins. Check the boxes to enable parameters that will inevitably lead to finding (or creating) bugs.
+        </p>
+        <ul>
+            <li>To include a parameter, check the box. It's not rocket science.</li>
+            <li>Once enabled, fill in the value. Or don't. See what happens.</li>
+            <li>The deep link and QR code will update instantly, whether you're ready or not.</li>
+        </ul>
+        
+        <h3>Alive Check</h3>
+        <p>
+            After you stop typing, the tool will perform a reachability check. The status will be displayed, judging your server's uptime.
+        </p>
+        <ul>
+            <li><strong>Status: Checking...</strong> - The suspense is palpable.</li>
+            <li><strong>Status: Server Reachable ✅</strong> - Congratulations, it's alive! For now.</li>
+            <li><strong>Status: Server Unreachable ❌</strong> - Did you try turning it off and on again?</li>
+        </ul>
+        <div class="note">
+            <p><strong>Note on CORS:</strong> The alive check uses a <code>no-cors</code> request. This means it can only verify that something, anything, exists at that address. It could be a web server or a very clever toaster. Due to browser security policies (CORS), we can't tell the difference. A "Reachable" status just means your request didn't get lost in the mail.</p>
+        </div>
+
+        <h3>Actions & Buttons</h3>
+        <ul>
+            <li><strong>Start Game:</strong> Click this on your phone to launch the game. If it doesn't work, that's probably a "you" problem.</li>
+            <li><strong>Copy Sharable Link:</strong> Click this to copy a link with all your settings. Share it with your favorite coworker to make their day slightly more complicated.</li>
+            <li><strong>Reset All Settings:</strong> The panic button. Clears all your carefully crafted settings and returns to a state of blissful ignorance.</li>
+        </ul>
+        
+        <h2>File Structure</h2>
+        <div class="file-structure">
+            <p>In case you were curious about what's under the hood, which you probably weren't.</p>
+            <pre><code>/
+|-- qr-deeplink.html  (The thing you're looking at)
+|-- style.css         (Makes it look less like a 1998 website)
+|-- script.js         (The source of all the magic and/or bugs)
+`-- grafana-icon.svg  (A tiny picture)</code></pre>
+        </div>
+
+    </main>
+</body>
+</html>
