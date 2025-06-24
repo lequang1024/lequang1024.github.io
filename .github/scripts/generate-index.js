@@ -314,7 +314,7 @@ async function generateIndexFile() {
     }
 
     // Replace the placeholder with the generated tree HTML
-    let finalHtml = indexTemplateContent.replace('', treeHtml);
+    let finalHtml = indexTemplateContent.replace('<!-- PROJECT_TREE_PLACEHOLDER -->', treeHtml);
 
     // Add Google Analytics to the generated index.html itself
     const indexOutputPath = path.join(__dirname, '..', '..', 'index.html');
