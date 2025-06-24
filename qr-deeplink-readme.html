@@ -4,112 +4,120 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>README - Deep Link QR Code Generator</title>
-    <!-- We don't need the Tailwind script for this static page, as we are defining the styles directly -->
+    <link rel="icon" type="image/svg+xml" href="grafana-icon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6; /* bg-gray-100 */
+            color: #1f2937; /* text-gray-800 */
+            line-height: 1.7;
         }
-        .prose {
-            max-width: 80ch; /* Optimal reading width */
+        .prose-container {
+            max-width: 80ch;
+            margin: 2rem auto;
+            background-color: #ffffff;
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 2.5rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         }
-        .prose h1 { 
-            font-size: 2.25rem; /* text-4xl */
-            line-height: 2.5rem;
-            font-weight: 700; /* font-bold */
-            margin-bottom: 1rem; /* mb-4 */
-            color: rgb(31 41 55); /* text-gray-800 */
+        h1 { 
+            font-size: 2.5rem; /* ~text-4xl */
+            font-weight: 700; 
+            margin-bottom: 1rem; 
+            letter-spacing: -0.025em;
         }
-        .prose h2 { 
-            font-size: 1.5rem; /* text-2xl */
-            line-height: 2rem;
-            font-weight: 700; /* font-bold */
-            margin-top: 2rem; /* mt-8 */
-            margin-bottom: 0.75rem; /* mb-3 */
-            color: rgb(55 65 81); /* text-gray-700 */
-            border-bottom-width: 1px;
-            padding-bottom: 0.5rem; /* pb-2 */
+        h2 { 
+            font-size: 1.75rem; /* ~text-3xl */
+            font-weight: 700;
+            margin-top: 2.5rem; 
+            margin-bottom: 1rem; 
+            border-bottom: 1px solid #e5e7eb; /* border-gray-200 */
+            padding-bottom: 0.5rem; 
         }
-        .prose h3 { 
+        h3 { 
             font-size: 1.25rem; /* text-xl */
-            line-height: 1.75rem;
             font-weight: 600; /* font-semibold */
-            margin-top: 1.5rem; /* mt-6 */
-            margin-bottom: 0.5rem; /* mb-2 */
-            color: rgb(55 65 81); /* text-gray-700 */
+            margin-top: 2rem; 
+            margin-bottom: 0.5rem; 
         }
-        .prose p { 
-            font-size: 1rem; /* text-base */
-            line-height: 1.625; /* leading-relaxed */
-            color: rgb(75 85 99); /* text-gray-600 */
-            margin-bottom: 1rem; /* mb-4 */
+        p { 
+            margin-bottom: 1rem; 
         }
-        .prose a { 
-            color: rgb(79 70 229); /* text-indigo-600 */
+        a { 
+            color: #4f46e5; /* indigo-600 */
+            text-decoration: none;
+            font-weight: 500;
+        }
+        a:hover {
             text-decoration: underline;
         }
-        .prose a:hover {
-            color: rgb(55 48 163); /* hover:text-indigo-800 */
+        ul, ol { 
+            padding-left: 1.5rem; 
         }
-        .prose ul { 
-            list-style-type: disc;
-            list-style-position: inside;
-            padding-left: 1rem; /* pl-4 */
-            color: rgb(75 85 99); /* text-gray-600 */
+        li { 
+            margin-bottom: 0.5rem; 
         }
-        .prose ol {
-            list-style-type: decimal;
-            list-style-position: inside;
-            padding-left: 1rem; /* pl-4 */
-            color: rgb(75 85 99); /* text-gray-600 */
-        }
-        .prose li { 
-            margin-bottom: 0.5rem; /* mb-2 */
-        }
-        .prose code { 
-            background-color: rgb(229 231 235); /* bg-gray-200 */
-            color: rgb(31 41 55); /* text-gray-800 */
+        code { 
+            background-color: #e5e7eb; /* bg-gray-200 */
+            color: #111827; /* text-gray-900 */
             border-radius: 0.25rem; /* rounded */
-            padding: 0.25rem 0.375rem; /* px-1.5 py-1 */
-            font-size: 0.875rem; /* text-sm */
+            padding: 0.2rem 0.4rem;
+            font-size: 0.9em;
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
         }
-        .prose pre { 
-            background-color: rgb(31 41 55); /* bg-gray-800 */
-            color: rgb(255 255 255); /* text-white */
-            padding: 1rem; /* p-4 */
+        pre { 
+            background-color: #1f2937; /* bg-gray-800 */
+            color: #d1d5db; /* text-gray-300 */
+            padding: 1rem;
             border-radius: 0.5rem; /* rounded-lg */
             overflow-x: auto;
+            font-size: 0.9em;
         }
-        .prose .note { 
-            background-color: rgb(254 252 232); /* bg-yellow-100 */
-            border-left: 4px solid rgb(234 179 8); /* border-yellow-500 */
-            color: rgb(133 77 14); /* text-yellow-800 */
-            padding: 1rem; /* p-4 */
-            border-top-right-radius: 0.5rem; /* rounded-r-lg */
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+        }
+        .note { 
+            background-color: #fefce8; /* bg-yellow-50 */
+            border-left: 4px solid #facc15; /* border-yellow-400 */
+            color: #713f12; /* text-yellow-900 */
+            padding: 1rem;
+            border-top-right-radius: 0.5rem;
             border-bottom-right-radius: 0.5rem;
-            margin-top: 1rem; /* my-4 */
-            margin-bottom: 1rem;
+            margin: 1.5rem 0;
         }
-        .prose .file-structure { 
-            background-color: rgb(243 244 246); /* bg-gray-100 */
-            border: 1px solid rgb(229 231 235); /* border-gray-200 */
-            border-radius: 0.5rem; /* rounded-lg */
-            padding: 1rem; /* p-4 */
+        .note p {
+            margin: 0;
+            font-size: 0.95em;
+        }
+        .file-structure { 
+            background-color: #f9fafb; /* bg-gray-50 */
+            border: 1px solid #e5e7eb; /* border-gray-200 */
+            border-radius: 0.5rem; 
+            padding: 1rem;
+        }
+        .footer {
+            text-align: center;
+            font-size: 0.875rem;
+            color: #6b7280; /* text-gray-500 */
+            padding: 1rem;
+            margin-top: 2rem;
+            border-top: 1px solid #e5e7eb;
         }
     </style>
 </head>
-<body class="bg-gray-50 flex justify-center p-4 sm:p-8">
+<body>
 
-    <main class="prose bg-white p-8 rounded-xl shadow-lg">
+    <main class="prose-container">
         <h1>Deep Link QR Code Generator Documentation</h1>
         
         <p>This document provides an overview and usage instructions for the Advanced Deep Link QR Code Generator tool. Read it. Or don't. I'm a document, not a cop.</p>
         
         <h2>Overview</h2>
         <p>
-            The Deep Link QR Code Generator is a client-side web tool designed to simplify the creation and testing of game deep links. It was created because typing long URLs is a terrible way to spend your finite time on this planet. It allows developers and QA testers to dynamically build complex URLs, generate a scannable QR code, and launch the game on a mobile device. The tool is fully client-side and uses local storage to remember your settings, so your countless cheat parameters are safe... until you clear your cache.
+            The Deep Link QR Code Generator is a client-side web utility designed to simplify the creation and testing of game deep links. It was created because typing long URLs is a terrible way to spend your finite time on this planet. It allows developers and QA testers to dynamically build complex URLs, generate a scannable QR code, and launch the game on a mobile device. The tool is fully client-side and uses local storage to remember your settings, so your countless cheat parameters are safe... until you clear your cache.
         </p>
         
         <h2>Key Features</h2>
@@ -130,7 +138,7 @@
         <h3>Base Configuration</h3>
         <ol>
             <li><strong>Select an Environment:</strong> Pick your poison from the dropdown.</li>
-            <li><strong>PR Number (for Trunk/QA3):</strong> If you must, enter a PR number here.</li>
+            <li><strong>PR Number:</strong> For environments like <code>Trunk</code> or <code>QA3</code>, you can enter a PR number to construct the hostname.</li>
             <li><strong>Custom Backend URL:</strong> For those who like to live dangerously. Go on, enter your secret server address. No one's looking.</li>
         </ol>
 
@@ -140,27 +148,22 @@
         </p>
         <ul>
             <li>To include a parameter, check the box. It's not rocket science.</li>
-            <li>Once enabled, fill in the value. Or don't. See what happens.</li>
+            <li>Once enabled, set its value in the corresponding input field.</li>
             <li>The deep link and QR code will update instantly, whether you're ready or not.</li>
         </ul>
         
         <h3>Alive Check</h3>
         <p>
-            After you stop typing, the tool will perform a reachability check. The status will be displayed, judging your server's uptime.
+            After you stop typing in a relevant field, the tool performs a reachability check on the configured server.
         </p>
-        <ul>
-            <li><strong>Status: Checking...</strong> - The suspense is palpable.</li>
-            <li><strong>Status: Server Reachable ✅</strong> - Congratulations, it's alive! For now.</li>
-            <li><strong>Status: Server Unreachable ❌</strong> - Did you try turning it off and on again?</li>
-        </ul>
         <div class="note">
-            <p><strong>Note on CORS:</strong> The alive check uses a <code>no-cors</code> request. This means it can only verify that something, anything, exists at that address. It could be a web server or a very clever toaster. Due to browser security policies (CORS), we can't tell the difference. A "Reachable" status just means your request didn't get lost in the mail.</p>
+            <p><strong>Note on CORS:</strong> The alive check uses a <code>no-cors</code> request. This means it can only verify that something, anything, exists at that address. It could be a web server or a very clever toaster. Due to browser security policies (CORS), we can't tell the difference. A "Reachable" status confirms the server is accessible from your network.</p>
         </div>
 
         <h3>Actions & Buttons</h3>
         <ul>
-            <li><strong>Start Game:</strong> Click this on your phone to launch the game. If it doesn't work, that's probably a "you" problem.</li>
-            <li><strong>Copy Sharable Link:</strong> Click this to copy a link with all your settings. Share it with your favorite coworker to make their day slightly more complicated.</li>
+            <li><strong>Start Game:</strong> On a mobile device, this button will attempt to open the generated deep link. If it doesn't work, that's probably a "you" problem.</li>
+            <li><strong>Copy Sharable Link:</strong> Copies a link to the tool with all current settings preserved. Share it with your favorite coworker to make their day slightly more complicated.</li>
             <li><strong>Reset All Settings:</strong> The panic button. Clears all your carefully crafted settings and returns to a state of blissful ignorance.</li>
         </ul>
         
@@ -168,12 +171,16 @@
         <div class="file-structure">
             <p>In case you were curious about what's under the hood, which you probably weren't.</p>
             <pre><code>/
-|-- qr-deeplink.html  (The thing you're looking at)
+|-- qr-deeplink.html  (The main HTML structure)
 |-- style.css         (Makes it look less like a 1998 website)
 |-- script.js         (The source of all the magic and/or bugs)
 `-- grafana-icon.svg  (A tiny picture)</code></pre>
         </div>
-
+        
+        <div class="footer">
+            <p>Internal Development Tool.</p>
+        </div>
     </main>
+
 </body>
 </html>
