@@ -1,5 +1,3 @@
-// script.js
-
 // DOM Elements
 const environmentSelect = document.getElementById('environment');
 const prNumberInput = document.getElementById('prNumber');
@@ -8,7 +6,8 @@ const customBackendUrlInput = document.getElementById('customBackendUrl');
 const customBackendUrlGroup = document.getElementById('customBackendUrlGroup');
 const additionalParamsContainer = document.getElementById('additionalParamsContainer');
 const resetBtn = document.getElementById('resetBtn');
-const startGameBtn = document.getElementById('startGameBtn'); // The FIXED button now serves both
+const startGameBtn = document.getElementById('startGameBtn');
+const copyShareLinkBtn = document.getElementById('copyShareLinkBtn'); // New Button
 const qrcodeDiv = document.getElementById('qrcode');
 const generatedUrlP = document.getElementById('generatedUrl');
 const aliveStatusDiv = document.getElementById('aliveStatus'); 
@@ -60,24 +59,32 @@ const additionalParamsConfig = [
     { id: 'nlog_level', name: 'NLog Console Log Level', key: 'nlog_level', type: 'select', options: ['debug', 'info', 'warn', 'error', 'fatal', 'off'], example: '?nlog_level=debug', defaultValue: 'info' },
 ];
 
-function renderAdditionalParams() {
+function renderAdditionalParams(urlParams = {}) {
     additionalParamsContainer.innerHTML = ''; 
     const savedParamsState = JSON.parse(localStorage.getItem(LS_KEYS.ADDITIONAL_PARAMS) || '{}');
 
     additionalParamsConfig.forEach(param => {
-        const isDefaultEnabled = (param.id === 'ava_dab' || (param.type === 'checkbox_only' && param.defaultValue === true) );
-        let initialEnabledState = isDefaultEnabled;
+        let isDefaultEnabled = (param.id === 'ava_dab' || (param.type === 'checkbox_only' && param.defaultValue === true));
         let initialValue = param.defaultValue;
-
-        if (param.id === 'ava_header' && (!savedParamsState[param.id] || typeof savedParamsState[param.id].enabled === 'undefined')) {
+        let initialEnabledState = isDefaultEnabled;
+        
+        // URL params take highest priority for value and enabled state
+        if (urlParams.hasOwnProperty(param.key)) {
             initialEnabledState = true;
-        } else if (savedParamsState[param.id]) {
-            initialEnabledState = savedParamsState[param.id].enabled;
-        }
-
-        if (savedParamsState[param.id]) {
-            if (param.type !== 'checkbox_only') {
-                initialValue = savedParamsState[param.id].value;
+            initialValue = urlParams[param.key];
+        } else {
+            // Then check local storage
+            const savedParam = savedParamsState[param.id];
+            if (savedParam) {
+                initialEnabledState = savedParam.enabled;
+                if (param.type !== 'checkbox_only') {
+                    initialValue = savedParam.value;
+                }
+            } else {
+                 // Finally, handle specific defaults like ava_header
+                if (param.id === 'ava_header') {
+                    initialEnabledState = true;
+                }
             }
         }
 
@@ -118,8 +125,8 @@ function renderAdditionalParams() {
             }); 
             if(param.type === 'select') { 
                 valueElement.addEventListener('change', () => { 
-                    generateAndDisplayQrCode();
-                    scheduleAliveCheck(); 
+                   generateAndDisplayQrCode();
+                   scheduleAliveCheck(); 
                 });
             }
         }
@@ -148,18 +155,41 @@ function loadInputsFromLocalStorage() {
     customBackendUrlInput.value = localStorage.getItem(LS_KEYS.CUSTOM_BACKEND_URL) || DEFAULTS.CUSTOM_BACKEND_URL;
 }
 
+function applyUrlParameters() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.toString() === '') {
+        return false; // No params to apply
+    }
+    
+    // Base Config
+    environmentSelect.value = urlParams.get('env') || DEFAULTS.ENVIRONMENT;
+    prNumberInput.value = urlParams.get('pr') || DEFAULTS.PR_NUMBER;
+    customBackendUrlInput.value = urlParams.get('customUrl') || DEFAULTS.CUSTOM_BACKEND_URL;
+    
+    // Additional Params
+    const additionalUrlParams = {};
+    additionalParamsConfig.forEach(param => {
+        if(urlParams.has(param.key)) {
+            additionalUrlParams[param.key] = urlParams.get(param.key);
+        }
+    });
+    
+    renderAdditionalParams(additionalUrlParams);
+    
+    return true; // Params were applied
+}
+
+
 function updateInputVisibility(selectedEnv) {
     if (selectedEnv === "custom") {
         prNumberGroup.classList.add('hidden-field'); 
         prNumberInput.disabled = true;
-        prNumberInput.value = ''; 
         customBackendUrlGroup.classList.remove('hidden-field');
         customBackendUrlInput.disabled = false;
         grafanaLinkContainer.classList.add('hidden-field'); 
     } else if (selectedEnv === "trunkliveops") {
         prNumberGroup.classList.remove('hidden-field'); 
         prNumberInput.disabled = true;
-        prNumberInput.value = ''; 
         customBackendUrlGroup.classList.add('hidden-field');
         customBackendUrlInput.disabled = true;
     } else { // Trunk, QA3
@@ -175,6 +205,9 @@ function resetToDefaultSettings() {
     localStorage.removeItem(LS_KEYS.PR_NUMBER);
     localStorage.removeItem(LS_KEYS.CUSTOM_BACKEND_URL); 
     localStorage.removeItem(LS_KEYS.ADDITIONAL_PARAMS);
+    
+    // Clear the URL of query params
+    window.history.replaceState({}, document.title, window.location.pathname);
 
     environmentSelect.value = DEFAULTS.ENVIRONMENT;
     prNumberInput.value = DEFAULTS.PR_NUMBER;
@@ -268,7 +301,7 @@ async function performAliveCheck(checkToken) {
     }
 
     if (!hostToCheck) {
-        if (checkToken === currentAliveCheckToken) {
+        if (checkToken === currentAliveCheckToken) { 
             aliveStatusDiv.textContent = '';
             aliveStatusDiv.className = 'mt-2 text-sm';
         }
@@ -299,7 +332,7 @@ async function performAliveCheck(checkToken) {
 
         const response = await fetch(checkUrl, fetchOptions);
 
-        if (checkToken === currentAliveCheckToken) {
+        if (checkToken === currentAliveCheckToken) { 
             let statusMessage = '';
             let statusClass = '';
 
@@ -398,11 +431,11 @@ function generateAndDisplayQrCode() {
     if (showGrafanaLink && grafanaAppName && grafanaDatasourceUid) {
         const expr = `{app=\"${grafanaAppName}\"} |= \`\``;
         const panesObj = {
-            "c13": {
-                "datasource": grafanaDatasourceUid, 
-                "queries": [ { "refId": "A", "editorMode": "builder", "expr": expr, "queryType": "range", "datasource": {"type": "loki", "uid": grafanaDatasourceUid} } ],
-                "range": { "from": "now-6h", "to": "now" }
-            }
+          "c13": {
+            "datasource": grafanaDatasourceUid, 
+            "queries": [ { "refId": "A", "editorMode": "builder", "expr": expr, "queryType": "range", "datasource": {"type": "loki", "uid": grafanaDatasourceUid} } ],
+            "range": { "from": "now-6h", "to": "now" }
+          }
         };
         const encodedPanes = encodeURIComponent(JSON.stringify(panesObj));
         grafanaLink.href = `https://grafana.jarvis.tools/explore?schemaVersion=1&panes=${encodedPanes}&orgId=1`;
@@ -478,7 +511,7 @@ function generateAndDisplayQrCode() {
         }
 
         if (!resetBtn.dataset.isResetting) { 
-            saveInputsToLocalStorage();
+             saveInputsToLocalStorage();
         }
         copyUrlBtn.disabled = false; // Enable copy button after successful generation
 
@@ -495,6 +528,53 @@ function generateAndDisplayQrCode() {
     scheduleAliveCheck();
 }
 
+function handleCopyShareLink() {
+    const baseUrl = window.location.href.split('?')[0];
+    const params = new URLSearchParams();
+    
+    // Base params
+    params.set('env', environmentSelect.value);
+    if (environmentSelect.value === 'custom') {
+        params.set('customUrl', customBackendUrlInput.value);
+    } else {
+        params.set('pr', prNumberInput.value);
+    }
+
+    // Additional params
+    additionalParamsConfig.forEach(param => {
+        const enableCheckbox = document.getElementById(`${param.id}_enable`);
+        if (enableCheckbox && enableCheckbox.checked) {
+            const value = (param.type !== 'checkbox_only') ? document.getElementById(`${param.id}_value`).value : param.fixedValue;
+            params.set(param.key, value);
+        }
+    });
+    
+    const sharableLink = `${baseUrl}?${params.toString()}`;
+    
+    // Copy to clipboard
+    const dummy = document.createElement('textarea');
+    document.body.appendChild(dummy);
+    dummy.value = sharableLink;
+    dummy.select();
+    document.execCommand('copy');
+    document.body.removeChild(dummy);
+
+    const originalText = copyShareLinkBtn.textContent;
+    copyShareLinkBtn.textContent = 'Copied!';
+    setTimeout(() => {
+        copyShareLinkBtn.textContent = originalText;
+    }, 2000);
+
+    if (typeof gtag === 'function') {
+        gtag('event', 'copy_share_link_clicked', {
+            'event_category': 'interaction',
+            'event_label': 'Copy Sharable Link Button',
+            'sharable_link': sharableLink
+        });
+    }
+}
+
+// === EVENT LISTENERS ===
 environmentSelect.addEventListener('change', () => {
     const selectedEnv = environmentSelect.value;
     updateInputVisibility(selectedEnv);
@@ -578,6 +658,8 @@ resetBtn.addEventListener('click', () => {
     delete resetBtn.dataset.isResetting; 
 });
 
+copyShareLinkBtn.addEventListener('click', handleCopyShareLink);
+
 prNumberInput.addEventListener('input', () => {
     generateAndDisplayQrCode(); 
 }); 
@@ -587,10 +669,18 @@ customBackendUrlInput.addEventListener('input', () => {
 
 
 window.addEventListener('load', () => {
-    loadInputsFromLocalStorage(); 
-    renderAdditionalParams(); 
-    updateInputVisibility(environmentSelect.value); 
-    generateAndDisplayQrCode();   
+    const urlParamsApplied = applyUrlParameters();
+    if (!urlParamsApplied) {
+        loadInputsFromLocalStorage();
+        renderAdditionalParams();
+    }
+    
+    updateInputVisibility(environmentSelect.value);
+    generateAndDisplayQrCode();
+    
+    if(urlParamsApplied){
+        saveInputsToLocalStorage(); 
+    }
 
     let resizeTimeout;
     window.addEventListener('resize', () => {

@@ -11,6 +11,7 @@
         gtag('config', 'G-LL3LWXVBHR');
     </script>
     <meta charset="UTF-8">
+    <meta name="robots" content="noindex">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deep Link QR Code Generator 1.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -62,15 +63,17 @@
                 <div>
                     <h2 class="text-xl font-semibold text-gray-700 mb-3">Additional Query Parameters ("Cheats")</h2>
                     <div id="additionalParamsContainer" class="space-y-4">
+                        <!-- Dynamic parameters will be injected here -->
                     </div>
                 </div>
             </div>
 
             <div class="lg:w-1/2 lg:sticky lg:top-8 space-y-6">
-                    <div>
-                        <h2 class="text-xl font-semibold text-gray-700 mb-2 text-center">Scan QR Code</h2>
-                        <div id="qrcode" class="p-4 border border-gray-300 rounded-lg bg-white shadow-sm w-64 h-64 sm:w-72 sm:h-72 mx-auto flex items-center justify-center">
-                        </div>
+                 <div>
+                    <h2 class="text-xl font-semibold text-gray-700 mb-2 text-center">Scan QR Code</h2>
+                    <div id="qrcode" class="p-4 border border-gray-300 rounded-lg bg-white shadow-sm w-64 h-64 sm:w-72 sm:h-72 mx-auto flex items-center justify-center">
+                        <!-- QR code will be rendered here -->
+                    </div>
                 </div>
                 <div>
                     <h2 class="text-xl font-semibold text-gray-700 mb-2">Generated Deep Link URL</h2>
@@ -81,7 +84,10 @@
                         </button>
                     </div>
                 </div>
-                <div class="mt-6 flex flex-col sm:flex-row justify-center items-center gap-4 button-group-original">
+                <div class="mt-6 flex flex-col sm:flex-row justify-center items-center gap-4">
+                     <button id="copyShareLinkBtn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 text-sm rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-150 ease-in-out w-full sm:w-auto">
+                        Copy Sharable Link
+                    </button>
                     <button id="resetBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 text-sm rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition duration-150 ease-in-out w-full sm:w-auto">
                         Reset All Settings
                     </button>
@@ -89,7 +95,7 @@
             </div>
         </div>
     </div>
-
+    
     <!-- Floating Start Game Button Container -->
     <div id="startGameFixedContainer">
         <button id="startGameBtn">
