@@ -32,16 +32,16 @@ jobs:
       - name: Install dependencies
         run: |
           npm install node-fetch # Used to make HTTP requests in the Node.js script
-          npm install showdown   # Used for basic Markdown to HTML conversion of READMEs
+          # npm install showdown # You had this, but it's not used in the provided JS for HTML processing, so it can be removed unless you plan to use it elsewhere.
 
-      # Step 4: Run the Node.js script to generate index.html
-      - name: Run index generator script
+      # Step 4: Run the Node.js script to generate index.html AND add GA to other HTML files
+      - name: Run index generator script and inject analytics
         run: node .github/scripts/generate-index.js
 
-      # Step 5: Commit and push the changes (the newly generated index.html)
-      - name: Commit and push generated index.html
+      # Step 5: Commit and push the changes (the newly generated index.html and any modified HTML files)
+      - name: Commit and push generated index.html and modified HTMLs
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "CI: Auto-generate project index page" # Commit message for the automated commit
+          commit_message: "CI: Auto-generate project index and inject Google Analytics" # Commit message for the automated commit
           branch: main # Ensure it commits back to the 'main' branch
           # The `contents: write` permission above should resolve the issue.
