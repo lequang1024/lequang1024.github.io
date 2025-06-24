@@ -1,197 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL3LWXVBHR"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-LL3LWXVBHR');
+    </script>
     <meta charset="UTF-8">
+    <meta name="robots" content="noindex">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>README - Deep Link QR Code Generator</title>
-    <style>
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background-color: #e8ebee; /* Light gray background, reminiscent of early social sites */
-            color: #1c1e21; /* Dark gray text */
-            margin: 0;
-            padding: 0;
-        }
-        .header-bar {
-            background-color: #3b5998; /* Classic Facebook/Yahoo blue */
-            padding: 10px 20px;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 2px solid #29487d;
-        }
-        .header-bar h1 {
-            font-size: 24px;
-            margin: 0;
-            font-weight: bold;
-        }
-        .search-bar {
-            display: flex;
-        }
-        .search-bar input[type="text"] {
-            padding: 5px;
-            border: 1px solid #ddd;
-            border-right: none;
-            border-radius: 2px 0 0 2px;
-        }
-        .search-bar button {
-            padding: 5px 10px;
-            background-color: #f5f6f7;
-            border: 1px solid #ddd;
-            border-radius: 0 2px 2px 0;
-            cursor: pointer;
-            font-weight: bold;
-            color: #4b4f56;
-        }
-        .main-container {
-            width: 95%;
-            max-width: 960px;
-            margin: 20px auto;
-            background-color: #ffffff;
-            border: 1px solid #dcdfe3;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-        }
-        .content-padding {
-            padding: 20px;
-        }
-        h2 {
-            font-size: 18px;
-            font-weight: bold;
-            color: #3b5998;
-            border-bottom: 1px solid #dcdfe3;
-            padding-bottom: 8px;
-            margin-top: 20px;
-            margin-bottom: 10px;
-        }
-        h3 {
-            font-size: 16px;
-            font-weight: bold;
-            color: #1c1e21;
-        }
-        p, li {
-            font-size: 14px;
-            line-height: 1.6;
-        }
-        a {
-            color: #3b5998;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        ul, ol {
-            margin-left: 20px;
-            padding-left: 20px;
-        }
-        code {
-            font-family: Consolas, 'Courier New', monospace;
-            background-color: #f5f6f7;
-            border: 1px solid #dcdfe3;
-            padding: 2px 4px;
-            font-size: 13px;
-            border-radius: 3px;
-        }
-        .note {
-            border: 1px solid #e2c822;
-            background-color: #fffbe2;
-            padding: 10px;
-            margin: 15px 0;
-        }
-        .note p {
-            color: #5d4c00;
-            margin: 0;
-        }
-        .footer {
-            text-align: center;
-            font-size: 12px;
-            color: #90949c;
-            padding: 15px;
-            border-top: 1px solid #dcdfe3;
-            margin-top: 20px;
-        }
-    </style>
+    <title>Deep Link QR Code Generator 1.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Link to external CSS file -->
+    <link rel="stylesheet" href="./qr-deeplink/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="header-bar">
-        <h1>Developer Tools</h1>
-        <div class="search-bar">
-            <input type="text" placeholder="Search...">
-            <button type="button">Search</button>
+<body class="min-h-screen p-4 lg:p-8">
+
+    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-6xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <div class="w-24"></div>
+            <h1 class="text-3xl font-bold text-center text-gray-800 flex-grow">Deep Link QR Code Generator 1.0</h1>
+            <div class="w-24 text-right">
+                <a href="./qr-deeplink-readme.html" target="_blank" class="text-sm text-gray-500 hover:text-indigo-600 underline" title="Open documentation in a new tab">Docs</a>
+            </div>
         </div>
-    </div>
 
-    <div class="main-container">
-        <div class="content-padding">
-            <h2>Deep Link QR Code Generator Documentation</h2>
-            
-            <p>This document provides an overview and usage instructions for the Advanced Deep Link QR Code Generator tool.</p>
-            
-            <h2>Overview</h2>
-            <p>
-                The Deep Link QR Code Generator is a client-side web utility designed to simplify the creation and testing of game deep links. It allows developers and QA testers to dynamically build complex URLs with various parameters, generate a scannable QR code, and launch the game on a mobile device with the specified configuration. The tool is fully client-side and uses local storage to remember your settings, making it efficient for repeated use.
-            </p>
-            
-            <h2>Key Features</h2>
-            <ul>
-                <li><strong>Dynamic URL Generation:</strong> Automatically builds the deep link as you change parameters.</li>
-                <li><strong>Environment Selection:</strong> Easily switch between <code>Trunk</code>, <code>Trunk Liveops</code>, <code>QA3</code>, or provide a <code>Custom Backend URL</code>.</li>
-                <li><strong>PR Number Support:</strong> Automatically formats the backend host with a PR number for applicable environments.</li>
-                <li><strong>Extensive Cheat Parameters:</strong> A comprehensive list of optional query parameters can be enabled and configured.</li>
-                <li><strong>Live QR Code:</strong> The QR code updates in real-time as you modify the deep link.</li>
-                <li><strong>Sharable Links:</strong> Generate a unique URL that contains all your current settings for sharing pre-configured deep links with team members.</li>
-                <li><strong>Server Alive Check:</strong> Automatically checks if the selected backend server is reachable.</li>
-                <li><strong>Grafana Log Integration:</strong> Provides a direct link to Grafana logs for specific environments.</li>
-                <li><strong>Local Storage Persistence:</strong> Remembers your last-used configuration for convenience.</li>
-            </ul>
-            
-            <h2>How to Use</h2>
+        <div class="flex flex-col lg:flex-row gap-8">
+            <div class="lg:w-1/2 space-y-6">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-700 mb-3">Base Configuration</h2>
+                    <div class="param-group">
+                        <div>
+                            <label for="environment" class="block text-sm font-medium text-gray-700 mb-1">Environment</label>
+                            <select id="environment" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="trunk">Trunk (backend.jarvistrunk.net)</option>
+                                <option value="trunkliveops">Trunk Liveops (don't use PR) (backend-liveops.jarvistrunk.net)</option>
+                                <option value="qa3">QA3 (backend.liveops.jarvisqa.net)</option>
+                                <option value="custom">Custom Backend URL</option> 
+                            </select>
+                        </div>
+                        <div id="prNumberGroup" class="mt-4">
+                            <label for="prNumber" class="block text-sm font-medium text-gray-700 mb-1">PR Number</label>
+                            <input type="text" id="prNumber" value="" placeholder="e.g., 1234 (optional)" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <p class="mt-1 text-xs text-gray-500">If provided, 'pr-' is prepended to form part of the backend_host. If blank, only the base environment URL is used for backend_host. Not used for Trunk Liveops or Custom URL.</p>
+                            <div id="grafanaLinkContainer" class="hidden-field">
+                                <a href="#" id="grafanaLink" target="_blank" class="text-sm" title="View Grafana Logs">
+                                    <img src="grafana-icon.svg" alt="Grafana Logs" width="16" height="16"> Logs
+                                </a>
+                            </div>
+                        </div>
+                        <div id="customBackendUrlGroup" class="mt-4 hidden-field">
+                            <label for="customBackendUrl" class="block text-sm font-medium text-gray-700 mb-1">Custom Backend URL</label>
+                            <input type="text" id="customBackendUrl" value="" placeholder="e.g., my-custom-backend.example.com" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <p class="mt-1 text-xs text-gray-500">Enter the full custom backend host (e.g., my-server.com or 192.168.1.100:8080).</p>
+                        </div>
+                        <div id="aliveStatus" class="mt-2 text-sm"></div> 
+                    </div>
+                </div>
 
-            <h3>Base Configuration</h3>
-            <ol>
-                <li><strong>Select an Environment:</strong> Choose a predefined environment from the dropdown.</li>
-                <li><strong>PR Number:</strong> For environments like `Trunk` or `QA3`, you can enter a PR number to construct the hostname.</li>
-                <li><strong>Custom Backend URL:</strong> If you select "Custom", provide the full hostname for your target server.</li>
-            </ol>
-
-            <h3>Additional Query Parameters</h3>
-            <p>
-                Enable and configure optional parameters ("cheats") from the list provided.
-            </p>
-            <ul>
-                <li>To include a parameter, check the box next to its name.</li>
-                <li>Once enabled, set its value in the corresponding input field.</li>
-                <li>The deep link and QR code will update instantly.</li>
-            </ul>
-            
-            <h3>Alive Check</h3>
-            <p>
-                After you stop typing in a relevant field, the tool performs a reachability check on the configured server.
-            </p>
-            <div class="note">
-                <p><strong>Note on CORS:</strong> The alive check uses a <code>no-cors</code> request. This means it can only verify network reachability. It cannot determine if the response was a "200 OK" or a "404 Not Found" due to browser security policies (CORS). A "Reachable" status confirms the server is accessible from your network.</p>
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-700 mb-3">Additional Query Parameters ("Cheats")</h2>
+                    <div id="additionalParamsContainer" class="space-y-4">
+                        <!-- Dynamic parameters will be injected here -->
+                    </div>
+                </div>
             </div>
 
-            <h3>Actions & Buttons</h3>
-            <ul>
-                <li><strong>Start Game:</strong> On a mobile device, this button will attempt to open the generated deep link.</li>
-                <li><strong>Copy Sharable Link:</strong> Copies a link to the tool with all current settings preserved.</li>
-                <li><strong>Reset All Settings:</strong> Clears all saved settings and resets the form to its default state.</li>
-            </ul>
-            
-            <h2>File Structure</h2>
-            <p>The tool is composed of the following files:</p>
-            <ul>
-                <li><code>qr-deeplink.html</code> - The main HTML structure</li>
-                <li><code>style.css</code> - All the CSS styling</li>
-                <li><code>script.js</code> - All the JavaScript logic</li>
-                <li><code>grafana-icon.svg</code> - The icon for the Grafana link</li>
-            </ul>
-
-        </div>
-        <div class="footer">
-            <p>Internal Development Tool. © 2024</p>
+            <div class="lg:w-1/2 lg:sticky lg:top-8 space-y-6">
+                 <div>
+                    <h2 class="text-xl font-semibold text-gray-700 mb-2 text-center">Scan QR Code</h2>
+                    <div id="qrcode" class="p-4 border border-gray-300 rounded-lg bg-white shadow-sm w-64 h-64 sm:w-72 sm:h-72 mx-auto flex items-center justify-center">
+                        <!-- QR code will be rendered here -->
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-700 mb-2">Generated Deep Link URL</h2>
+                    <div class="relative bg-gray-50 rounded-md border border-gray-200 p-3 flex items-center justify-between min-h-[60px]">
+                        <p id="generatedUrl" class="text-sm text-gray-600 word-break-all flex-grow pr-2"></p>
+                        <button id="copyUrlBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-1 px-3 text-xs rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 transition duration-150 ease-in-out flex-shrink-0">
+                            Copy
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-6 flex flex-col sm:flex-row justify-center items-center gap-4">
+                     <button id="copyShareLinkBtn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 text-sm rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-150 ease-in-out w-full sm:w-auto">
+                        Copy Sharable Link
+                    </button>
+                    <button id="resetBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 text-sm rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition duration-150 ease-in-out w-full sm:w-auto">
+                        Reset All Settings
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
+    
+    <!-- Floating Start Game Button Container -->
+    <div id="startGameFixedContainer">
+        <button id="startGameBtn">
+            Start Game
+        </button>
+        <div class="button-tooltip">
+            (To start game with this button, open this website in your mobile device's browser)
+        </div>
+    </div>
+
+    <!-- Link to external JavaScript file -->
+    <script src="./qr-deeplink/script.js"></script>
 </body>
 </html>
