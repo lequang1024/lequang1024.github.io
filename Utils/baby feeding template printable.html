@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nhật Ký Cho Bé Ăn Nhiều Ngày (Bản in)</title>
-    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -119,20 +117,22 @@
 </head>
 <body class="p-4">
 
-    <!-- Header with Print Button -->
     <header class="text-center mb-4 no-print">
         <h1 class="text-2xl font-bold text-gray-800">Nhật Ký Cho Bé Ăn Nhiều Ngày</h1>
         <p class="text-gray-600">Tối ưu cho khổ giấy A4. Mỗi trang chứa nhật ký cho nhiều ngày.</p>
         
-        <!-- Input Fields -->
-        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-md mx-auto">
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-lg mx-auto">
             <div>
                 <label for="birthday" class="font-semibold text-gray-700 block mb-1">Ngày sinh của bé:</label>
-                <input type="date" id="birthday" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                <input type="date" id="birthday" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
             </div>
             <div>
                 <label for="startDate" class="font-semibold text-gray-700 block mb-1">Ngày bắt đầu:</label>
-                <input type="date" id="startDate" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                <input type="date" id="startDate" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div>
+                <label for="numRows" class="font-semibold text-gray-700 block mb-1">Số dòng mỗi ngày:</label>
+                <input type="number" id="numRows" value="12" min="1" max="50" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-center">
             </div>
         </div>
 
@@ -141,10 +141,8 @@
         </button>
     </header>
     
-    <!-- A4 Page Container -->
     <div id="page-container" class="a4-page">
-        <!-- Day logs will be dynamically inserted here -->
-    </div>
+        </div>
 
     <script>
         // Get the container for the day logs
@@ -157,11 +155,11 @@
             const birthdayInput = document.getElementById('birthday');
             if (!birthdayInput.value) return "Vui lòng chọn ngày sinh";
             
-            // Parse the birthday string to avoid timezone issues
+            // Parse the birthday string to avoid timezone issues by setting to UTC
             const [bYear, bMonth, bDay] = birthdayInput.value.split('-').map(Number);
-            const birthday = new Date(bYear, bMonth - 1, bDay);
+            const birthday = new Date(Date.UTC(bYear, bMonth - 1, bDay)); // Use UTC
 
-            const startOfCurrentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+            const startOfCurrentDate = new Date(Date.UTC(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate())); // Use UTC
             
             if (startOfCurrentDate < birthday) {
                 return "Chưa sinh";
@@ -170,13 +168,14 @@
             const diffTime = startOfCurrentDate - birthday;
             const totalDaysOld = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-            let ageYears = startOfCurrentDate.getFullYear() - birthday.getFullYear();
-            let ageMonths = startOfCurrentDate.getMonth() - birthday.getMonth();
-            let ageDays = startOfCurrentDate.getDate() - birthday.getDate();
+            let ageYears = startOfCurrentDate.getUTCFullYear() - birthday.getUTCFullYear();
+            let ageMonths = startOfCurrentDate.getUTCMonth() - birthday.getUTCMonth();
+            let ageDays = startOfCurrentDate.getUTCDate() - birthday.getUTCDate();
 
             if (ageDays < 0) {
                 ageMonths--;
-                ageDays += new Date(startOfCurrentDate.getFullYear(), startOfCurrentDate.getMonth(), 0).getDate();
+                // Get days in previous month (UTC)
+                ageDays += new Date(Date.UTC(startOfCurrentDate.getUTCFullYear(), startOfCurrentDate.getUTCMonth(), 0)).getUTCDate();
             }
 
             if (ageMonths < 0) {
@@ -193,7 +192,7 @@
         }
         
         // Function to create a single day log element
-        function createDayLog(date, emojiIndex) {
+        function createDayLog(date, emojiIndex, numRows) {
             const dayWrapper = document.createElement('div');
             dayWrapper.className = 'day-log';
 
@@ -209,7 +208,7 @@
             const ageString = calculateAge(date);
 
             let tableRows = '';
-            for (let i = 0; i < 12; i++) {
+            for (let i = 0; i < numRows; i++) { // Use numRows here
                 tableRows += `
                     <tr>
                         <td style="width: 40%;">&nbsp;</td>
@@ -244,14 +243,16 @@
             logGrid.className = 'log-grid';
             
             const startDateValue = document.getElementById('startDate').value;
+            const numRowsValue = parseInt(document.getElementById('numRows').value) || 12; // Get numRows value, default to 12
+
             // Safely parse the date string to avoid timezone issues
             const [year, month, day] = startDateValue.split('-').map(Number);
-            const startDay = new Date(year, month - 1, day);
+            const startDay = new Date(Date.UTC(year, month - 1, day)); // Use UTC
 
             for (let i = 0; i < numberOfDays; i++) {
                 const currentDate = new Date(startDay);
-                currentDate.setDate(startDay.getDate() + i);
-                const dayLog = createDayLog(currentDate, i);
+                currentDate.setUTCDate(startDay.getUTCDate() + i); // Use setUTCDate to avoid timezone shifts
+                const dayLog = createDayLog(currentDate, i, numRowsValue); // Pass numRows
                 logGrid.appendChild(dayLog);
             }
             
@@ -262,8 +263,9 @@
         window.onload = function() {
             const startDateInput = document.getElementById('startDate');
             const birthdayInput = document.getElementById('birthday');
+            const numRowsInput = document.getElementById('numRows');
             
-            // Set default date for birthday
+            // Set default date for birthday (e.g., May 26, 2025)
             birthdayInput.value = '2025-05-26';
             
             // Set default date for start date to today
@@ -273,17 +275,25 @@
             const day = String(today.getDate()).padStart(2, '0');
             startDateInput.value = `${year}-${month}-${day}`;
             
-            // Generate the initial logs
+            // Generate the initial logs (6 days)
             initializeLogs(6);
 
-            // Add event listener to regenerate logs when the start date is changed
+            // Add event listeners to regenerate logs when inputs are changed
             startDateInput.addEventListener('change', () => {
                 initializeLogs(6);
             });
             
-            // Add event listener to regenerate logs when the birthday is changed
             birthdayInput.addEventListener('change', () => {
                 initializeLogs(6);
+            });
+
+            numRowsInput.addEventListener('change', () => { // Listen for changes on the new input
+                initializeLogs(6);
+            });
+            numRowsInput.addEventListener('keyup', (event) => { // Also listen for keyup for live updates
+                if (event.key === 'Enter' || numRowsInput.value === '' || !isNaN(parseInt(numRowsInput.value))) {
+                     initializeLogs(6);
+                }
             });
         };
     </script>
