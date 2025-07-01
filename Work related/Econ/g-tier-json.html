@@ -638,9 +638,6 @@
                 const phTotalPurchases120Days = PurchaseHistoryTotalPurchasesMinutesFromNow(120 * 24 * 60, dataFilteredByCalcDate, latestOverallDate, currentCalcDate);
                 uiLog("PurchaseHistoryTotalPurchasesMinutesFromNow (120 days): " + phTotalPurchases120Days);
 
-                const phAverageUsd2 = PurchaseHistoryAverageUsd(2, dataFilteredByCalcDate);
-                uiLog("PurchaseHistoryAverageUsd (last 2 purchases): " + phAverageUsd2.toFixed(2));
-
                 const phAverageUsd120Days = PurchaseHistoryAverageUsdMinutesFromNow(120 * 24 * 60, dataFilteredByCalcDate, currentCalcDate);
                 uiLog("PurchaseHistoryAverageUsdMinutesFromNow (120 days): " + phAverageUsd120Days.toFixed(2));
 
@@ -652,9 +649,6 @@
                 if (phDaysSinceLastPurchase > 120) {
                     tempComfortZone = 0;
                     uiLog("TempComfortZone Logic: Days since last purchase > 120. TempComfortZone = 0.");
-                } else if (phTotalPurchases120Days < 3) {
-                    tempComfortZone = 100 * phAverageUsd2;
-                    uiLog("TempComfortZone Logic: Total purchases in 120 days < 3. TempComfortZone = 100 * AverageUsd(2).");
                 } else if (phTotalPurchases120Days < 10) {
                     tempComfortZone = 100 * phAverageUsd120Days;
                     uiLog("TempComfortZone Logic: Total purchases in 120 days < 10. TempComfortZone = 100 * AverageUsdMinutesFromNow(120 days).");
