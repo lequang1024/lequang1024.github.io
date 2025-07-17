@@ -10,29 +10,29 @@ const startGameBtn = document.getElementById('startGameBtn');
 const copyShareLinkBtn = document.getElementById('copyShareLinkBtn'); // New Button
 const qrcodeDiv = document.getElementById('qrcode');
 const generatedUrlP = document.getElementById('generatedUrl');
-const aliveStatusDiv = document.getElementById('aliveStatus'); 
+const aliveStatusDiv = document.getElementById('aliveStatus');
 const grafanaLinkContainer = document.getElementById('grafanaLinkContainer');
 const grafanaLink = document.getElementById('grafanaLink');
 const copyUrlBtn = document.getElementById('copyUrlBtn');
 
 
 let qrCodeInstance = null;
-let currentDeepLinkUrl = ''; 
-let aliveCheckTimeout = null; 
-let currentAliveCheckToken = null; 
+let currentDeepLinkUrl = '';
+let aliveCheckTimeout = null;
+let currentAliveCheckToken = null;
 
 const environmentDomains = {
     trunk: "backend.jarvistrunk.net",
-    trunkliveops: "backend-liveops.jarvistrunk.net", 
+    trunkliveops: "backend-liveops.jarvistrunk.net",
     qa3: "backend.liveops.jarvisqa.net"
 };
 
-const grafanaDataSources = { 
+const grafanaDataSources = {
     trunk: "P31FC4C0F93B441EF",
     qa3: "P5A8999BC3E4BD4C5"
 };
 
-const LS_BASE_KEY = 'qrGenAdv_'; 
+const LS_BASE_KEY = 'qrGenAdv_';
 const LS_KEYS = {
     ENVIRONMENT: LS_BASE_KEY + 'environment',
     PR_NUMBER: LS_BASE_KEY + 'prNumber',
@@ -47,8 +47,8 @@ const DEFAULTS = {
 };
 
 const additionalParamsConfig = [
-    { id: 'ava_dab', name: 'Ava DAB', key: 'ava_dab', type: 'text', placeholder: 'AVA_DAB value or reset', example: '?ava_dab=MY_DAB', defaultValue: '3_64_0' },
-    { id: 'ava_header', name: 'Ava Header', key: 'ava_header', type: 'select', options: ['mvmx', 'mvmx-liveops'], example: '?ava_header=AVA_HEADER', defaultValue: 'mvmx' },
+    { id: 'ava_dab', name: 'Ava DAB', key: 'ava_dab', type: 'text', placeholder: 'AVA_DAB value or reset', example: '?ava_dab=MY_DAB', defaultValue: '3_65_0' },
+    { id: 'ava_header', name: 'Ava Header', key: 'ava_header', type: 'select', options: ['mvmx', 'mvmx-liveops'], example: '?ava_header=AVA_HEADER', defaultValue: '' },
     { id: 'auto_cheat', name: 'Auto Cheat', key: 'auto_cheat', type: 'text', placeholder: 'Cheat ID (e.g. SuperPlayer)', example: '?auto_cheat=SuperPlayer', defaultValue: 'SuperPlayer' },
     { id: 'reset_device', name: 'Reset Device', key: 'reset', type: 'checkbox_only', example: '?reset=device', fixedValue: 'device', defaultValue: false },
     { id: 'user_deviceid', name: 'User DeviceID', key: 'user_deviceid', type: 'text', placeholder: 'UDID', example: '?user_deviceid=UDID', defaultValue: '' },
@@ -60,14 +60,14 @@ const additionalParamsConfig = [
 ];
 
 function renderAdditionalParams(urlParams = {}) {
-    additionalParamsContainer.innerHTML = ''; 
+    additionalParamsContainer.innerHTML = '';
     const savedParamsState = JSON.parse(localStorage.getItem(LS_KEYS.ADDITIONAL_PARAMS) || '{}');
 
     additionalParamsConfig.forEach(param => {
         let isDefaultEnabled = (param.id === 'ava_dab' || (param.type === 'checkbox_only' && param.defaultValue === true));
         let initialValue = param.defaultValue;
         let initialEnabledState = isDefaultEnabled;
-        
+
         // URL params take highest priority for value and enabled state
         if (urlParams.hasOwnProperty(param.key)) {
             initialEnabledState = true;
@@ -81,10 +81,6 @@ function renderAdditionalParams(urlParams = {}) {
                     initialValue = savedParam.value;
                 }
             } else {
-                 // Finally, handle specific defaults like ava_header
-                if (param.id === 'ava_header') {
-                    initialEnabledState = true;
-                }
             }
         }
 
@@ -114,19 +110,19 @@ function renderAdditionalParams(urlParams = {}) {
             if (param.type !== 'checkbox_only') {
                 document.getElementById(`${param.id}_value`).disabled = !e.target.checked;
             }
-            generateAndDisplayQrCode(); 
+            generateAndDisplayQrCode();
         });
 
         if (param.type !== 'checkbox_only') {
             const valueElement = document.getElementById(`${param.id}_value`);
-            valueElement.addEventListener('input', () => { 
+            valueElement.addEventListener('input', () => {
                 generateAndDisplayQrCode();
                 scheduleAliveCheck();
-            }); 
-            if(param.type === 'select') { 
-                valueElement.addEventListener('change', () => { 
-                   generateAndDisplayQrCode();
-                   scheduleAliveCheck(); 
+            });
+            if (param.type === 'select') {
+                valueElement.addEventListener('change', () => {
+                    generateAndDisplayQrCode();
+                    scheduleAliveCheck();
                 });
             }
         }
@@ -160,35 +156,35 @@ function applyUrlParameters() {
     if (urlParams.toString() === '') {
         return false; // No params to apply
     }
-    
+
     // Base Config
     environmentSelect.value = urlParams.get('env') || DEFAULTS.ENVIRONMENT;
     prNumberInput.value = urlParams.get('pr') || DEFAULTS.PR_NUMBER;
     customBackendUrlInput.value = urlParams.get('customUrl') || DEFAULTS.CUSTOM_BACKEND_URL;
-    
+
     // Additional Params
     const additionalUrlParams = {};
     additionalParamsConfig.forEach(param => {
-        if(urlParams.has(param.key)) {
+        if (urlParams.has(param.key)) {
             additionalUrlParams[param.key] = urlParams.get(param.key);
         }
     });
-    
+
     renderAdditionalParams(additionalUrlParams);
-    
+
     return true; // Params were applied
 }
 
 
 function updateInputVisibility(selectedEnv) {
     if (selectedEnv === "custom") {
-        prNumberGroup.classList.add('hidden-field'); 
+        prNumberGroup.classList.add('hidden-field');
         prNumberInput.disabled = true;
         customBackendUrlGroup.classList.remove('hidden-field');
         customBackendUrlInput.disabled = false;
-        grafanaLinkContainer.classList.add('hidden-field'); 
+        grafanaLinkContainer.classList.add('hidden-field');
     } else if (selectedEnv === "trunkliveops") {
-        prNumberGroup.classList.remove('hidden-field'); 
+        prNumberGroup.classList.remove('hidden-field');
         prNumberInput.disabled = true;
         customBackendUrlGroup.classList.add('hidden-field');
         customBackendUrlInput.disabled = true;
@@ -203,25 +199,25 @@ function updateInputVisibility(selectedEnv) {
 function resetToDefaultSettings() {
     localStorage.removeItem(LS_KEYS.ENVIRONMENT);
     localStorage.removeItem(LS_KEYS.PR_NUMBER);
-    localStorage.removeItem(LS_KEYS.CUSTOM_BACKEND_URL); 
+    localStorage.removeItem(LS_KEYS.CUSTOM_BACKEND_URL);
     localStorage.removeItem(LS_KEYS.ADDITIONAL_PARAMS);
-    
+
     // Clear the URL of query params
     window.history.replaceState({}, document.title, window.location.pathname);
 
     environmentSelect.value = DEFAULTS.ENVIRONMENT;
     prNumberInput.value = DEFAULTS.PR_NUMBER;
-    customBackendUrlInput.value = DEFAULTS.CUSTOM_BACKEND_URL; 
+    customBackendUrlInput.value = DEFAULTS.CUSTOM_BACKEND_URL;
 
-    prNumberInput.classList.remove('input-error'); 
+    prNumberInput.classList.remove('input-error');
     customBackendUrlInput.classList.remove('input-error');
-    aliveStatusDiv.textContent = ''; 
-    aliveStatusDiv.className = 'mt-2 text-sm'; 
+    aliveStatusDiv.textContent = '';
+    aliveStatusDiv.className = 'mt-2 text-sm';
     grafanaLinkContainer.classList.add('hidden-field');
-    
-    updateInputVisibility(DEFAULTS.ENVIRONMENT); 
-    renderAdditionalParams(); 
-    generateAndDisplayQrCode(); 
+
+    updateInputVisibility(DEFAULTS.ENVIRONMENT);
+    renderAdditionalParams();
+    generateAndDisplayQrCode();
 }
 
 function validateInputs() {
@@ -234,9 +230,9 @@ function validateInputs() {
         }
     });
     generatedUrlP.classList.remove('error-message');
-    generatedUrlP.innerHTML = ''; 
+    generatedUrlP.innerHTML = '';
 
-    const prNumberValue = prNumberInput.value; 
+    const prNumberValue = prNumberInput.value;
     const selectedEnv = environmentSelect.value;
 
     if (selectedEnv === "custom") {
@@ -245,21 +241,21 @@ function validateInputs() {
             generatedUrlP.textContent = "Error: Custom Backend URL cannot be empty.";
             generatedUrlP.classList.add('error-message');
             customBackendUrlInput.classList.add('input-error');
-            qrcodeDiv.innerHTML = ''; 
+            qrcodeDiv.innerHTML = '';
             return false;
         }
         if (customUrl.indexOf(' ') !== -1) {
             generatedUrlP.textContent = "Error: Custom Backend URL cannot contain spaces.";
             generatedUrlP.classList.add('error-message');
             customBackendUrlInput.classList.add('input-error');
-            qrcodeDiv.innerHTML = ''; 
+            qrcodeDiv.innerHTML = '';
             return false;
         }
-    } else if (selectedEnv !== "trunkliveops" && prNumberValue.indexOf(' ') !== -1) { 
+    } else if (selectedEnv !== "trunkliveops" && prNumberValue.indexOf(' ') !== -1) {
         generatedUrlP.textContent = "Error: PR Number cannot contain spaces.";
         generatedUrlP.classList.add('error-message');
         prNumberInput.classList.add('input-error');
-        qrcodeDiv.innerHTML = ''; 
+        qrcodeDiv.innerHTML = '';
         return false;
     }
 
@@ -268,18 +264,18 @@ function validateInputs() {
             const enableCheckbox = document.getElementById(`${param.id}_enable`);
             const valueInput = document.getElementById(`${param.id}_value`);
             if (enableCheckbox && valueInput && enableCheckbox.checked) {
-                const value = valueInput.value; 
-                if (value.indexOf(' ') !== -1) { 
+                const value = valueInput.value;
+                if (value.indexOf(' ') !== -1) {
                     generatedUrlP.textContent = `Error: '${param.name}' cannot contain spaces.`;
                     generatedUrlP.classList.add('error-message');
                     valueInput.classList.add('input-error');
-                    qrcodeDiv.innerHTML = ''; 
+                    qrcodeDiv.innerHTML = '';
                     return false;
                 }
             }
         }
     }
-    return true; 
+    return true;
 }
 
 async function performAliveCheck(checkToken) {
@@ -301,7 +297,7 @@ async function performAliveCheck(checkToken) {
     }
 
     if (!hostToCheck) {
-        if (checkToken === currentAliveCheckToken) { 
+        if (checkToken === currentAliveCheckToken) {
             aliveStatusDiv.textContent = '';
             aliveStatusDiv.className = 'mt-2 text-sm';
         }
@@ -310,9 +306,9 @@ async function performAliveCheck(checkToken) {
 
     let checkUrl = hostToCheck;
     if (!checkUrl.startsWith('http://') && !checkUrl.startsWith('https://')) {
-        checkUrl = 'https://' + checkUrl; 
+        checkUrl = 'https://' + checkUrl;
     }
-    checkUrl += '/api/live'; 
+    checkUrl += '/api/live';
 
     if (checkToken === currentAliveCheckToken) {
         aliveStatusDiv.textContent = 'Status: Checking...';
@@ -320,7 +316,7 @@ async function performAliveCheck(checkToken) {
     }
 
     try {
-        let fetchOptions = {}; 
+        let fetchOptions = {};
 
         if (selectedEnvironment === "custom") {
             fetchOptions.method = 'GET'; // Use GET for custom backend URL
@@ -332,7 +328,7 @@ async function performAliveCheck(checkToken) {
 
         const response = await fetch(checkUrl, fetchOptions);
 
-        if (checkToken === currentAliveCheckToken) { 
+        if (checkToken === currentAliveCheckToken) {
             let statusMessage = '';
             let statusClass = '';
 
@@ -363,7 +359,7 @@ async function performAliveCheck(checkToken) {
         }
     } catch (error) {
         console.error('Alive check failed (Network Error):', error);
-        if (checkToken === currentAliveCheckToken) { 
+        if (checkToken === currentAliveCheckToken) {
             aliveStatusDiv.textContent = 'Status: Dead 💀 (Network Error)';
             aliveStatusDiv.className = 'mt-2 text-sm status-not-alive';
             if (typeof gtag === 'function') {
@@ -380,31 +376,31 @@ async function performAliveCheck(checkToken) {
 
 function scheduleAliveCheck() {
     clearTimeout(aliveCheckTimeout);
-    currentAliveCheckToken = Symbol(); 
+    currentAliveCheckToken = Symbol();
     const tokenForThisCheck = currentAliveCheckToken;
-    
+
     aliveStatusDiv.textContent = 'Status: Checking...';
     aliveStatusDiv.className = 'mt-2 text-sm status-checking';
 
     aliveCheckTimeout = setTimeout(() => {
         performAliveCheck(tokenForThisCheck);
-    }, 1000); 
+    }, 1000);
 }
 
 
 function generateAndDisplayQrCode() {
     if (!validateInputs()) {
-        currentDeepLinkUrl = ''; 
-        aliveStatusDiv.textContent = ''; 
+        currentDeepLinkUrl = '';
+        aliveStatusDiv.textContent = '';
         aliveStatusDiv.className = 'mt-2 text-sm';
         grafanaLinkContainer.classList.add('hidden-field');
         copyUrlBtn.disabled = true; // Disable copy button on error
-        return; 
+        return;
     }
 
     const selectedEnvironment = environmentSelect.value;
-    const prNumberRaw = prNumberInput.value; 
-    
+    const prNumberRaw = prNumberInput.value;
+
     let backendHost;
 
     // Grafana Link Logic
@@ -422,7 +418,7 @@ function generateAndDisplayQrCode() {
         grafanaAppName = prNumTrimmed ? `qa3-ea-backend-pr-${prNumTrimmed}` : "qa3-ea-backend";
         showGrafanaLink = true;
     } else if (selectedEnvironment === "trunkliveops") {
-        grafanaDatasourceUid = grafanaDataSources.trunk; 
+        grafanaDatasourceUid = grafanaDataSources.trunk;
         grafanaAppName = "tnk-ea-backend-liveops";
         showGrafanaLink = true;
     }
@@ -431,11 +427,11 @@ function generateAndDisplayQrCode() {
     if (showGrafanaLink && grafanaAppName && grafanaDatasourceUid) {
         const expr = `{app=\"${grafanaAppName}\"} |= \`\``;
         const panesObj = {
-          "c13": {
-            "datasource": grafanaDatasourceUid, 
-            "queries": [ { "refId": "A", "editorMode": "builder", "expr": expr, "queryType": "range", "datasource": {"type": "loki", "uid": grafanaDatasourceUid} } ],
-            "range": { "from": "now-6h", "to": "now" }
-          }
+            "c13": {
+                "datasource": grafanaDatasourceUid,
+                "queries": [{ "refId": "A", "editorMode": "builder", "expr": expr, "queryType": "range", "datasource": { "type": "loki", "uid": grafanaDatasourceUid } }],
+                "range": { "from": "now-6h", "to": "now" }
+            }
         };
         const encodedPanes = encodeURIComponent(JSON.stringify(panesObj));
         grafanaLink.href = `https://grafana.jarvis.tools/explore?schemaVersion=1&panes=${encodedPanes}&orgId=1`;
@@ -450,7 +446,7 @@ function generateAndDisplayQrCode() {
         backendHost = customBackendUrlInput.value.trim();
     } else if (selectedEnvironment === "trunkliveops") {
         backendHost = environmentDomains[selectedEnvironment];
-    } else { 
+    } else {
         const baseDomain = environmentDomains[selectedEnvironment];
         if (prNumberRaw.trim()) {
             backendHost = `pr-${prNumberRaw.trim()}.${baseDomain}`;
@@ -458,9 +454,9 @@ function generateAndDisplayQrCode() {
             backendHost = baseDomain;
         }
     }
-    
+
     let backendHostQueryParam = `backend_host=${encodeURIComponent(backendHost)}`;
-    
+
     let queryParams = [backendHostQueryParam];
 
     additionalParamsConfig.forEach(param => {
@@ -468,34 +464,34 @@ function generateAndDisplayQrCode() {
         if (enableCheckbox && enableCheckbox.checked) {
             let value;
             if (param.type === 'checkbox_only') {
-                value = param.fixedValue; 
+                value = param.fixedValue;
             } else {
                 const valueInput = document.getElementById(`${param.id}_value`);
-                value = valueInput ? valueInput.value.trim() : ''; 
+                value = valueInput ? valueInput.value.trim() : '';
             }
-            
+
             if (value !== '' || param.type === 'checkbox_only' || param.key === 'ava_dab' || param.key === 'ava_header') {
                 queryParams.push(`${encodeURIComponent(param.key)}=${encodeURIComponent(value)}`);
             }
         }
     });
-    
-    currentDeepLinkUrl = `myvegas-slots://slots/cheat?${queryParams.join('&')}`; 
-    
-    generatedUrlP.innerHTML = ''; 
+
+    currentDeepLinkUrl = `myvegas-slots://slots/cheat?${queryParams.join('&')}`;
+
+    generatedUrlP.innerHTML = '';
     const linkElement = document.createElement('a');
     linkElement.href = currentDeepLinkUrl;
     linkElement.textContent = currentDeepLinkUrl;
-    linkElement.target = "_blank"; 
+    linkElement.target = "_blank";
     generatedUrlP.appendChild(linkElement);
-    generatedUrlP.classList.remove('error-message'); 
-    
+    generatedUrlP.classList.remove('error-message');
+
     qrcodeDiv.innerHTML = '';
 
     try {
         qrCodeInstance = new QRCode(qrcodeDiv, {
             text: currentDeepLinkUrl,
-            width: qrcodeDiv.offsetWidth > 20 ? qrcodeDiv.offsetWidth - 10 : 256, 
+            width: qrcodeDiv.offsetWidth > 20 ? qrcodeDiv.offsetWidth - 10 : 256,
             height: qrcodeDiv.offsetHeight > 20 ? qrcodeDiv.offsetHeight - 10 : 256,
             colorDark: "#000000",
             colorLight: "#ffffff",
@@ -510,19 +506,19 @@ function generateAndDisplayQrCode() {
             });
         }
 
-        if (!resetBtn.dataset.isResetting) { 
-             saveInputsToLocalStorage();
+        if (!resetBtn.dataset.isResetting) {
+            saveInputsToLocalStorage();
         }
         copyUrlBtn.disabled = false; // Enable copy button after successful generation
 
     } catch (e) {
         console.error("QR Code generation error:", e);
         qrcodeDiv.innerHTML = '<p class="error-message text-center">Error generating QR code.</p>';
-        generatedUrlP.innerHTML = ''; 
+        generatedUrlP.innerHTML = '';
         const errorText = document.createTextNode('Error details in console.');
         generatedUrlP.appendChild(errorText);
         generatedUrlP.classList.add('error-message');
-        currentDeepLinkUrl = ''; 
+        currentDeepLinkUrl = '';
         copyUrlBtn.disabled = true; // Disable copy button on error
     }
     scheduleAliveCheck();
@@ -531,7 +527,7 @@ function generateAndDisplayQrCode() {
 function handleCopyShareLink() {
     const baseUrl = window.location.href.split('?')[0];
     const params = new URLSearchParams();
-    
+
     // Base params
     params.set('env', environmentSelect.value);
     if (environmentSelect.value === 'custom') {
@@ -548,9 +544,9 @@ function handleCopyShareLink() {
             params.set(param.key, value);
         }
     });
-    
+
     const sharableLink = `${baseUrl}?${params.toString()}`;
-    
+
     // Copy to clipboard
     const dummy = document.createElement('textarea');
     document.body.appendChild(dummy);
@@ -578,7 +574,7 @@ function handleCopyShareLink() {
 environmentSelect.addEventListener('change', () => {
     const selectedEnv = environmentSelect.value;
     updateInputVisibility(selectedEnv);
-    generateAndDisplayQrCode(); 
+    generateAndDisplayQrCode();
 });
 
 // Event listener for the fixed Start Game button
@@ -640,29 +636,29 @@ grafanaLink.addEventListener('click', (event) => {
         gtag('event', 'grafana_link_clicked', {
             'event_category': 'interaction',
             'event_label': 'View Grafana Logs',
-            'pr_number': prNum || 'N/A', 
+            'pr_number': prNum || 'N/A',
             'environment': environmentSelect.value
         });
     }
 });
 
 resetBtn.addEventListener('click', () => {
-    resetBtn.dataset.isResetting = true; 
+    resetBtn.dataset.isResetting = true;
     if (typeof gtag === 'function') {
         gtag('event', 'reset_settings_clicked', {
             'event_category': 'interaction',
             'event_label': 'Reset All Settings Button'
         });
     }
-    resetToDefaultSettings(); 
-    delete resetBtn.dataset.isResetting; 
+    resetToDefaultSettings();
+    delete resetBtn.dataset.isResetting;
 });
 
 copyShareLinkBtn.addEventListener('click', handleCopyShareLink);
 
 prNumberInput.addEventListener('input', () => {
-    generateAndDisplayQrCode(); 
-}); 
+    generateAndDisplayQrCode();
+});
 customBackendUrlInput.addEventListener('input', () => {
     generateAndDisplayQrCode();
 });
@@ -674,12 +670,12 @@ window.addEventListener('load', () => {
         loadInputsFromLocalStorage();
         renderAdditionalParams();
     }
-    
+
     updateInputVisibility(environmentSelect.value);
     generateAndDisplayQrCode();
-    
-    if(urlParamsApplied){
-        saveInputsToLocalStorage(); 
+
+    if (urlParamsApplied) {
+        saveInputsToLocalStorage();
     }
 
     let resizeTimeout;
