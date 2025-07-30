@@ -24,7 +24,9 @@
 
     <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-6xl mx-auto">
         <div class="flex justify-between items-center mb-8">
-            <div class="w-24"></div>
+            <div class="w-24 text-left">
+                <button id="feedbackBtn" class="text-sm text-gray-500 hover:text-indigo-600 underline cursor-pointer" title="Send feedback">Feedback</button>
+            </div>
             <h1 class="text-3xl font-bold text-center text-gray-800 flex-grow">Deep Link QR Code Generator 1.0</h1>
             <div class="w-24 text-right">
                 <a href="./qr-deeplink-readme.html" target="_blank" class="text-sm text-gray-500 hover:text-indigo-600 underline" title="Open documentation in a new tab">Docs</a>
@@ -107,6 +109,27 @@
         </button>
         <div class="button-tooltip">
             (To start game with this button, open this website in your mobile device's browser)
+        </div>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div id="feedbackModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">Send Feedback</h3>
+                <button id="closeFeedbackModal" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+            </div>
+            <form id="feedbackForm">
+                <div class="mb-4">
+                    <label for="feedbackComment" class="block text-sm font-medium text-gray-700 mb-2">Your feedback:</label>
+                    <textarea id="feedbackComment" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 resize-none" placeholder="Please share your thoughts, suggestions, or report any issues..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" id="cancelFeedback" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500">Cancel</button>
+                    <button type="submit" id="submitFeedback" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">Submit</button>
+                </div>
+            </form>
+            <div id="feedbackStatus" class="mt-3 text-sm hidden"></div>
         </div>
     </div>
 

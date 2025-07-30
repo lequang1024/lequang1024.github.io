@@ -664,6 +664,100 @@ customBackendUrlInput.addEventListener('input', () => {
 });
 
 
+// === FEEDBACK MODAL FUNCTIONALITY ===
+const feedbackBtn = document.getElementById('feedbackBtn');
+const feedbackModal = document.getElementById('feedbackModal');
+const closeFeedbackModal = document.getElementById('closeFeedbackModal');
+const cancelFeedback = document.getElementById('cancelFeedback');
+const feedbackForm = document.getElementById('feedbackForm');
+const feedbackComment = document.getElementById('feedbackComment');
+const feedbackStatus = document.getElementById('feedbackStatus');
+
+function openFeedbackModal() {
+    feedbackModal.classList.remove('hidden');
+    feedbackComment.focus();
+    
+    // Track modal open event
+    if (typeof gtag === 'function') {
+        gtag('event', 'feedback_modal_opened', {
+            'event_category': 'engagement',
+            'event_label': 'Feedback Modal Opened',
+            'page_url': window.location.href
+        });
+    }
+}
+
+function closeFeedbackModalHandler() {
+    feedbackModal.classList.add('hidden');
+    feedbackComment.value = '';
+    feedbackStatus.classList.add('hidden');
+    feedbackStatus.textContent = '';
+    
+    // Track modal close event
+    if (typeof gtag === 'function') {
+        gtag('event', 'feedback_modal_closed', {
+            'event_category': 'engagement',
+            'event_label': 'Feedback Modal Closed',
+            'page_url': window.location.href
+        });
+    }
+}
+
+function submitFeedback(e) {
+    e.preventDefault();
+    
+    const comment = feedbackComment.value.trim();
+    if (!comment) {
+        showFeedbackStatus('Please enter your feedback before submitting.', 'error');
+        return;
+    }
+    
+    // Send feedback to Google Analytics
+    if (typeof gtag === 'function') {
+        gtag('event', 'feedback', {
+            'feedback_comment': comment,
+            'page_url': window.location.href,
+            'timestamp': new Date().toISOString(),
+            'user_agent': navigator.userAgent,
+            'environment': environmentSelect.value,
+            'current_deep_link': currentDeepLinkUrl
+        });
+    }
+    
+    showFeedbackStatus('Thank you for your feedback! It has been sent successfully.', 'success');
+    
+    // Clear form and close modal after a delay
+    setTimeout(() => {
+        closeFeedbackModalHandler();
+    }, 2000);
+}
+
+function showFeedbackStatus(message, type) {
+    feedbackStatus.textContent = message;
+    feedbackStatus.className = `mt-3 text-sm ${type === 'error' ? 'text-red-600' : 'text-green-600'}`;
+    feedbackStatus.classList.remove('hidden');
+}
+
+// Feedback event listeners
+feedbackBtn.addEventListener('click', openFeedbackModal);
+closeFeedbackModal.addEventListener('click', closeFeedbackModalHandler);
+cancelFeedback.addEventListener('click', closeFeedbackModalHandler);
+feedbackForm.addEventListener('submit', submitFeedback);
+
+// Close modal when clicking outside
+feedbackModal.addEventListener('click', (e) => {
+    if (e.target === feedbackModal) {
+        closeFeedbackModalHandler();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !feedbackModal.classList.contains('hidden')) {
+        closeFeedbackModalHandler();
+    }
+});
+
 window.addEventListener('load', () => {
     const urlParamsApplied = applyUrlParameters();
     if (!urlParamsApplied) {
