@@ -716,53 +716,35 @@ async function submitFeedback(e) {
     showFeedbackStatus('Submitting feedback...', 'loading');
     
     try {
-        // Create GitHub issue with feedback
-        const timestamp = new Date().toISOString();
-        const issueBody = `**User Feedback:**
-${comment}
-
-**Metadata:**
-- **Page:** ${window.location.href}
-- **Environment:** ${environmentSelect.value}
-- **Deep Link:** ${currentDeepLinkUrl || 'Not generated'}
-- **Timestamp:** ${timestamp}
-- **User Agent:** ${navigator.userAgent}`;
-
-        // Multi-layer obfuscation to bypass GitHub secret detection
-        const parts = ['Z2l0aHViX3BhdF8xMUFDV1ZYUlEwNjl3NUN4MlZPUTgxX1RMWUxoRXQxR1FZZXJGbHl1MFZhcVprTnBGb0xVUFpISGpKdVVOemtWdzROTDZJTExOSENBamRSQkVM'];
-        const token = atob(parts[0]);
+        // Submit to Google Forms
+        const formData = new FormData();
         
-        const response = await fetch('https://api.github.com/repos/lequang1024/lequang1024.github.io/issues', {
+        // Replace these with your actual Google Form field IDs
+        formData.append('entry.2135300506', comment);
+        formData.append('entry.754522375', window.location.href);
+        formData.append('entry.1178768284', environmentSelect.value);
+        formData.append('entry.1348725671', currentDeepLinkUrl || 'Not generated');
+        formData.append('entry.834483916', new Date().toISOString());
+        formData.append('entry.103630633', navigator.userAgent);
+
+        // Replace YOUR_FORM_ID with your actual Google Form ID
+        const response = await fetch('https://docs.google.com/forms/d/e/1FAIpQLSeVIKxTcfaYbY_XurprGSP4fT_Kb5PEDq9nbd68JB2QK_1LgA/formResponse', {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/vnd.github.v3+json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                title: `Feedback from QR Generator - ${new Date().toLocaleString()}`,
-                body: issueBody,
-                labels: ['feedback', 'user-submitted']
-            })
+            body: formData,
+            mode: 'no-cors' // Required for Google Forms
         });
 
-        if (response.ok) {
-            const issue = await response.json();
-            showFeedbackStatus(`Thank you! Your feedback has been submitted as issue #${issue.number}.`, 'success');
-            
-            // Clear form and close modal after a delay
-            setTimeout(() => {
-                closeFeedbackModalHandler();
-            }, 2000);
-        } else {
-            const errorData = await response.json();
-            console.error('GitHub API error:', errorData);
-            showFeedbackStatus('Failed to submit feedback. Please try again later.', 'error');
-        }
+        // Google Forms always returns success with no-cors mode
+        showFeedbackStatus('Thank you! Your feedback has been submitted successfully.', 'success');
+        
+        // Clear form and close modal after a delay
+        setTimeout(() => {
+            closeFeedbackModalHandler();
+        }, 2000);
         
     } catch (error) {
-        console.error('Network error:', error);
-        showFeedbackStatus('Failed to submit feedback due to network error. Please check your connection and try again.', 'error');
+        console.error('Form submission failed:', error);
+        showFeedbackStatus('Failed to submit feedback. Please try again later.', 'error');
     }
 }
 
