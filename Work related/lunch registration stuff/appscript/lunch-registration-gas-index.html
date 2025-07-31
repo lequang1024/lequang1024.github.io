@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lunch Registration Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4CAF50',
+                        'primary-dark': '#45a049',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-indigo-500 to-purple-600 min-h-screen p-5">
+    <!-- Full Page Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md mx-4 text-center shadow-2xl">
+            <div class="mb-6">
+                <div class="animate-spin rounded-full h-16 w-16 border-4 border-primary border-t-transparent mx-auto mb-4"></div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">🍽️ Loading Lunch Tool</h2>
+                <p id="loadingMessage" class="text-gray-600">Connecting to Google Sheet...</p>
+            </div>
+            <div class="bg-gray-100 rounded-lg p-4">
+                <div class="flex items-center justify-center mb-2">
+                    <span class="w-3 h-3 rounded-full bg-orange-400 mr-2 animate-pulse" id="overlayConnectionStatus"></span>
+                    <span id="overlayConnectionText" class="text-sm text-gray-700">Initializing...</span>
+                </div>
+                <div class="text-xs text-gray-500">Please wait while we load employee data</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-primary to-primary-dark text-white p-8 text-center">
+            <h1 class="text-4xl font-bold mb-3">🍽️ Lunch Registration Tool</h1>
+            <p class="text-lg opacity-90">Update your lunch preferences for the week</p>
+            <p class="text-sm mt-3 opacity-80">⚠️ Please update 1 DAY IN ADVANCE</p>
+            <div class="mt-4 flex items-center justify-center">
+                <span class="w-3 h-3 rounded-full bg-orange-400 mr-2" id="connectionStatus"></span>
+                <span id="connectionText" class="text-sm">Connecting to sheet...</span>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="p-8">
+            <!-- Employee Selection Section -->
+            <div id="employeeSection" class="mb-8 p-6 border border-gray-200 rounded-xl bg-gray-50">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    👤 Select Employee
+                </h3>
+                
+                <div class="mb-5">
+                    <label for="employeeSearch" class="block text-sm font-medium text-gray-700 mb-2">
+                        Search Employee:
+                    </label>
+                    <input 
+                        type="text" 
+                        id="employeeSearch" 
+                        placeholder="Type email, name, nickname, or VN code..." 
+                        oninput="filterEmployees()"
+                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none transition-colors"
+                    >
+                </div>
+                
+                <div class="mb-5">
+                    <label for="employeeSelect" class="block text-sm font-medium text-gray-700 mb-2">
+                        Choose Employee:
+                    </label>
+                    <select 
+                        id="employeeSelect" 
+                        onchange="loadEmployeeData()"
+                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none transition-colors"
+                    >
+                        <option value="">-- Loading employees... --</option>
+                    </select>
+                </div>
+
+                <!-- Employee Info -->
+                <div id="employeeInfo" class="hidden bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <h4 class="text-lg font-semibold text-blue-800 mb-3">Employee Information</h4>
+                    <div id="employeeDetails" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                        <!-- Employee details will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lunch Registration Section -->
+            <div id="lunchSection" class="hidden mb-8 p-6 border border-gray-200 rounded-xl bg-gray-50">
+                <h3 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                    🍱 Weekly Lunch Registration
+                </h3>
+                
+                <div id="lunchGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+                    <!-- Lunch days will be populated here -->
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button 
+                        onclick="updateRegistrations()" 
+                        class="px-8 py-3 bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg uppercase tracking-wide"
+                    >
+                        💾 Update Registrations
+                    </button>
+                    <button 
+                        onclick="resetForm()" 
+                        class="px-8 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-all duration-300 uppercase tracking-wide"
+                    >
+                        🔄 Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div id="messages" class="space-y-3">
+                <!-- Messages will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let allEmployees = [];
+        let filteredEmployees = [];
+        let selectedEmployee = null;
+        let lunchMenus = {}; // Will be loaded from sheet
+
+        // Column mapping for lunch days (0-based index) - H, I, J, K, L
+        const dayColumns = {
+            'Monday': 7,    // Column H
+            'Tuesday': 8,   // Column I
+            'Wednesday': 9, // Column J
+            'Thursday': 10, // Column K
+            'Friday': 11    // Column L
+        };
+
+        // Ordered days array to ensure correct display order
+        const orderedDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+
+        // Utility functions
+        function showMessage(message, type = 'info') {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            
+            let bgColor = 'bg-blue-100 border-blue-500 text-blue-700';
+            if (type === 'success') bgColor = 'bg-green-100 border-green-500 text-green-700';
+            if (type === 'error') bgColor = 'bg-red-100 border-red-500 text-red-700';
+            
+            messageDiv.className = `${bgColor} border-l-4 p-4 rounded-r-lg`;
+            messageDiv.innerHTML = message;
+            messagesDiv.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+
+        function showLoading(show = true) {
+            const messagesDiv = document.getElementById('messages');
+            if (show) {
+                // Don't clear existing messages, just add loading indicator
+                const loadingDiv = document.createElement('div');
+                loadingDiv.id = 'loading-indicator';
+                loadingDiv.className = 'text-center py-4 text-gray-600 bg-blue-50 border border-blue-200 rounded-lg';
+                loadingDiv.innerHTML = '🔄 Loading data from Google Sheet...';
+                messagesDiv.appendChild(loadingDiv);
+            } else {
+                // Only remove the loading indicator
+                const loadingIndicator = document.getElementById('loading-indicator');
+                if (loadingIndicator) {
+                    loadingIndicator.remove();
+                }
+            }
+        }
+
+        function updateConnectionStatus(status, text) {
+            const statusIndicator = document.getElementById('connectionStatus');
+            const statusText = document.getElementById('connectionText');
+            
+            // Also update overlay status
+            const overlayStatusIndicator = document.getElementById('overlayConnectionStatus');
+            const overlayStatusText = document.getElementById('overlayConnectionText');
+            const loadingMessage = document.getElementById('loadingMessage');
+            
+            let statusColor = 'bg-orange-400';
+            if (status === 'connected') statusColor = 'bg-green-400';
+            if (status === 'error') statusColor = 'bg-red-400';
+            
+            statusIndicator.className = `w-3 h-3 rounded-full mr-2 ${statusColor}`;
+            statusText.textContent = text;
+            
+            // Update overlay elements
+            overlayStatusIndicator.className = `w-3 h-3 rounded-full mr-2 ${statusColor} ${status === 'loading' ? 'animate-pulse' : ''}`;
+            overlayStatusText.textContent = text;
+            
+            // Update loading message based on status
+            if (status === 'loading') {
+                loadingMessage.textContent = 'Connecting to Google Sheet...';
+            } else if (status === 'connected') {
+                loadingMessage.textContent = 'Loading complete! Preparing interface...';
+            } else if (status === 'error') {
+                loadingMessage.textContent = 'Connection failed. Please try again.';
+            }
+        }
+
+        function hideLoadingOverlay() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                overlay.style.transition = 'opacity 0.5s ease-out';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 500);
+            }
+        }
+
+        function showLoadingOverlay() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
+                overlay.style.opacity = '1';
+            }
+        }
+
+        // LocalStorage functions
+        function saveSearchQuery(searchQuery) {
+            localStorage.setItem('lunchTool_searchQuery', searchQuery);
+        }
+
+        function loadSearchQuery() {
+            return localStorage.getItem('lunchTool_searchQuery') || '';
+        }
+
+        // Load employee data from server
+        function loadEmployeeData() {
+            const selectedIndex = document.getElementById('employeeSelect').value;
+            
+            if (selectedIndex === '') {
+                document.getElementById('employeeInfo').classList.add('hidden');
+                document.getElementById('lunchSection').classList.add('hidden');
+                return;
+            }
+            
+            selectedEmployee = filteredEmployees[selectedIndex];
+            
+            // Save current search query
+            const currentSearchQuery = document.getElementById('employeeSearch').value;
+            if (currentSearchQuery) {
+                saveSearchQuery(currentSearchQuery);
+            }
+            
+            // Display employee information
+            const employeeDetails = document.getElementById('employeeDetails');
+            employeeDetails.innerHTML = `
+                <div><strong class="text-gray-600">VN Code:</strong> ${selectedEmployee.vnCode}</div>
+                <div><strong class="text-gray-600">Employee Code:</strong> ${selectedEmployee.employeeCode}</div>
+                <div><strong class="text-gray-600">Full Name:</strong> ${selectedEmployee.fullName}</div>
+                <div><strong class="text-gray-600">Role:</strong> ${selectedEmployee.role}</div>
+                <div><strong class="text-gray-600">Nickname:</strong> ${selectedEmployee.nickname}</div>
+                <div><strong class="text-gray-600">Phone:</strong> ${selectedEmployee.phone}</div>
+                <div><strong class="text-gray-600">Email:</strong> ${selectedEmployee.email}</div>
+            `;
+            
+            document.getElementById('employeeInfo').classList.remove('hidden');
+            
+            // Create lunch grid
+            createLunchGrid();
+            document.getElementById('lunchSection').classList.remove('hidden');
+        }
+
+        // Filter employees based on search (primarily by email)
+        function filterEmployees() {
+            const searchTerm = document.getElementById('employeeSearch').value.toLowerCase();
+            const select = document.getElementById('employeeSelect');
+            
+            // Filter employees
+            if (searchTerm === '') {
+                filteredEmployees = [...allEmployees];
+            } else {
+                filteredEmployees = allEmployees.filter(employee => {
+                    // Primary search by email, with fallback to name, nickname, VN code
+                    const searchableText = `${employee.email} ${employee.fullName} ${employee.nickname} ${employee.vnCode}`.toLowerCase();
+                    return searchableText.includes(searchTerm);
+                });
+            }
+            
+            // Update dropdown
+            populateEmployeeDropdown();
+            
+            // Auto-select if only one match
+            if (filteredEmployees.length === 1) {
+                select.selectedIndex = 1;
+                loadEmployeeData();
+            }
+        }
+
+        // Populate employee dropdown
+        function populateEmployeeDropdown() {
+            const select = document.getElementById('employeeSelect');
+            select.innerHTML = '<option value="">-- Select an employee --</option>';
+            
+            filteredEmployees.forEach((employee, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${employee.fullName} (${employee.nickname}) - ${employee.vnCode}`;
+                select.appendChild(option);
+            });
+        }
+
+        // Create lunch grid
+        function createLunchGrid() {
+            const lunchGrid = document.getElementById('lunchGrid');
+            lunchGrid.innerHTML = '';
+            
+            // Use ordered days array to ensure Monday-Friday order
+            orderedDays.forEach(day => {
+                const currentValue = selectedEmployee[day.toLowerCase()] || '';
+                const statusClass = getStatusClass(currentValue);
+                
+                const dayCard = document.createElement('div');
+                dayCard.className = 'bg-white border-2 border-gray-200 rounded-xl p-5 text-center transition-all duration-300 hover:border-primary hover:-translate-y-1 hover:shadow-lg';
+                
+                dayCard.innerHTML = `
+                    <div class="font-bold text-gray-800 mb-2 text-lg">${day}</div>
+                    <div class="text-sm text-gray-600 mb-4 leading-relaxed">${lunchMenus[day] || `${day} Menu`}</div>
+                    <div class="mb-4 p-2 rounded-lg font-semibold text-sm ${statusClass}">
+                        Current: ${currentValue || 'Not set'}
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 mb-3">
+                        <button class="choice-btn px-3 py-2 text-xs border-2 border-gray-300 bg-white rounded-md hover:border-primary transition-all duration-200 font-medium" data-day="${day}" data-value="Yes" onclick="selectChoice('${day}', 'Yes')">Yes</button>
+                        <button class="choice-btn px-3 py-2 text-xs border-2 border-gray-300 bg-white rounded-md hover:border-primary transition-all duration-200 font-medium" data-day="${day}" data-value="No" onclick="selectChoice('${day}', 'No')">No</button>
+                        <button class="choice-btn px-3 py-2 text-xs border-2 border-gray-300 bg-white rounded-md hover:border-primary transition-all duration-200 font-medium" data-day="${day}" data-value="Chay" onclick="selectChoice('${day}', 'Chay')">Chay</button>
+                    </div>
+                `;
+                
+                lunchGrid.appendChild(dayCard);
+                
+                // Set current selection
+                if (currentValue) {
+                    const lowerValue = currentValue.toString().toLowerCase();
+                    if (lowerValue === 'yes') {
+                        selectChoice(day, 'Yes', false);
+                    } else if (lowerValue === 'no') {
+                        selectChoice(day, 'No', false);
+                    } else if (lowerValue.includes('chay') || lowerValue.includes('yes (chay)')) {
+                        selectChoice(day, 'Chay', false);
+                    } else {
+                        // For any other values, default to showing as "Chay" since we no longer have special input
+                        selectChoice(day, 'Chay', false);
+                    }
+                }
+            });
+        }
+
+        function getStatusClass(value) {
+            if (!value) return 'bg-gray-100 text-gray-600';
+            const lowerValue = value.toString().toLowerCase();
+            if (lowerValue === 'yes') return 'bg-green-100 text-green-700';
+            if (lowerValue === 'no') return 'bg-red-100 text-red-700';
+            return 'bg-yellow-100 text-yellow-700';
+        }
+
+        function selectChoice(day, choice, updateUI = true) {
+            // Remove active class from all buttons for this day
+            const buttons = document.querySelectorAll(`[data-day="${day}"]`);
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-primary', 'text-white', 'border-primary');
+                btn.classList.add('border-gray-300', 'bg-white');
+            });
+            
+            // Add active class to selected button
+            const selectedBtn = document.querySelector(`[data-day="${day}"][data-value="${choice}"]`);
+            if (selectedBtn && updateUI) {
+                selectedBtn.classList.remove('border-gray-300', 'bg-white');
+                selectedBtn.classList.add('bg-primary', 'text-white', 'border-primary');
+            }
+            
+            if (updateUI && selectedBtn) {
+                selectedBtn.classList.remove('border-gray-300', 'bg-white');
+                selectedBtn.classList.add('bg-primary', 'text-white', 'border-primary');
+            }
+        }
+
+        // Update registrations
+        function updateRegistrations() {
+            if (!selectedEmployee) {
+                showMessage('Please select an employee first', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            const updates = [];
+            
+            // Use ordered days array to ensure consistent processing
+            orderedDays.forEach(day => {
+                const activeBtn = document.querySelector(`[data-day="${day}"].bg-primary`);
+                if (activeBtn) {
+                    const choice = activeBtn.dataset.value;
+                    let value = '';
+                    
+                    if (choice === 'Yes') {
+                        value = 'Yes';
+                    } else if (choice === 'No') {
+                        value = 'No';
+                    } else if (choice === 'Chay') {
+                        value = 'Yes (chay)';
+                    }
+                    
+                    if (value) {
+                        const columnLetter = String.fromCharCode(65 + dayColumns[day]); // Convert to letter
+                        const cellRange = `${columnLetter}${selectedEmployee.rowIndex + 1}`;
+                        
+                        updates.push({
+                            range: cellRange,
+                            value: value
+                        });
+                    }
+                }
+            });
+            
+            if (updates.length === 0) {
+                showMessage('No changes to update', 'error');
+                showLoading(false);
+                return;
+            }
+            
+            // Call server function
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    showLoading(false);
+                    if (result.success) {
+                        showMessage(`Successfully updated ${result.updatedCells} lunch registrations! 🎉`, 'success');
+                        
+                        // Update the selected employee's data with new values
+                        orderedDays.forEach(day => {
+                            const activeBtn = document.querySelector(`[data-day="${day}"].bg-primary`);
+                            if (activeBtn) {
+                                const choice = activeBtn.dataset.value;
+                                let value = '';
+                                
+                                if (choice === 'Yes') {
+                                    value = 'Yes';
+                                } else if (choice === 'No') {
+                                    value = 'No';
+                                } else if (choice === 'Chay') {
+                                    value = 'Yes (chay)';
+                                }
+                                
+                                // Update the selectedEmployee object
+                                if (value) {
+                                    selectedEmployee[day.toLowerCase()] = value;
+                                }
+                            }
+                        });
+                        
+                        // Refresh the lunch grid to show updated "Current:" status
+                        createLunchGrid();
+                    } else {
+                        showMessage(`Error updating registrations: ${result.error}`, 'error');
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showLoading(false);
+                    showMessage(`Error updating registrations: ${error.message}`, 'error');
+                })
+                .updateLunchRegistrations(updates);
+        }
+
+        function resetForm() {
+            if (selectedEmployee) {
+                loadEmployeeData(); // Reload current data
+                showMessage('Form reset to current values', 'success');
+            }
+        }
+
+        // Restore search query
+        function restoreSearchQuery() {
+            const savedSearchQuery = loadSearchQuery();
+            if (savedSearchQuery && allEmployees.length > 0) {
+                // Set search field
+                document.getElementById('employeeSearch').value = savedSearchQuery;
+                filterEmployees();
+                
+                // If there's exactly one match, auto-select it
+                if (filteredEmployees.length === 1) {
+                    document.getElementById('employeeSelect').value = 0;
+                    loadEmployeeData();
+                    return true; // Successfully restored
+                }
+                
+                // If there are multiple matches, just show them in the dropdown
+                if (filteredEmployees.length > 0) {
+                    showMessage(`Restored search: "${savedSearchQuery}" - ${filteredEmployees.length} matches found`, 'info');
+                    return true;
+                }
+            }
+            return false; // No search query restored
+        }
+
+        // Pre-fill search with current user's information
+        function prefillCurrentUser() {
+            if (!window.currentUser || !window.currentUser.success) {
+                return;
+            }
+
+            const user = window.currentUser;
+            const searchField = document.getElementById('employeeSearch');
+            
+            // Try different search terms based on available user info
+            let searchTerms = [];
+            
+            if (user.displayName) {
+                searchTerms.push(user.displayName);
+            }
+            if (user.name && user.name !== user.displayName) {
+                searchTerms.push(user.name);
+            }
+            if (user.email) {
+                // Extract name from email (before @)
+                const emailName = user.email.split('@')[0];
+                searchTerms.push(emailName);
+                
+                // Also try the full email
+                searchTerms.push(user.email);
+            }
+
+            // Try each search term to find a match
+            for (let searchTerm of searchTerms) {
+                searchField.value = searchTerm;
+                filterEmployees();
+                
+                // If we found exactly one match, select it automatically
+                if (filteredEmployees.length === 1) {
+                    document.getElementById('employeeSelect').selectedIndex = 1;
+                    loadEmployeeData();
+                    showMessage(`Auto-selected: ${filteredEmployees[0].fullName} 👤`, 'success');
+                    return;
+                }
+                
+                // If we found multiple matches but one is exact, prefer it
+                const exactMatch = filteredEmployees.find(emp => 
+                    emp.fullName.toLowerCase() === searchTerm.toLowerCase() ||
+                    emp.email.toLowerCase() === user.email.toLowerCase()
+                );
+                
+                if (exactMatch) {
+                    const exactIndex = filteredEmployees.indexOf(exactMatch);
+                    document.getElementById('employeeSelect').value = exactIndex;
+                    loadEmployeeData();
+                    showMessage(`Auto-selected: ${exactMatch.fullName} 👤`, 'success');
+                    return;
+                }
+            }
+            
+            // If no exact match found, leave the last search term in the field
+            if (searchTerms.length > 0) {
+                searchField.value = searchTerms[0];
+                filterEmployees();
+                if (filteredEmployees.length > 0) {
+                    showMessage(`Found ${filteredEmployees.length} employees matching "${searchTerms[0]}" - please select one`, 'info');
+                }
+            }
+        }
+
+        // Initialize the application
+        function initializeApp() {
+            updateConnectionStatus('loading', 'Loading employee data...');
+            
+            // First get current user info
+            google.script.run
+                .withSuccessHandler(function(userResult) {
+                    // Store user info for later use
+                    window.currentUser = userResult;
+                    
+                    // Then load employee data
+                    google.script.run
+                        .withSuccessHandler(function(result) {
+                            if (result.success) {
+                                allEmployees = result.employees;
+                                filteredEmployees = [...allEmployees];
+                                
+                                // Load lunch menus from server
+                                if (result.lunchMenus) {
+                                    lunchMenus = result.lunchMenus;
+                                }
+                                
+                                populateEmployeeDropdown();
+                                updateConnectionStatus('connected', `Connected - ${allEmployees.length} employees loaded`);
+                                
+                                // Pre-fill search with current user's name or restore search query
+                                setTimeout(() => {
+                                    if (!restoreSearchQuery()) {
+                                        prefillCurrentUser();
+                                    }
+                                }, 100);
+                                
+                                showMessage('Employee data loaded successfully! 🎉', 'success');
+                                
+                                // Hide loading overlay after everything is loaded
+                                setTimeout(hideLoadingOverlay, 1000);
+                            } else {
+                                updateConnectionStatus('error', 'Failed to load data');
+                                showMessage(`Error loading employee data: ${result.error}`, 'error');
+                                
+                                // Hide loading overlay on error too
+                                setTimeout(hideLoadingOverlay, 2000);
+                            }
+                        })
+                        .withFailureHandler(function(error) {
+                            updateConnectionStatus('error', 'Connection failed');
+                            showMessage(`Error connecting to sheet: ${error.message}`, 'error');
+                            
+                            // Hide loading overlay on failure too
+                            setTimeout(hideLoadingOverlay, 2000);
+                        })
+                        .getEmployeeData();
+                })
+                .withFailureHandler(function(error) {
+                    console.log('Could not get current user:', error);
+                    // Continue without user info
+                    google.script.run
+                        .withSuccessHandler(function(result) {
+                            if (result.success) {
+                                allEmployees = result.employees;
+                                filteredEmployees = [...allEmployees];
+                                
+                                if (result.lunchMenus) {
+                                    lunchMenus = result.lunchMenus;
+                                }
+                                
+                                populateEmployeeDropdown();
+                                updateConnectionStatus('connected', `Connected - ${allEmployees.length} employees loaded`);
+                                
+                                setTimeout(restoreSearchQuery, 100);
+                                
+                                showMessage('Employee data loaded successfully! 🎉', 'success');
+                            } else {
+                                updateConnectionStatus('error', 'Failed to load data');
+                                showMessage(`Error loading employee data: ${result.error}`, 'error');
+                            }
+                        })
+                        .withFailureHandler(function(error) {
+                            updateConnectionStatus('error', 'Connection failed');
+                            showMessage(`Error connecting to sheet: ${error.message}`, 'error');
+                        })
+                        .getEmployeeData();
+                })
+                .getCurrentUser();
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            showMessage('Welcome! Loading employee data from Google Sheet...', 'success');
+            initializeApp();
+        });
+    </script>
+</body>
+</html>
