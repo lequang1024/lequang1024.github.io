@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,111 +10,174 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* Tailwind gray-100 */
+            background-color: #f3f4f6;
+            /* Tailwind gray-100 */
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
         }
+
         .container {
             background-color: #ffffff;
-            padding: 2.5rem; /* Tailwind p-10 */
-            border-radius: 0.75rem; /* Tailwind rounded-xl */
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Tailwind shadow-lg */
-            max-width: 38rem; /* Tailwind max-w-xl */
+            padding: 2.5rem;
+            /* Tailwind p-10 */
+            border-radius: 0.75rem;
+            /* Tailwind rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            /* Tailwind shadow-lg */
+            max-width: 38rem;
+            /* Tailwind max-w-xl */
             width: 100%;
-            border: 1px solid #e5e7eb; /* Tailwind gray-200 */
+            border: 1px solid #e5e7eb;
+            /* Tailwind gray-200 */
         }
+
         h1 {
-            color: #1f2937; /* Tailwind gray-900 */
+            color: #1f2937;
+            /* Tailwind gray-900 */
             text-align: center;
-            margin-bottom: 1.5rem; /* Tailwind mb-6 */
-            font-size: 2.25rem; /* Tailwind text-4xl */
-            font-weight: 700; /* Tailwind font-bold */
+            margin-bottom: 1.5rem;
+            /* Tailwind mb-6 */
+            font-size: 2.25rem;
+            /* Tailwind text-4xl */
+            font-weight: 700;
+            /* Tailwind font-bold */
         }
+
         label {
             display: block;
-            margin-bottom: 0.5rem; /* Tailwind mb-2 */
-            font-weight: 500; /* Tailwind font-medium */
-            color: #374151; /* Tailwind gray-700 */
+            margin-bottom: 0.5rem;
+            /* Tailwind mb-2 */
+            font-weight: 500;
+            /* Tailwind font-medium */
+            color: #374151;
+            /* Tailwind gray-700 */
         }
-        select, input[type="text"], input[type="number"] {
+
+        select,
+        input[type="text"],
+        input[type="number"] {
             width: 100%;
-            padding: 0.75rem; /* Tailwind py-3 px-4 */
-            margin-bottom: 1rem; /* Tailwind mb-4 */
-            border: 1px solid #d1d5db; /* Tailwind border-gray-300 */
-            border-radius: 0.5rem; /* Tailwind rounded-lg */
-            font-size: 1rem; /* Tailwind text-base */
-            color: #1f2937; /* Tailwind gray-900 */
-            background-color: #f9fafb; /* Tailwind gray-50 */
+            padding: 0.75rem;
+            /* Tailwind py-3 px-4 */
+            margin-bottom: 1rem;
+            /* Tailwind mb-4 */
+            border: 1px solid #d1d5db;
+            /* Tailwind border-gray-300 */
+            border-radius: 0.5rem;
+            /* Tailwind rounded-lg */
+            font-size: 1rem;
+            /* Tailwind text-base */
+            color: #1f2937;
+            /* Tailwind gray-900 */
+            background-color: #f9fafb;
+            /* Tailwind gray-50 */
             transition: border-color 0.2s, box-shadow 0.2s;
         }
-        select:focus, input[type="text"]:focus, input[type="number"]:focus {
-            border-color: #2563eb; /* Tailwind blue-600 */
+
+        select:focus,
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            border-color: #2563eb;
+            /* Tailwind blue-600 */
             outline: none;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); /* Tailwind ring-blue-500/50 */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+            /* Tailwind ring-blue-500/50 */
         }
+
         button {
-            background-color: #2563eb; /* Tailwind blue-600 */
+            background-color: #2563eb;
+            /* Tailwind blue-600 */
             color: white;
-            padding: 0.75rem 1.25rem; /* Tailwind py-3 px-5 */
+            padding: 0.75rem 1.25rem;
+            /* Tailwind py-3 px-5 */
             border: none;
-            border-radius: 0.5rem; /* Tailwind rounded-lg */
+            border-radius: 0.5rem;
+            /* Tailwind rounded-lg */
             cursor: pointer;
-            font-size: 1rem; /* Tailwind text-base */
-            font-weight: 600; /* Tailwind font-semibold */
+            font-size: 1rem;
+            /* Tailwind text-base */
+            font-weight: 600;
+            /* Tailwind font-semibold */
             width: 100%;
-            margin-top: 1rem; /* Tailwind mt-4 */
+            margin-top: 1rem;
+            /* Tailwind mt-4 */
             transition: background-color 0.2s, transform 0.1s;
         }
+
         button:hover {
-            background-color: #1d4ed8; /* Tailwind blue-700 */
+            background-color: #1d4ed8;
+            /* Tailwind blue-700 */
             transform: translateY(-1px);
         }
+
         button:active {
             transform: translateY(0);
         }
+
         #outputLinkContainer {
-            margin-top: 2rem; /* Tailwind mt-8 */
-            padding: 1.5rem; /* Tailwind p-6 */
-            background-color: #e0f2fe; /* Tailwind blue-50 */
-            border-radius: 0.5rem; /* Tailwind rounded-lg */
-            border: 1px dashed #93c5fd; /* Tailwind blue-300 */
+            margin-top: 2rem;
+            /* Tailwind mt-8 */
+            padding: 1.5rem;
+            /* Tailwind p-6 */
+            background-color: #e0f2fe;
+            /* Tailwind blue-50 */
+            border-radius: 0.5rem;
+            /* Tailwind rounded-lg */
+            border: 1px dashed #93c5fd;
+            /* Tailwind blue-300 */
             text-align: center;
         }
+
         #outputLink {
             word-break: break-all;
             font-family: 'Inter', monospace;
-            background-color: #bfdbfe; /* Tailwind blue-200 */
-            padding: 0.75rem; /* Tailwind p-3 */
-            border-radius: 0.375rem; /* Tailwind rounded-md */
-            font-size: 0.875rem; /* Tailwind text-sm */
-            color: #1e3a8a; /* Tailwind blue-900 */
+            background-color: #bfdbfe;
+            /* Tailwind blue-200 */
+            padding: 0.75rem;
+            /* Tailwind p-3 */
+            border-radius: 0.375rem;
+            /* Tailwind rounded-md */
+            font-size: 0.875rem;
+            /* Tailwind text-sm */
+            color: #1e3a8a;
+            /* Tailwind blue-900 */
             text-align: left;
             margin-bottom: 1rem;
         }
+
         a {
-            color: #1e40af; /* Tailwind blue-700 */
+            color: #1e40af;
+            /* Tailwind blue-700 */
             text-decoration: none;
             font-weight: 500;
         }
+
         a:hover {
             text-decoration: underline;
         }
+
         .copy-button {
-            background-color: #10b981; /* Tailwind emerald-500 */
-            margin-top: 0.5rem; /* Tailwind mt-2 */
+            background-color: #10b981;
+            /* Tailwind emerald-500 */
+            margin-top: 0.5rem;
+            /* Tailwind mt-2 */
         }
+
         .copy-button:hover {
-            background-color: #059669; /* Tailwind emerald-600 */
+            background-color: #059669;
+            /* Tailwind emerald-600 */
         }
+
         .message-box {
             position: fixed;
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #4CAF50; /* Green */
+            background-color: #4CAF50;
+            /* Green */
             color: white;
             padding: 15px 20px;
             border-radius: 8px;
@@ -122,6 +186,7 @@
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
         }
+
         .message-box.show {
             opacity: 1;
         }
@@ -137,6 +202,7 @@
     </script>
 
 </head>
+
 <body>
     <div class="container">
         <h1>Loki Grafana Link Builder</h1>
@@ -155,7 +221,8 @@
 
         <div id="prNumberFieldContainer" class="hidden">
             <label for="prNumber">PR Number:</label>
-            <input type="number" id="prNumber" placeholder="e.g., 3388" class="focus:border-blue-500 focus:ring-blue-500">
+            <input type="number" id="prNumber" placeholder="e.g., 3388"
+                class="focus:border-blue-500 focus:ring-blue-500">
         </div>
 
         <label for="timeRangeFrom">Time Range From:</label>
@@ -210,7 +277,7 @@
             },
             "P31FC4C0F93B441EF": { // Trunk UID
                 name: "Trunk",
-                appNames: ["tnk-ea-backend", "tnk-ea-alita"],
+                appNames: ["tnk-ea-backend", "tnk-ea-backend-liveops", "tnk-ea-alita"],
                 prEnabled: true
             },
             "P5A8999BC3E4BD4C5": { // QA3 UID
@@ -405,4 +472,5 @@
         });
     </script>
 </body>
+
 </html>
