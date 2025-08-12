@@ -256,6 +256,38 @@
             <option value="now-30d">30 days ago</option>
         </select>
 
+        <label>Log Levels:</label>
+        <div id="logLevelsContainer">
+            <label class="inline-flex items-center mt-2">
+                <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="info">
+                <span class="ml-2 text-gray-700">Info</span>
+            </label>
+            <label class="inline-flex items-center mt-2">
+                <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="warn">
+                <span class="ml-2 text-gray-700">Warn</span>
+            </label>
+            <label class="inline-flex items-center mt-2">
+                <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="error">
+                <span class="ml-2 text-gray-700">Error</span>
+            </label>
+            <label class="inline-flex items-center mt-2">
+                <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="debug">
+                <span class="ml-2 text-gray-700">Debug</span>
+            </label>
+            <label class="inline-flex items-center mt-2">
+                <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="trace">
+                <span class="ml-2 text-gray-700">Trace</span>
+            </label>
+        </div>
+
+        <div id="lineFiltersContainer">
+            <label>Line Contains Filters:</label>
+            <!-- Dynamic filters will be added here -->
+        </div>
+        <button id="addFilterButton" class="mt-2 mb-4 text-sm" style="width: auto; padding: 0.5rem 1rem;">+ Add Filter</button>
+        
+        <button id="resetButton" class="mt-2 mb-4 text-sm bg-gray-500 hover:bg-gray-700" style="width: auto; padding: 0.5rem 1rem; margin-left: 0.5rem;">Reset All</button>
+
         <div id="outputLinkContainer">
             <p class="text-gray-700 font-semibold mb-2">Generated Grafana Link:</p>
             <div id="outputLink">
@@ -361,7 +393,8 @@
             const grafanaAppName = document.getElementById('grafanaAppName').value;
             const prNumberRaw = document.getElementById('prNumber').value;
             const timeRangeFrom = document.getElementById('timeRangeFrom').value;
-            const timeRangeTo = document.getElementById('timeRangeTo').value; // Now reads from select
+            const timeRangeTo = document.getElementById('timeRangeTo').value;
+            // const selectedLogLevels = Array.from(document.getElementById('logLevels').selectedOptions).map(option => option.value);
 
             const environment = grafanaEnvironments[grafanaDataSourceUid];
 
@@ -381,9 +414,33 @@
             }
 
             // Construct the Loki query expression
-            // Escape double quotes within the app name for the Loki query
             const escapedAppName = finalAppName.replace(/"/g, '\\"');
-            const expr = `{app="${escapedAppName}"} |= \`\``;
+            let expr = `{app="${escapedAppName}"}`;
+
+            const lineFilters = [];
+            const selectedLogLevels = [];
+            const logLevelCheckboxes = document.querySelectorAll('.log-level-checkbox:checked');
+            logLevelCheckboxes.forEach(checkbox => {
+                selectedLogLevels.push(checkbox.value);
+            });
+
+            if (selectedLogLevels.length > 0) {
+                const levelFilter = selectedLogLevels.join('|');
+                lineFilters.push(`|~ "(?i)(${levelFilter})"`);
+            }
+
+            const filterInputs = document.querySelectorAll('.line-filter-input');
+            filterInputs.forEach(input => {
+                if (input.value.trim() !== '') {
+                    lineFilters.push(`|= "${input.value.trim()}"`);
+                }
+            });
+
+            if (lineFilters.length > 0) {
+                expr += " " + lineFilters.join(" ");
+            } else {
+                expr += ` |= \`\``; // Default to show all logs if no filter is specified
+            }
 
             // Define the panes object structure for Grafana explore
             const panesObj = {
@@ -419,6 +476,126 @@
         }
 
         /**
+         * Saves the current form state to localStorage
+         */
+        function saveFormState() {
+            const formState = {
+                grafanaDataSource: document.getElementById('grafanaDataSource').value,
+                grafanaAppName: document.getElementById('grafanaAppName').value,
+                prNumber: document.getElementById('prNumber').value,
+                timeRangeFrom: document.getElementById('timeRangeFrom').value,
+                timeRangeTo: document.getElementById('timeRangeTo').value,
+                logLevels: Array.from(document.querySelectorAll('.log-level-checkbox:checked')).map(cb => cb.value),
+                lineFilters: Array.from(document.querySelectorAll('.line-filter-input')).map(input => input.value).filter(val => val.trim() !== '')
+            };
+            localStorage.setItem('lokiLinkBuilderState', JSON.stringify(formState));
+        }
+
+        /**
+         * Loads the form state from localStorage
+         */
+        function loadFormState() {
+            const savedState = localStorage.getItem('lokiLinkBuilderState');
+            if (!savedState) return;
+
+            try {
+                const formState = JSON.parse(savedState);
+                
+                // Set data source
+                if (formState.grafanaDataSource) {
+                    document.getElementById('grafanaDataSource').value = formState.grafanaDataSource;
+                }
+                
+                // Set time ranges
+                if (formState.timeRangeFrom) {
+                    document.getElementById('timeRangeFrom').value = formState.timeRangeFrom;
+                }
+                if (formState.timeRangeTo) {
+                    document.getElementById('timeRangeTo').value = formState.timeRangeTo;
+                }
+                
+                // Set PR number
+                if (formState.prNumber) {
+                    document.getElementById('prNumber').value = formState.prNumber;
+                }
+                
+                // Set log levels
+                if (formState.logLevels && Array.isArray(formState.logLevels)) {
+                    formState.logLevels.forEach(level => {
+                        const checkbox = document.querySelector(`.log-level-checkbox[value="${level}"]`);
+                        if (checkbox) {
+                            checkbox.checked = true;
+                        }
+                    });
+                }
+                
+                // Set line filters
+                if (formState.lineFilters && Array.isArray(formState.lineFilters)) {
+                    // Clear existing filters first
+                    const container = document.getElementById('lineFiltersContainer');
+                    const existingFilters = container.querySelectorAll('.flex.mb-2');
+                    existingFilters.forEach(filter => container.removeChild(filter));
+                    
+                    // Add saved filters
+                    formState.lineFilters.forEach(filterValue => {
+                        addFilterInput();
+                        const inputs = document.querySelectorAll('.line-filter-input');
+                        const lastInput = inputs[inputs.length - 1];
+                        if (lastInput) {
+                            lastInput.value = filterValue;
+                        }
+                    });
+                    
+                    // If no filters were saved, add one empty filter
+                    if (formState.lineFilters.length === 0) {
+                        addFilterInput();
+                    }
+                }
+                
+                // Populate app names and set the saved app name
+                populateAppNames();
+                if (formState.grafanaAppName) {
+                    // Use setTimeout to ensure the app names are populated first
+                    setTimeout(() => {
+                        document.getElementById('grafanaAppName').value = formState.grafanaAppName;
+                        generateLink();
+                    }, 100);
+                }
+                
+            } catch (error) {
+                console.error('Error loading saved form state:', error);
+            }
+        }
+
+        /**
+         * Resets the form to default state and clears localStorage
+         */
+        function resetForm() {
+            // Clear localStorage
+            localStorage.removeItem('lokiLinkBuilderState');
+            
+            // Reset form fields to defaults
+            document.getElementById('grafanaDataSource').value = 'PFDB45C165C6355FF';
+            document.getElementById('timeRangeFrom').value = 'now-6h';
+            document.getElementById('timeRangeTo').value = 'now';
+            document.getElementById('prNumber').value = '';
+            
+            // Uncheck all log level checkboxes
+            document.querySelectorAll('.log-level-checkbox').forEach(cb => cb.checked = false);
+            
+            // Clear line filters and add one empty filter
+            const container = document.getElementById('lineFiltersContainer');
+            const existingFilters = container.querySelectorAll('.flex.mb-2');
+            existingFilters.forEach(filter => container.removeChild(filter));
+            addFilterInput();
+            
+            // Repopulate app names and generate link
+            populateAppNames();
+            
+            showMessageBox('Form reset successfully!', 'success');
+        }
+
+        /**
          * Copies the generated Grafana link to the clipboard.
          */
         function copyLink() {
@@ -450,25 +627,101 @@
         }
 
         // Event listener for data source change and input changes
+        function addFilterInput() {
+            const container = document.getElementById('lineFiltersContainer');
+            const filterGroup = document.createElement('div');
+            filterGroup.className = 'flex mb-2';
+
+            const newInput = document.createElement('input');
+            newInput.type = 'text';
+            newInput.className = 'line-filter-input focus:border-blue-500 focus:ring-blue-500 flex-grow';
+            newInput.placeholder = 'Enter text to filter...';
+            newInput.addEventListener('input', generateLink);
+
+            const removeButton = document.createElement('button');
+            removeButton.textContent = '-';
+            removeButton.className = 'ml-2 text-white bg-red-500 hover:bg-red-700 font-bold';
+            removeButton.style.borderRadius = '50%';
+            removeButton.style.width = '24px';
+            removeButton.style.height = '24px';
+            removeButton.style.lineHeight = '22px';
+            removeButton.style.textAlign = 'center';
+            removeButton.style.cursor = 'pointer';
+            removeButton.style.border = 'none';
+            removeButton.style.padding = '0';
+            removeButton.style.flexShrink = '0';
+
+            removeButton.onclick = function () {
+                container.removeChild(filterGroup);
+                generateLink();
+            };
+
+            filterGroup.appendChild(newInput);
+            filterGroup.appendChild(removeButton);
+            container.appendChild(filterGroup);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const grafanaDataSourceSelect = document.getElementById('grafanaDataSource');
             const grafanaAppNameSelect = document.getElementById('grafanaAppName');
             const prNumberInput = document.getElementById('prNumber');
             const timeRangeFromSelect = document.getElementById('timeRangeFrom');
-            const timeRangeToSelect = document.getElementById('timeRangeTo'); // Changed to select
+            const timeRangeToSelect = document.getElementById('timeRangeTo');
+            const addFilterButton = document.getElementById('addFilterButton');
             const copyLinkButton = document.getElementById('copyLinkButton');
+            const resetButton = document.getElementById('resetButton');
 
-            // Add event listeners for changes that should trigger link generation
-            grafanaDataSourceSelect.addEventListener('change', populateAppNames); // populateAppNames also calls generateLink
-            grafanaAppNameSelect.addEventListener('change', generateLink);
-            prNumberInput.addEventListener('input', generateLink);
-            timeRangeFromSelect.addEventListener('change', generateLink); // Listen for 'change' on select
-            timeRangeToSelect.addEventListener('change', generateLink); // Listen for 'change' on select
+            // Add event listeners for changes that should trigger link generation and save state
+            grafanaDataSourceSelect.addEventListener('change', () => {
+                populateAppNames();
+                saveFormState();
+            });
+            grafanaAppNameSelect.addEventListener('change', () => {
+                generateLink();
+                saveFormState();
+            });
+            prNumberInput.addEventListener('input', () => {
+                generateLink();
+                saveFormState();
+            });
+            timeRangeFromSelect.addEventListener('change', () => {
+                generateLink();
+                saveFormState();
+            });
+            timeRangeToSelect.addEventListener('change', () => {
+                generateLink();
+                saveFormState();
+            });
+            
+            // Add event listeners for log level checkboxes
+            document.addEventListener('change', (e) => {
+                if (e.target.classList.contains('log-level-checkbox')) {
+                    generateLink();
+                    saveFormState();
+                }
+            });
+            
+            // Add event listeners for line filter inputs
+            document.addEventListener('input', (e) => {
+                if (e.target.classList.contains('line-filter-input')) {
+                    generateLink();
+                    saveFormState();
+                }
+            });
 
+            addFilterButton.addEventListener('click', addFilterInput);
             copyLinkButton.addEventListener('click', copyLink);
+            resetButton.addEventListener('click', resetForm);
 
-            // Initial population and link generation on load
-            populateAppNames(); // This will also trigger the first generateLink() call
+            // Load saved state first, then populate if no saved state exists
+            loadFormState();
+            
+            // If no saved state was loaded, do initial setup
+            const savedState = localStorage.getItem('lokiLinkBuilderState');
+            if (!savedState) {
+                populateAppNames();
+                addFilterInput(); // Start with one filter input
+            }
         });
     </script>
 </body>
