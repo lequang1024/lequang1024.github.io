@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grafana Frustration Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .log-line {
+            font-family: 'Roboto Mono', monospace;
+            white-space: nowrap;
+            transition: all 0.2s ease-out;
+        }
+        /* Custom scrollbar to enhance the frustration */
+        .log-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+        .log-panel::-webkit-scrollbar-track {
+            background: #202226;
+        }
+        .log-panel::-webkit-scrollbar-thumb {
+            background-color: #4a4a4a;
+            border-radius: 20px;
+            border: 3px solid #4a4a4a;
+        }
+        .log-panel {
+            scrollbar-width: thin;
+            scrollbar-color: #4a4a4a #202226;
+        }
+        .btn-grafana {
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-grafana:hover {
+            background-color: #3f414b;
+        }
+        .btn-grafana-primary {
+             background-color: #366fe3;
+        }
+         .btn-grafana-primary:hover {
+             background-color: #2a5ab3;
+        }
+        .jumbled .log-line {
+            filter: blur(1px) grayscale(50%);
+            transform: skewX(-2deg) scale(0.99);
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body class="bg-[#181a1e] text-gray-300 flex items-center justify-center min-h-screen p-4">
+
+    <div id="game-container" class="w-full max-w-6xl h-[90vh] bg-[#111217] rounded-lg shadow-2xl flex flex-col">
+        <!-- Header -->
+        <header class="flex items-center justify-between p-3 border-b border-gray-700 flex-shrink-0">
+            <div class="flex items-center space-x-4">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L8 12v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.28-.14-1.32-.64-1.32-1.6 0-.83.89-1.48 1.32-1.7.4-.2.68-.59.68-1.03 0-.44-.28-.83-.68-1.03-.43-.22-1.32-.87-1.32-1.7 0-.96 1.04-1.46 1.32-1.6.4-.2.68-.59.68-1.03 0-.65-.53-1.18-1.18-1.18H14v5.5c0 .28-.22.5-.5.5s-.5-.22-.5-.5v-5.5H9.18c-.65 0-1.18.53-1.18 1.18 0 .44.28.83.68 1.03.38.19 1.32.64 1.32 1.6 0 .83-.89 1.48-1.32 1.7-.4.2-.68-.59-.68 1.03 0 .44.28.83.68 1.03.43.22 1.32.87 1.32 1.7 0 .96-1.04 1.46-1.32 1.6-.4.2-.68-.59-.68 1.03 0 .65.53 1.18 1.18 1.18H16c.65 0 1.18-.53 1.18-1.18 0-.44-.28-.83-.68-1.03z" fill="#f97316"></path></svg>
+                <span class="font-semibold text-lg">Loki Prod</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                 <button id="split-btn" class="btn-grafana bg-[#202226] font-semibold py-2 px-4 rounded-md">Split</button>
+                 <button id="prettify-btn" class="btn-grafana bg-[#202226] font-semibold py-2 px-4 rounded-md">Prettify JSON</button>
+                <button id="run-query-btn" class="btn-grafana-primary text-white font-semibold py-2 px-4 rounded-md flex items-center">
+                    <svg id="run-query-icon" class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd"></path></svg>
+                    <span id="run-query-text">Run query</span>
+                    <svg id="loading-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+                <button id="live-btn" class="btn-grafana bg-[#202226] font-semibold py-2 px-4 rounded-md">Live</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow p-3 overflow-hidden flex flex-col">
+            <div class="flex-shrink-0 mb-2">
+                <div class="bg-[#202226] p-2 rounded-md">
+                    <span class="text-yellow-400">{app="backend"}</span>
+                    <span class="text-gray-400">|~</span>
+                    <span class="text-green-400">`(?i)(info|debug|warn|error|fatal)`</span>
+                </div>
+            </div>
+            <div id="log-panel" class="log-panel flex-grow bg-black/30 rounded-md p-2 overflow-y-scroll overflow-x-hidden">
+                <!-- Log lines will be injected here -->
+            </div>
+        </main>
+
+        <!-- Footer / Status Bar -->
+        <footer class="flex-shrink-0 p-3 border-t border-gray-700 flex items-center justify-between">
+            <div>
+                <h3 class="text-lg font-bold">Frustration:</h3>
+                <div class="w-64 bg-gray-700 rounded-full h-4 mt-1">
+                    <div id="frustration-bar" class="bg-red-600 h-4 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="text-right">
+                <div id="message-box" class="text-yellow-400 h-6">&nbsp;</div>
+                <div class="text-2xl font-mono" id="timer">Time Left: 60</div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden z-50">
+        <div class="bg-[#111217] p-8 rounded-lg shadow-2xl text-center border border-gray-700">
+            <h2 id="modal-title" class="text-3xl font-bold mb-4"></h2>
+            <p id="modal-text" class="text-lg mb-6"></p>
+            <button id="restart-btn" class="btn-grafana-primary text-white font-bold py-2 px-6 rounded-md">Try Again</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const logPanel = document.getElementById('log-panel');
+        const frustrationBar = document.getElementById('frustration-bar');
+        const timerDisplay = document.getElementById('timer');
+        const runQueryBtn = document.getElementById('run-query-btn');
+        const runQueryText = document.getElementById('run-query-text');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const liveBtn = document.getElementById('live-btn');
+        const splitBtn = document.getElementById('split-btn');
+        const prettifyBtn = document.getElementById('prettify-btn');
+        const messageBox = document.getElementById('message-box');
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalText = document.getElementById('modal-text');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // --- Game State ---
+        let frustration = 0;
+        let timeLeft = 60;
+        let gameInterval;
+        let timerInterval;
+        let isLive = false;
+        let isQuerying = false;
+        let targetErrorId = null;
+        let errorPlaced = false;
+        let logCount = 0;
+        
+        // --- Log Templates ---
+        const logTemplates = [
+            `INFO 74.192.71.189 138 POST /api/games/mvm/bingoslots/spin PlayStudios.MyVegas.Mobile.Slots.Quests.Campaigns.ProgressQuestInCampaignService - PEV-3610: Awarding quest milestones: MiniHPLQuestGenerator-S52_X1-2c6356a7-b523-40ac-aaab-9a07846a8a42. Completed milestones: 1, CorrelationId: 00-877fa42eab42727dbe88b2987241697c-116c84904527c0ea-00`,
+            `INFO 73.174.237.225 4327030 POST /api/games/mvm/egyptianpots/spin PlayStudios.MyVegas.Mobile.Slots.Quests.Campaigns.ProgressQuestInCampaignService - PEV-3610: Awarding quest milestones: MiniHPLQuestGenerator-S52_X1-a690ab6c-3f68-4e3b-9517-e517ced0c083. Completed milestones: 1, 2, CorrelationId: 00-2b76086fb28d414f07767afbd5d5da0e-a7b42e9a6e5d287e-00`,
+            `DEBUG 180.75.47.38 586817 POST /api/games/mvm/witchescastle/spin PlayStudios.MyVegas.Mobile.Slots.Quests.Campaigns.ProgressQuestInCampaignService - Checking quest eligibility for player 586817, CorrelationId: 00-abd794d3136e9d4bcf014a4e7840f5d5-487122b95f3f2b2c-00`,
+            `INFO 136.50.10.193 340864 POST /api/games/mvm/buffalo/spin PlayStudios.MyVegas.Mobile.Slots.Quests.Campaigns.ProgressQuestInCampaignService - PEV-3610: Awarding quest milestones: MiniHPLQuestGenerator-S52_X1-23d404ba-981a-4909-9fb5-ce185bf0458d. Completed milestones: 1, 2, 3, 4, 5, 6, 7, 8, CorrelationId: 00-c8ddc44b801c8a5841666f27fa689abd-e019ea2beb4e6302-00`,
+            `DEBUG 1.144.17.107 14073847 POST /api/ava/manifest/v3 PlayStudios.MyVegas.Mobile.Slots.Ava.Providers.AvaUserManifestManager - 3_66_0: Manifest 3e45a051a212813b retrieved (hash: 4c6fcb6d52fe6659), contains 9941 items, CorrelationId: 00-5d7c9ea5eeeaebc108be21b0db32be69-8b891234e420be43-00`,
+            `WARN 73.176.250.61 2222591 GET /api/initial MyVegas.SibylSystem.Counters.Services.SibylActions.ValidateSibylActionService - PEV-3610: Sib-ACT-VegasBankHeist-V1-20250811-Re-claim-Daily-Purchase - condition evaluated to False.`,
+        ];
+        const fakeErrorTemplate = `ERROR 172.56.208.5 617534 POST /api/games/mvm/chinamystery/spin PlayStudios.MyVegas.Mobile.Slots.Quests.Campaigns.ProgressQuestInCampaignService - PEV-3610: Failed to award quest milestone. Reason: Quest 'MiniHPLQuestGenerator-S52_X1-6bd41a21-da31-4c00-a1b9-21037206396e' already completed. CorrelationId: 00-d37f30a4da085d2b8f83583fdb819201-47b31b142cb9aa54-00`;
+        const fatalErrorTemplate = `FATAL 172.59.188.172 282503 POST /api/games/mvm/risingrocketsempress/spin System.NullReferenceException: Object reference not set to an instance of an object. at PlayStudios.MyVegas.Mobile.Slots.Games.RisingRocketsEmpress.CalculatePayout(SpinResult result) CorrelationId: 00-e37e73d7ba2aec0a87db1f51dd3f5350-79b99af1094f4523-00`;
+
+        // --- Game Logic ---
+
+        /**
+         * Generates a random log line, with a chance to create the target FATAL log or a fake ERROR log.
+         */
+        function generateLogLine() {
+            const isFatal = !errorPlaced && logCount > 100 && Math.random() < 0.05;
+            const isFakeError = !isFatal && Math.random() < 0.03;
+            let logText, logClass, id, isClickable = false;
+
+            if (isFatal) {
+                logText = fatalErrorTemplate;
+                logClass = 'text-red-500 font-bold cursor-pointer';
+                id = 'target-error';
+                targetErrorId = id;
+                errorPlaced = true;
+                isClickable = true;
+            } else if (isFakeError) {
+                logText = fakeErrorTemplate;
+                logClass = 'text-red-400 cursor-pointer';
+                id = `log-${logCount}`;
+                isClickable = true;
+            } else {
+                const template = logTemplates[Math.floor(Math.random() * logTemplates.length)];
+                logText = template;
+                if (template.startsWith('INFO')) logClass = 'text-gray-400';
+                else if (template.startsWith('DEBUG')) logClass = 'text-blue-400';
+                else logClass = 'text-yellow-400';
+                id = `log-${logCount}`;
+            }
+
+            const timestamp = new Date(Date.now() - Math.random() * 1000).toISOString().replace('T', ' ').replace('Z', '');
+            const line = document.createElement('div');
+            line.id = id;
+            line.className = `log-line ${logClass} text-sm py-0.5`;
+            line.innerHTML = `<span class="text-gray-500">${timestamp}</span> ${logText}`;
+            
+            if (isClickable) {
+                if (isFatal) {
+                    line.onclick = () => gameWin();
+                } else {
+                    line.onclick = () => {
+                        messageBox.textContent = "That's not the error you're looking for...";
+                        updateFrustration(15);
+                    };
+                }
+            }
+
+            return line;
+        }
+
+        /**
+         * Adds new logs to the panel and handles scrolling.
+         */
+        function updateLogStream() {
+            if (isQuerying) return;
+            
+            const linesToAdd = isLive ? 8 : 2; // More chaos in live mode
+            for (let i = 0; i < linesToAdd; i++) {
+                const newLine = generateLogLine();
+                logPanel.appendChild(newLine);
+                logCount++;
+            }
+
+            // Remove old logs to prevent performance issues
+            while (logPanel.children.length > 500) {
+                logPanel.removeChild(logPanel.firstChild);
+            }
+
+            // Frustrating auto-scroll
+            if (!logPanel.matches(':hover')) {
+                // In live mode, sometimes scroll UP
+                if (isLive && Math.random() < 0.02) {
+                    logPanel.scrollTop -= 200;
+                } else {
+                    logPanel.scrollTop = logPanel.scrollHeight;
+                }
+            }
+        }
+        
+        function updateFrustration(amount) {
+            frustration = Math.min(100, frustration + amount);
+            frustrationBar.style.width = `${frustration}%`;
+            if (frustration >= 100) {
+                gameOver("Frustration Overload");
+            }
+        }
+        
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = `Time Left: ${timeLeft}`;
+                if (timeLeft <= 0) {
+                    gameOver("Time's Up!");
+                }
+                if (timeLeft < 30) {
+                    updateFrustration(0.5);
+                }
+            }, 1000);
+        }
+
+        function gameOver(reason) {
+            clearInterval(gameInterval);
+            clearInterval(timerInterval);
+            modalTitle.textContent = "GAME OVER";
+            modalText.textContent = `${reason} The on-call engineer has been paged. It's you.`;
+            modal.classList.remove('hidden');
+        }
+        
+        function gameWin() {
+            clearInterval(gameInterval);
+            clearInterval(timerInterval);
+            modalTitle.textContent = "You Found It!";
+            modalText.textContent = `You pinpointed the error with ${timeLeft} seconds to spare! You can finally go home. For now.`;
+            modal.classList.remove('hidden');
+        }
+
+        function runQuery() {
+            if (isQuerying) return;
+            isQuerying = true;
+            runQueryText.textContent = '';
+            loadingSpinner.classList.remove('hidden');
+            const queryTime = Math.random() * 2000 + 1000;
+            
+            setTimeout(() => {
+                if (Math.random() < 0.25) {
+                    messageBox.textContent = "Query failed: Loki connection timeout (limit: 10s)";
+                    updateFrustration(20);
+                } else {
+                    logPanel.innerHTML = '';
+                    logCount = 0;
+                    errorPlaced = false;
+                    targetErrorId = null;
+                    messageBox.textContent = `Line limit: 1000 reached, received logs cover 0.00% of your time range`;
+                    updateFrustration(5);
+                }
+                isQuerying = false;
+                runQueryText.textContent = 'Run query';
+                loadingSpinner.classList.add('hidden');
+            }, queryTime);
+        }
+
+        function toggleLive() {
+            isLive = !isLive;
+            liveBtn.classList.toggle('bg-green-600', isLive);
+            liveBtn.classList.toggle('bg-[#202226]', !isLive);
+            if(isLive) {
+                updateFrustration(10);
+                messageBox.textContent = "You're brave. Or foolish.";
+            } else {
+                 messageBox.textContent = "Probably a wise choice.";
+            }
+        }
+
+        function handlePrettify() {
+            messageBox.textContent = "JSON parsing failed at position 42";
+            updateFrustration(15);
+            logPanel.classList.add('jumbled');
+            setTimeout(() => {
+                logPanel.classList.remove('jumbled');
+            }, 1500);
+        }
+
+        function handleSplit() {
+            messageBox.textContent = "Split view is not supported on your screen size.";
+            updateFrustration(5);
+        }
+        
+        function startGame() {
+            frustration = 0;
+            timeLeft = 60;
+            logCount = 0;
+            errorPlaced = false;
+            targetErrorId = null;
+            isLive = false;
+            isQuerying = false;
+            
+            logPanel.innerHTML = '';
+            logPanel.classList.remove('jumbled');
+            updateFrustration(0);
+            timerDisplay.textContent = `Time Left: ${timeLeft}`;
+            modal.classList.add('hidden');
+            liveBtn.classList.remove('bg-green-600');
+            liveBtn.classList.add('bg-[#202226]');
+            messageBox.textContent = "Find the FATAL error log before you lose your mind."
+
+            for(let i=0; i < 50; i++) {
+                logPanel.appendChild(generateLogLine());
+            }
+
+            gameInterval = setInterval(updateLogStream, 100);
+            startTimer();
+        }
+
+        // --- Event Listeners ---
+        runQueryBtn.addEventListener('click', runQuery);
+        liveBtn.addEventListener('click', toggleLive);
+        prettifyBtn.addEventListener('click', handlePrettify);
+        splitBtn.addEventListener('click', handleSplit);
+        restartBtn.addEventListener('click', startGame);
+
+        // --- Initial Start ---
+        startGame();
+    </script>
+</body>
+</html>
