@@ -259,23 +259,23 @@
         <label>Log Levels:</label>
         <div id="logLevelsContainer">
             <label class="inline-flex items-center mt-2">
-                <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="info">
+                <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="INFO">
                 <span class="ml-2 text-gray-700">Info</span>
             </label>
             <label class="inline-flex items-center mt-2">
-                <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="warn">
+                <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="WARN">
                 <span class="ml-2 text-gray-700">Warn</span>
             </label>
             <label class="inline-flex items-center mt-2">
-                <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="error">
+                <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="ERROR">
                 <span class="ml-2 text-gray-700">Error</span>
             </label>
             <label class="inline-flex items-center mt-2">
-                <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="debug">
+                <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="DEBUG">
                 <span class="ml-2 text-gray-700">Debug</span>
             </label>
             <label class="inline-flex items-center mt-2">
-                <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="trace">
+                <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="TRACE">
                 <span class="ml-2 text-gray-700">Trace</span>
             </label>
         </div>
@@ -430,8 +430,8 @@
             });
 
             if (selectedLogLevels.length > 0) {
-                const levelFilter = selectedLogLevels.join('|');
-                lineFilters.push(`|~ "(?i)(${levelFilter})"`);
+                const levelFilter = selectedLogLevels.map(level => ` ${level} `).join('|');
+                lineFilters.push(`|~ "(${levelFilter})"`);
             }
 
             const filterInputs = document.querySelectorAll('.line-filter-input');
