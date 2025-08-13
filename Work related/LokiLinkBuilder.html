@@ -437,7 +437,7 @@
             const filterInputs = document.querySelectorAll('.line-filter-input');
             filterInputs.forEach(input => {
                 if (input.value.trim() !== '') {
-                    lineFilters.push(`|= "${input.value.trim()}"`);
+                    lineFilters.push(`|= "${input.value}"`);
                 }
             });
 
