@@ -345,6 +345,36 @@
         }
 
         /**
+         * Updates the visibility of the PR number field based on the selected app and environment.
+         * PR numbers only apply to backend apps, not alita apps.
+         */
+        function updatePRFieldVisibility() {
+            const grafanaDataSourceSelect = document.getElementById('grafanaDataSource');
+            const grafanaAppNameSelect = document.getElementById('grafanaAppName');
+            const prNumberFieldContainer = document.getElementById('prNumberFieldContainer');
+            const prNumberInput = document.getElementById('prNumber');
+
+            const selectedDataSourceUid = grafanaDataSourceSelect.value;
+            const selectedAppName = grafanaAppNameSelect.value;
+            const environment = grafanaEnvironments[selectedDataSourceUid];
+
+            // Show PR field only if:
+            // 1. Environment has PR enabled
+            // 2. Selected app is a backend app (contains "backend" in the name)
+            const shouldShowPR = environment && 
+                                environment.prEnabled && 
+                                selectedAppName && 
+                                selectedAppName.includes('backend');
+
+            if (shouldShowPR) {
+                prNumberFieldContainer.classList.remove('hidden');
+            } else {
+                prNumberFieldContainer.classList.add('hidden');
+                prNumberInput.value = ''; // Clear PR number if not applicable
+            }
+        }
+
+        /**
          * Populates the Application Name dropdown based on the selected Grafana Data Source.
          * Also shows/hides the PR number input field.
          */
@@ -359,14 +389,6 @@
 
             // Clear existing options
             grafanaAppNameSelect.innerHTML = '';
-
-            // Show/hide PR number field based on environment
-            if (environment && environment.prEnabled) {
-                prNumberFieldContainer.classList.remove('hidden');
-            } else {
-                prNumberFieldContainer.classList.add('hidden');
-                prNumberInput.value = ''; // Clear PR number if not applicable
-            }
 
             // Get the app names for the selected data source
             const appNames = environment ? environment.appNames : [];
@@ -387,6 +409,9 @@
                 grafanaAppNameSelect.disabled = true; // Disable if no apps
             }
             grafanaAppNameSelect.disabled = appNames.length === 0; // Re-enable if apps are available
+            
+            // Update PR field visibility when app names are populated
+            updatePRFieldVisibility();
             generateLink(); // Generate link immediately after app names are populated
         }
 
@@ -399,14 +424,17 @@
             const prNumberRaw = document.getElementById('prNumber').value;
             const timeRangeFrom = document.getElementById('timeRangeFrom').value;
             const timeRangeTo = document.getElementById('timeRangeTo').value;
-            // const selectedLogLevels = Array.from(document.getElementById('logLevels').selectedOptions).map(option => option.value);
 
             const environment = grafanaEnvironments[grafanaDataSourceUid];
 
             let finalAppName = grafanaAppName;
 
-            // If PR is enabled for the environment and a PR number is provided
-            if (environment && environment.prEnabled && prNumberRaw.trim() !== '') {
+            // Only apply PR numbers to backend apps (not alita apps)
+            if (environment && 
+                environment.prEnabled && 
+                prNumberRaw.trim() !== '' && 
+                grafanaAppName && 
+                grafanaAppName.includes('backend')) {
                 // Construct the PR-specific app name (e.g., tnk-ea-backend-pr-3388)
                 finalAppName = `${grafanaAppName}-pr-${prNumberRaw.trim()}`;
             }
@@ -686,6 +714,7 @@
                 saveFormState();
             });
             grafanaAppNameSelect.addEventListener('change', () => {
+                updatePRFieldVisibility();
                 generateLink();
                 saveFormState();
             });
