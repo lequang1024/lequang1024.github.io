@@ -11,49 +11,139 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
-            /* Tailwind gray-100 */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
             margin: 0;
+            padding: 0;
+            min-height: 100vh;
         }
 
-        .container {
+        .page-header {
             background-color: #ffffff;
-            padding: 2.5rem;
-            /* Tailwind p-10 */
-            border-radius: 0.75rem;
-            /* Tailwind rounded-xl */
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            /* Tailwind shadow-lg */
-            max-width: 38rem;
-            /* Tailwind max-w-xl */
-            width: 100%;
-            border: 1px solid #e5e7eb;
-            /* Tailwind gray-200 */
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        h1 {
+        .page-title {
             color: #1f2937;
-            /* Tailwind gray-900 */
             text-align: center;
-            margin-bottom: 1.5rem;
-            /* Tailwind mb-6 */
+            margin: 0;
             font-size: 2.25rem;
-            /* Tailwind text-4xl */
             font-weight: 700;
-            /* Tailwind font-bold */
+        }
+
+        .panels-container {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.5rem;
+            padding: 2rem;
+            overflow-x: auto;
+            min-height: calc(100vh - 120px);
+        }
+
+        .panels-container::-webkit-scrollbar {
+            height: 14px;
+        }
+
+        .panels-container::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 7px;
+            margin: 0 10px;
+        }
+
+        .panels-container::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 7px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .panels-container::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+
+        .panel {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            width: 450px;
+            min-width: 450px;
+            border: 1px solid #e5e7eb;
+            position: relative;
+            height: fit-content;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .remove-panel-btn {
+            background-color: #f87171;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            width: 26px;
+            height: 26px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            opacity: 0.8;
+        }
+
+        .remove-panel-btn:hover {
+            background-color: #ef4444;
+            transform: scale(1.05);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            opacity: 1;
+        }
+
+        .add-panel-btn {
+            background-color: #ffffff;
+            border: 2px dashed #d1d5db;
+            border-radius: 0.75rem;
+            width: 350px;
+            min-width: 350px;
+            height: 200px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            color: #6b7280;
+        }
+
+        .add-panel-btn:hover {
+            border-color: #10b981;
+            background-color: #f0fdf4;
+            color: #10b981;
+        }
+
+        .add-panel-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .add-panel-text {
+            font-size: 0.875rem;
+            font-weight: 500;
         }
 
         label {
             display: block;
             margin-bottom: 0.5rem;
-            /* Tailwind mb-2 */
             font-weight: 500;
-            /* Tailwind font-medium */
             color: #374151;
-            /* Tailwind gray-700 */
         }
 
         select,
@@ -61,19 +151,12 @@
         input[type="number"] {
             width: 100%;
             padding: 0.75rem;
-            /* Tailwind py-3 px-4 */
             margin-bottom: 1rem;
-            /* Tailwind mb-4 */
             border: 1px solid #d1d5db;
-            /* Tailwind border-gray-300 */
             border-radius: 0.5rem;
-            /* Tailwind rounded-lg */
             font-size: 1rem;
-            /* Tailwind text-base */
             color: #1f2937;
-            /* Tailwind gray-900 */
             background-color: #f9fafb;
-            /* Tailwind gray-50 */
             transition: border-color 0.2s, box-shadow 0.2s;
         }
 
@@ -81,35 +164,26 @@
         input[type="text"]:focus,
         input[type="number"]:focus {
             border-color: #2563eb;
-            /* Tailwind blue-600 */
             outline: none;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
-            /* Tailwind ring-blue-500/50 */
         }
 
         button {
             background-color: #2563eb;
-            /* Tailwind blue-600 */
             color: white;
             padding: 0.75rem 1.25rem;
-            /* Tailwind py-3 px-5 */
             border: none;
             border-radius: 0.5rem;
-            /* Tailwind rounded-lg */
             cursor: pointer;
             font-size: 1rem;
-            /* Tailwind text-base */
             font-weight: 600;
-            /* Tailwind font-semibold */
             width: 100%;
             margin-top: 1rem;
-            /* Tailwind mt-4 */
             transition: background-color 0.2s, transform 0.1s;
         }
 
         button:hover {
             background-color: #1d4ed8;
-            /* Tailwind blue-700 */
             transform: translateY(-1px);
         }
 
@@ -117,40 +191,29 @@
             transform: translateY(0);
         }
 
-        #outputLinkContainer {
+        .outputLinkContainer {
             margin-top: 2rem;
-            /* Tailwind mt-8 */
             padding: 1.5rem;
-            /* Tailwind p-6 */
             background-color: #e0f2fe;
-            /* Tailwind blue-50 */
             border-radius: 0.5rem;
-            /* Tailwind rounded-lg */
             border: 1px dashed #93c5fd;
-            /* Tailwind blue-300 */
             text-align: center;
         }
 
-        #outputLink {
+        .outputLink {
             word-break: break-all;
             font-family: 'Inter', monospace;
             background-color: #bfdbfe;
-            /* Tailwind blue-200 */
             padding: 0.75rem;
-            /* Tailwind p-3 */
             border-radius: 0.375rem;
-            /* Tailwind rounded-md */
             font-size: 0.875rem;
-            /* Tailwind text-sm */
             color: #1e3a8a;
-            /* Tailwind blue-900 */
             text-align: left;
             margin-bottom: 1rem;
         }
 
         a {
             color: #1e40af;
-            /* Tailwind blue-700 */
             text-decoration: none;
             font-weight: 500;
         }
@@ -161,14 +224,11 @@
 
         .copy-button {
             background-color: #10b981;
-            /* Tailwind emerald-500 */
             margin-top: 0.5rem;
-            /* Tailwind mt-2 */
         }
 
         .copy-button:hover {
             background-color: #059669;
-            /* Tailwind emerald-600 */
         }
 
         .message-box {
@@ -177,7 +237,6 @@
             left: 50%;
             transform: translateX(-50%);
             background-color: #4CAF50;
-            /* Green */
             color: white;
             padding: 15px 20px;
             border-radius: 8px;
@@ -189,6 +248,22 @@
 
         .message-box.show {
             opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .panels-container {
+                padding: 1rem;
+            }
+            
+            .panel {
+                width: 300px;
+                min-width: 300px;
+            }
+
+            .add-panel-btn {
+                width: 300px;
+                min-width: 300px;
+            }
         }
     </style>
 
@@ -204,102 +279,12 @@
 </head>
 
 <body>
-    <div class="container">
-        <h1>Loki Grafana Link Builder</h1>
+    <div class="page-header">
+        <h1 class="page-title">Loki Grafana Link Builder</h1>
+    </div>
 
-        <label for="grafanaDataSource">Select Grafana Data Source:</label>
-        <select id="grafanaDataSource" class="focus:border-blue-500 focus:ring-blue-500">
-            <option value="PFDB45C165C6355FF">Prod</option>
-            <option value="P31FC4C0F93B441EF">Trunk</option>
-            <option value="P5A8999BC3E4BD4C5">QA3</option>
-        </select>
-
-        <label for="grafanaAppName">Application Name:</label>
-        <select id="grafanaAppName" class="focus:border-blue-500 focus:ring-blue-500">
-            <!-- Options will be populated by JavaScript -->
-        </select>
-
-        <div id="prNumberFieldContainer" class="hidden">
-            <label for="prNumber">PR Number:</label>
-            <input type="number" id="prNumber" placeholder="e.g., 3388"
-                class="focus:border-blue-500 focus:ring-blue-500">
-        </div>
-
-        <label for="timeRangeFrom">Time Range From:</label>
-        <select id="timeRangeFrom" class="focus:border-blue-500 focus:ring-blue-500">
-            <option value="now-5m">Last 5 minutes</option>
-            <option value="now-15m">Last 15 minutes</option>
-            <option value="now-30m">Last 30 minutes</option>
-            <option value="now-1h">Last 1 hour</option>
-            <option value="now-3h">Last 3 hours</option>
-            <option value="now-6h" selected>Last 6 hours</option>
-            <option value="now-12h">Last 12 hours</option>
-            <option value="now-24h">Last 24 hours</option>
-            <option value="now-2d">Last 2 days</option>
-            <option value="now-7d">Last 7 days</option>
-            <option value="now-30d">Last 30 days</option>
-        </select>
-
-        <label for="timeRangeTo">Time Range To:</label>
-        <select id="timeRangeTo" class="focus:border-blue-500 focus:ring-blue-500">
-            <option value="now" selected>Now</option>
-            <option value="now-5m">5 minutes ago</option>
-            <option value="now-15m">15 minutes ago</option>
-            <option value="now-30m">30 minutes ago</option>
-            <option value="now-1h">1 hour ago</option>
-            <option value="now-3h">3 hours ago</option>
-            <option value="now-6h">6 hours ago</option>
-            <option value="now-12h">12 hours ago</option>
-            <option value="now-24h">24 hours ago</option>
-            <option value="now-2d">2 days ago</option>
-            <option value="now-7d">7 days ago</option>
-            <option value="now-30d">30 days ago</option>
-        </select>
-
-        <label>Log Levels:</label>
-        <div id="logLevelsContainer">
-            <label class="inline-flex items-center mt-2">
-                <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="INFO">
-                <span class="ml-2 text-gray-700">Info</span>
-            </label>
-            <label class="inline-flex items-center mt-2">
-                <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="WARN">
-                <span class="ml-2 text-gray-700">Warn</span>
-            </label>
-            <label class="inline-flex items-center mt-2">
-                <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="ERROR">
-                <span class="ml-2 text-gray-700">Error</span>
-            </label>
-            <label class="inline-flex items-center mt-2">
-                <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="DEBUG">
-                <span class="ml-2 text-gray-700">Debug</span>
-            </label>
-            <label class="inline-flex items-center mt-2">
-                <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="TRACE">
-                <span class="ml-2 text-gray-700">Trace</span>
-            </label>
-        </div>
-
-        <div id="lineFiltersContainer">
-            <label>Line Contains Filters:</label>
-            <!-- Dynamic filters will be added here -->
-        </div>
-        <button id="addFilterButton" class="mt-2 mb-4 text-sm" style="width: auto; padding: 0.5rem 1rem;">+ Add Filter</button>
-        
-        <button id="resetButton" class="mt-2 mb-4 text-sm bg-gray-500 hover:bg-gray-700" style="width: auto; padding: 0.5rem 1rem; margin-left: 0.5rem;">Reset All</button>
-
-        <div id="outputLinkContainer">
-            <p class="text-gray-700 font-semibold mb-2">Generated LogQL Query:</p>
-            <div id="outputQuery" style="word-break: break-all; font-family: 'Inter', monospace; background-color: #f3f4f6; padding: 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; color: #1f2937; text-align: left; margin-bottom: 1rem; border: 1px solid #d1d5db;">
-                <span id="logqlQuery">Your LogQL query will appear here...</span>
-            </div>
-            
-            <p class="text-gray-700 font-semibold mb-2">Generated Grafana Link:</p>
-            <div id="outputLink">
-                <a id="grafanaLink" href="#" target="_blank" class="block">Your link will appear here...</a>
-            </div>
-            <button id="copyLinkButton" class="copy-button">Copy Link</button>
-        </div>
+    <div class="panels-container" id="panelsContainer">
+        <!-- Panels will be dynamically added here -->
     </div>
 
     <div id="messageBox" class="message-box"></div>
@@ -324,43 +309,247 @@
             }
         };
 
+        let panelCounter = 0;
+        let panels = [];
+
         /**
          * Displays a temporary message box with the given text.
-         * @param {string} message The message to display.
-         * @param {string} type The type of message (e.g., 'success', 'error').
          */
         function showMessageBox(message, type = 'success') {
             const messageBox = document.getElementById('messageBox');
             messageBox.textContent = message;
-            messageBox.className = 'message-box show'; // Reset and show
+            messageBox.className = 'message-box show';
             if (type === 'success') {
-                messageBox.style.backgroundColor = '#4CAF50'; // Green
+                messageBox.style.backgroundColor = '#4CAF50';
             } else if (type === 'error') {
-                messageBox.style.backgroundColor = '#f44336'; // Red
+                messageBox.style.backgroundColor = '#f44336';
             }
 
             setTimeout(() => {
                 messageBox.classList.remove('show');
-            }, 3000); // Hide after 3 seconds
+            }, 3000);
+        }
+
+        /**
+         * Creates a new panel with all the form elements
+         */
+        function createPanel() {
+            panelCounter++;
+            const panelId = `panel-${panelCounter}`;
+            
+            const panelDiv = document.createElement('div');
+            panelDiv.className = 'panel';
+            panelDiv.id = panelId;
+            
+            panelDiv.innerHTML = `
+                <div class="panel-header">
+                    <button class="remove-panel-btn" onclick="removePanel('${panelId}')" title="Remove Panel">×</button>
+                </div>
+
+                <label for="${panelId}-grafanaDataSource">Select Grafana Data Source:</label>
+                <select id="${panelId}-grafanaDataSource" class="focus:border-blue-500 focus:ring-blue-500">
+                    <option value="PFDB45C165C6355FF">Prod</option>
+                    <option value="P31FC4C0F93B441EF">Trunk</option>
+                    <option value="P5A8999BC3E4BD4C5">QA3</option>
+                </select>
+
+                <label for="${panelId}-grafanaAppName">Application Name:</label>
+                <select id="${panelId}-grafanaAppName" class="focus:border-blue-500 focus:ring-blue-500">
+                    <!-- Options will be populated by JavaScript -->
+                </select>
+
+                <div id="${panelId}-prNumberFieldContainer" class="hidden">
+                    <label for="${panelId}-prNumber">PR Number:</label>
+                    <input type="number" id="${panelId}-prNumber" placeholder="e.g., 3388"
+                        class="focus:border-blue-500 focus:ring-blue-500">
+                </div>
+
+                <label for="${panelId}-timeRangeFrom">Time Range From:</label>
+                <select id="${panelId}-timeRangeFrom" class="focus:border-blue-500 focus:ring-blue-500">
+                    <option value="now-5m">Last 5 minutes</option>
+                    <option value="now-15m">Last 15 minutes</option>
+                    <option value="now-30m">Last 30 minutes</option>
+                    <option value="now-1h">Last 1 hour</option>
+                    <option value="now-3h">Last 3 hours</option>
+                    <option value="now-6h" selected>Last 6 hours</option>
+                    <option value="now-12h">Last 12 hours</option>
+                    <option value="now-24h">Last 24 hours</option>
+                    <option value="now-2d">Last 2 days</option>
+                    <option value="now-7d">Last 7 days</option>
+                    <option value="now-30d">Last 30 days</option>
+                </select>
+
+                <label for="${panelId}-timeRangeTo">Time Range To:</label>
+                <select id="${panelId}-timeRangeTo" class="focus:border-blue-500 focus:ring-blue-500">
+                    <option value="now" selected>Now</option>
+                    <option value="now-5m">5 minutes ago</option>
+                    <option value="now-15m">15 minutes ago</option>
+                    <option value="now-30m">30 minutes ago</option>
+                    <option value="now-1h">1 hour ago</option>
+                    <option value="now-3h">3 hours ago</option>
+                    <option value="now-6h">6 hours ago</option>
+                    <option value="now-12h">12 hours ago</option>
+                    <option value="now-24h">24 hours ago</option>
+                    <option value="now-2d">2 days ago</option>
+                    <option value="now-7d">7 days ago</option>
+                    <option value="now-30d">30 days ago</option>
+                </select>
+
+                <label>Log Levels:</label>
+                <div id="${panelId}-logLevelsContainer">
+                    <label class="inline-flex items-center mt-2">
+                        <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="INFO" data-panel="${panelId}">
+                        <span class="ml-2 text-gray-700">Info</span>
+                    </label>
+                    <label class="inline-flex items-center mt-2">
+                        <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="WARN" data-panel="${panelId}">
+                        <span class="ml-2 text-gray-700">Warn</span>
+                    </label>
+                    <label class="inline-flex items-center mt-2">
+                        <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="ERROR" data-panel="${panelId}">
+                        <span class="ml-2 text-gray-700">Error</span>
+                    </label>
+                    <label class="inline-flex items-center mt-2">
+                        <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="DEBUG" data-panel="${panelId}">
+                        <span class="ml-2 text-gray-700">Debug</span>
+                    </label>
+                    <label class="inline-flex items-center mt-2">
+                        <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="TRACE" data-panel="${panelId}">
+                        <span class="ml-2 text-gray-700">Trace</span>
+                    </label>
+                </div>
+
+                <div id="${panelId}-lineFiltersContainer">
+                    <label>Line Contains Filters:</label>
+                    <!-- Dynamic filters will be added here -->
+                </div>
+                <button id="${panelId}-addFilterButton" class="mt-2 mb-4 text-sm" style="width: auto; padding: 0.5rem 1rem;">+ Add Filter</button>
+                
+                <button id="${panelId}-resetButton" class="mt-2 mb-4 text-sm bg-gray-500 hover:bg-gray-700" style="width: auto; padding: 0.5rem 1rem; margin-left: 0.5rem;">Reset All</button>
+
+                <div class="outputLinkContainer">
+                    <p class="text-gray-700 font-semibold mb-2">Generated LogQL Query:</p>
+                    <div id="${panelId}-outputQuery" style="word-break: break-all; font-family: 'Inter', monospace; background-color: #f3f4f6; padding: 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; color: #1f2937; text-align: left; margin-bottom: 1rem; border: 1px solid #d1d5db;">
+                        <span id="${panelId}-logqlQuery">Your LogQL query will appear here...</span>
+                    </div>
+                    
+                    <p class="text-gray-700 font-semibold mb-2">Generated Grafana Link:</p>
+                    <div class="outputLink">
+                        <a id="${panelId}-grafanaLink" href="#" target="_blank" class="block">Your link will appear here...</a>
+                    </div>
+                    <button id="${panelId}-copyLinkButton" class="copy-button">Copy Link</button>
+                </div>
+            `;
+
+            // Insert before the add button
+            const addButton = document.querySelector('.add-panel-btn');
+            if (addButton) {
+                document.getElementById('panelsContainer').insertBefore(panelDiv, addButton);
+            } else {
+                document.getElementById('panelsContainer').appendChild(panelDiv);
+            }
+            
+            panels.push(panelId);
+            
+            // Initialize the panel
+            initializePanel(panelId);
+            
+            // Save panels state
+            savePanelsState();
+            
+            showMessageBox('Panel added!', 'success');
+        }
+
+        /**
+         * Removes a panel
+         */
+        function removePanel(panelId) {
+            if (panels.length <= 1) {
+                showMessageBox('Cannot remove the last panel!', 'error');
+                return;
+            }
+            
+            const panelElement = document.getElementById(panelId);
+            if (panelElement) {
+                panelElement.remove();
+                panels = panels.filter(id => id !== panelId);
+                savePanelsState();
+                showMessageBox('Panel removed!', 'success');
+            }
+        }
+
+        /**
+         * Creates the add panel button
+         */
+        function createAddButton() {
+            const addButton = document.createElement('div');
+            addButton.className = 'add-panel-btn';
+            addButton.onclick = createPanel;
+            addButton.innerHTML = `
+                <div class="add-panel-icon">+</div>
+                <div class="add-panel-text">Add Panel</div>
+            `;
+            document.getElementById('panelsContainer').appendChild(addButton);
+        }
+
+        /**
+         * Initializes a panel with event listeners and default values
+         */
+        function initializePanel(panelId) {
+            const grafanaDataSourceSelect = document.getElementById(`${panelId}-grafanaDataSource`);
+            const grafanaAppNameSelect = document.getElementById(`${panelId}-grafanaAppName`);
+            const prNumberInput = document.getElementById(`${panelId}-prNumber`);
+            const timeRangeFromSelect = document.getElementById(`${panelId}-timeRangeFrom`);
+            const timeRangeToSelect = document.getElementById(`${panelId}-timeRangeTo`);
+            const addFilterButton = document.getElementById(`${panelId}-addFilterButton`);
+            const copyLinkButton = document.getElementById(`${panelId}-copyLinkButton`);
+            const resetButton = document.getElementById(`${panelId}-resetButton`);
+
+            // Add event listeners
+            grafanaDataSourceSelect.addEventListener('change', () => {
+                populateAppNames(panelId);
+                savePanelsState();
+            });
+            grafanaAppNameSelect.addEventListener('change', () => {
+                updatePRFieldVisibility(panelId);
+                generateLink(panelId);
+                savePanelsState();
+            });
+            prNumberInput.addEventListener('input', () => {
+                generateLink(panelId);
+                savePanelsState();
+            });
+            timeRangeFromSelect.addEventListener('change', () => {
+                generateLink(panelId);
+                savePanelsState();
+            });
+            timeRangeToSelect.addEventListener('change', () => {
+                generateLink(panelId);
+                savePanelsState();
+            });
+
+            addFilterButton.addEventListener('click', () => addFilterInput(panelId));
+            copyLinkButton.addEventListener('click', () => copyLink(panelId));
+            resetButton.addEventListener('click', () => resetForm(panelId));
+
+            // Initialize with default values
+            populateAppNames(panelId);
+            // Don't add filter input here - it will be added by the caller when needed
         }
 
         /**
          * Updates the visibility of the PR number field based on the selected app and environment.
-         * PR numbers only apply to backend apps, not alita apps.
          */
-        function updatePRFieldVisibility() {
-            const grafanaDataSourceSelect = document.getElementById('grafanaDataSource');
-            const grafanaAppNameSelect = document.getElementById('grafanaAppName');
-            const prNumberFieldContainer = document.getElementById('prNumberFieldContainer');
-            const prNumberInput = document.getElementById('prNumber');
+        function updatePRFieldVisibility(panelId) {
+            const grafanaDataSourceSelect = document.getElementById(`${panelId}-grafanaDataSource`);
+            const grafanaAppNameSelect = document.getElementById(`${panelId}-grafanaAppName`);
+            const prNumberFieldContainer = document.getElementById(`${panelId}-prNumberFieldContainer`);
+            const prNumberInput = document.getElementById(`${panelId}-prNumber`);
 
             const selectedDataSourceUid = grafanaDataSourceSelect.value;
             const selectedAppName = grafanaAppNameSelect.value;
             const environment = grafanaEnvironments[selectedDataSourceUid];
 
-            // Show PR field only if:
-            // 1. Environment has PR enabled
-            // 2. Selected app is a backend app (contains "backend" in the name)
             const shouldShowPR = environment && 
                                 environment.prEnabled && 
                                 selectedAppName && 
@@ -370,30 +559,24 @@
                 prNumberFieldContainer.classList.remove('hidden');
             } else {
                 prNumberFieldContainer.classList.add('hidden');
-                prNumberInput.value = ''; // Clear PR number if not applicable
+                prNumberInput.value = '';
             }
         }
 
         /**
          * Populates the Application Name dropdown based on the selected Grafana Data Source.
-         * Also shows/hides the PR number input field.
          */
-        function populateAppNames() {
-            const grafanaDataSourceSelect = document.getElementById('grafanaDataSource');
-            const grafanaAppNameSelect = document.getElementById('grafanaAppName');
-            const prNumberFieldContainer = document.getElementById('prNumberFieldContainer');
-            const prNumberInput = document.getElementById('prNumber');
+        function populateAppNames(panelId) {
+            const grafanaDataSourceSelect = document.getElementById(`${panelId}-grafanaDataSource`);
+            const grafanaAppNameSelect = document.getElementById(`${panelId}-grafanaAppName`);
 
             const selectedDataSourceUid = grafanaDataSourceSelect.value;
             const environment = grafanaEnvironments[selectedDataSourceUid];
 
-            // Clear existing options
             grafanaAppNameSelect.innerHTML = '';
 
-            // Get the app names for the selected data source
             const appNames = environment ? environment.appNames : [];
 
-            // Add new options
             if (appNames.length > 0) {
                 appNames.forEach(appName => {
                     const option = document.createElement('option');
@@ -406,53 +589,49 @@
                 option.value = "";
                 option.textContent = "No apps available";
                 grafanaAppNameSelect.appendChild(option);
-                grafanaAppNameSelect.disabled = true; // Disable if no apps
+                grafanaAppNameSelect.disabled = true;
             }
-            grafanaAppNameSelect.disabled = appNames.length === 0; // Re-enable if apps are available
+            grafanaAppNameSelect.disabled = appNames.length === 0;
             
-            // Update PR field visibility when app names are populated
-            updatePRFieldVisibility();
-            generateLink(); // Generate link immediately after app names are populated
+            updatePRFieldVisibility(panelId);
+            generateLink(panelId);
         }
 
         /**
          * Generates the Grafana Loki explore link based on user inputs.
          */
-        function generateLink() {
-            const grafanaDataSourceUid = document.getElementById('grafanaDataSource').value;
-            const grafanaAppName = document.getElementById('grafanaAppName').value;
-            const prNumberRaw = document.getElementById('prNumber').value;
-            const timeRangeFrom = document.getElementById('timeRangeFrom').value;
-            const timeRangeTo = document.getElementById('timeRangeTo').value;
+        function generateLink(panelId) {
+            const grafanaDataSourceUid = document.getElementById(`${panelId}-grafanaDataSource`).value;
+            const grafanaAppName = document.getElementById(`${panelId}-grafanaAppName`).value;
+            const prNumberRaw = document.getElementById(`${panelId}-prNumber`).value;
+            const timeRangeFrom = document.getElementById(`${panelId}-timeRangeFrom`).value;
+            const timeRangeTo = document.getElementById(`${panelId}-timeRangeTo`).value;
 
             const environment = grafanaEnvironments[grafanaDataSourceUid];
 
             let finalAppName = grafanaAppName;
 
-            // Only apply PR numbers to backend apps (not alita apps)
             if (environment && 
                 environment.prEnabled && 
                 prNumberRaw.trim() !== '' && 
                 grafanaAppName && 
                 grafanaAppName.includes('backend')) {
-                // Construct the PR-specific app name (e.g., tnk-ea-backend-pr-3388)
                 finalAppName = `${grafanaAppName}-pr-${prNumberRaw.trim()}`;
             }
 
             if (!finalAppName) {
-                const grafanaLinkElement = document.getElementById('grafanaLink');
+                const grafanaLinkElement = document.getElementById(`${panelId}-grafanaLink`);
                 grafanaLinkElement.href = "#";
                 grafanaLinkElement.textContent = "Please select an application name.";
                 return;
             }
 
-            // Construct the Loki query expression
             const escapedAppName = finalAppName.replace(/"/g, '\\"');
             let expr = `{app="${escapedAppName}"}`;
 
             const lineFilters = [];
             const selectedLogLevels = [];
-            const logLevelCheckboxes = document.querySelectorAll('.log-level-checkbox:checked');
+            const logLevelCheckboxes = document.querySelectorAll(`[data-panel="${panelId}"].log-level-checkbox:checked`);
             logLevelCheckboxes.forEach(checkbox => {
                 selectedLogLevels.push(checkbox.value);
             });
@@ -462,7 +641,7 @@
                 lineFilters.push(`|~ "(${levelFilter})"`);
             }
 
-            const filterInputs = document.querySelectorAll('.line-filter-input');
+            const filterInputs = document.querySelectorAll(`[data-panel="${panelId}"].line-filter-input`);
             filterInputs.forEach(input => {
                 if (input.value.trim() !== '') {
                     lineFilters.push(`|= "${input.value}"`);
@@ -472,10 +651,9 @@
             if (lineFilters.length > 0) {
                 expr += " " + lineFilters.join(" ");
             } else {
-                expr += ` |= \`\``; // Default to show all logs if no filter is specified
+                expr += ` |= \`\``;
             }
 
-            // Define the panes object structure for Grafana explore
             const panesObj = {
                 "c13": {
                     "datasource": grafanaDataSourceUid,
@@ -492,159 +670,97 @@
                 }
             };
 
-            // Encode the panes object to be URL-safe
             const encodedPanes = encodeURIComponent(JSON.stringify(panesObj));
-
-            // Construct the final Grafana URL
             const grafanaBaseUrl = "https://grafana.jarvis.tools/explore";
-            const orgId = "1"; // As provided in the example link
-            const schemaVersion = "1"; // As provided in the example link
+            const orgId = "1";
+            const schemaVersion = "1";
 
             const finalLink = `${grafanaBaseUrl}?schemaVersion=${schemaVersion}&panes=${encodedPanes}&orgId=${orgId}`;
 
-            // Update the LogQL query display
-            const logqlQueryElement = document.getElementById('logqlQuery');
+            const logqlQueryElement = document.getElementById(`${panelId}-logqlQuery`);
             logqlQueryElement.textContent = expr;
 
-            // Update the link element in the HTML
-            const grafanaLinkElement = document.getElementById('grafanaLink');
+            const grafanaLinkElement = document.getElementById(`${panelId}-grafanaLink`);
             grafanaLinkElement.href = finalLink;
             grafanaLinkElement.textContent = finalLink;
         }
 
         /**
-         * Saves the current form state to localStorage
+         * Adds a filter input to a panel
          */
-        function saveFormState() {
-            const formState = {
-                grafanaDataSource: document.getElementById('grafanaDataSource').value,
-                grafanaAppName: document.getElementById('grafanaAppName').value,
-                prNumber: document.getElementById('prNumber').value,
-                timeRangeFrom: document.getElementById('timeRangeFrom').value,
-                timeRangeTo: document.getElementById('timeRangeTo').value,
-                logLevels: Array.from(document.querySelectorAll('.log-level-checkbox:checked')).map(cb => cb.value),
-                lineFilters: Array.from(document.querySelectorAll('.line-filter-input')).map(input => input.value).filter(val => val.trim() !== '')
+        function addFilterInput(panelId) {
+            const container = document.getElementById(`${panelId}-lineFiltersContainer`);
+            const filterGroup = document.createElement('div');
+            filterGroup.className = 'flex mb-2';
+
+            const newInput = document.createElement('input');
+            newInput.type = 'text';
+            newInput.className = 'line-filter-input focus:border-blue-500 focus:ring-blue-500 flex-grow';
+            newInput.setAttribute('data-panel', panelId);
+            newInput.placeholder = 'Enter text to filter...';
+            newInput.addEventListener('input', () => {
+                generateLink(panelId);
+                savePanelsState();
+            });
+
+            const removeButton = document.createElement('button');
+            removeButton.textContent = '-';
+            removeButton.className = 'ml-2 text-white bg-red-500 hover:bg-red-700 font-bold';
+            removeButton.style.borderRadius = '50%';
+            removeButton.style.width = '24px';
+            removeButton.style.height = '24px';
+            removeButton.style.lineHeight = '22px';
+            removeButton.style.textAlign = 'center';
+            removeButton.style.cursor = 'pointer';
+            removeButton.style.border = 'none';
+            removeButton.style.padding = '0';
+            removeButton.style.flexShrink = '0';
+
+            removeButton.onclick = function () {
+                container.removeChild(filterGroup);
+                generateLink(panelId);
+                savePanelsState();
             };
-            localStorage.setItem('lokiLinkBuilderState', JSON.stringify(formState));
+
+            filterGroup.appendChild(newInput);
+            filterGroup.appendChild(removeButton);
+            container.appendChild(filterGroup);
         }
 
         /**
-         * Loads the form state from localStorage
+         * Resets a panel to default state
          */
-        function loadFormState() {
-            const savedState = localStorage.getItem('lokiLinkBuilderState');
-            if (!savedState) return;
-
-            try {
-                const formState = JSON.parse(savedState);
-                
-                // Set data source
-                if (formState.grafanaDataSource) {
-                    document.getElementById('grafanaDataSource').value = formState.grafanaDataSource;
-                }
-                
-                // Set time ranges
-                if (formState.timeRangeFrom) {
-                    document.getElementById('timeRangeFrom').value = formState.timeRangeFrom;
-                }
-                if (formState.timeRangeTo) {
-                    document.getElementById('timeRangeTo').value = formState.timeRangeTo;
-                }
-                
-                // Set PR number
-                if (formState.prNumber) {
-                    document.getElementById('prNumber').value = formState.prNumber;
-                }
-                
-                // Set log levels
-                if (formState.logLevels && Array.isArray(formState.logLevels)) {
-                    formState.logLevels.forEach(level => {
-                        const checkbox = document.querySelector(`.log-level-checkbox[value="${level}"]`);
-                        if (checkbox) {
-                            checkbox.checked = true;
-                        }
-                    });
-                }
-                
-                // Set line filters
-                if (formState.lineFilters && Array.isArray(formState.lineFilters)) {
-                    // Clear existing filters first
-                    const container = document.getElementById('lineFiltersContainer');
-                    const existingFilters = container.querySelectorAll('.flex.mb-2');
-                    existingFilters.forEach(filter => container.removeChild(filter));
-                    
-                    // Add saved filters
-                    formState.lineFilters.forEach(filterValue => {
-                        addFilterInput();
-                        const inputs = document.querySelectorAll('.line-filter-input');
-                        const lastInput = inputs[inputs.length - 1];
-                        if (lastInput) {
-                            lastInput.value = filterValue;
-                        }
-                    });
-                    
-                    // If no filters were saved, add one empty filter
-                    if (formState.lineFilters.length === 0) {
-                        addFilterInput();
-                    }
-                }
-                
-                // Populate app names and set the saved app name
-                populateAppNames();
-                if (formState.grafanaAppName) {
-                    // Use setTimeout to ensure the app names are populated first
-                    setTimeout(() => {
-                        document.getElementById('grafanaAppName').value = formState.grafanaAppName;
-                        generateLink();
-                    }, 100);
-                }
-                
-            } catch (error) {
-                console.error('Error loading saved form state:', error);
-            }
-        }
-
-        /**
-         * Resets the form to default state and clears localStorage
-         */
-        function resetForm() {
-            // Clear localStorage
-            localStorage.removeItem('lokiLinkBuilderState');
+        function resetForm(panelId) {
+            document.getElementById(`${panelId}-grafanaDataSource`).value = 'PFDB45C165C6355FF';
+            document.getElementById(`${panelId}-timeRangeFrom`).value = 'now-6h';
+            document.getElementById(`${panelId}-timeRangeTo`).value = 'now';
+            document.getElementById(`${panelId}-prNumber`).value = '';
             
-            // Reset form fields to defaults
-            document.getElementById('grafanaDataSource').value = 'PFDB45C165C6355FF';
-            document.getElementById('timeRangeFrom').value = 'now-6h';
-            document.getElementById('timeRangeTo').value = 'now';
-            document.getElementById('prNumber').value = '';
+            document.querySelectorAll(`[data-panel="${panelId}"].log-level-checkbox`).forEach(cb => cb.checked = false);
             
-            // Uncheck all log level checkboxes
-            document.querySelectorAll('.log-level-checkbox').forEach(cb => cb.checked = false);
-            
-            // Clear line filters and add one empty filter
-            const container = document.getElementById('lineFiltersContainer');
+            const container = document.getElementById(`${panelId}-lineFiltersContainer`);
             const existingFilters = container.querySelectorAll('.flex.mb-2');
             existingFilters.forEach(filter => container.removeChild(filter));
-            addFilterInput();
+            // Don't add default filter - start with 0 filters
             
-            // Repopulate app names and generate link
-            populateAppNames();
+            populateAppNames(panelId);
+            savePanelsState();
             
-            showMessageBox('Form reset successfully!', 'success');
+            showMessageBox('Panel reset successfully!', 'success');
         }
 
         /**
          * Copies the generated Grafana link to the clipboard.
          */
-        function copyLink() {
-            const grafanaLinkElement = document.getElementById('grafanaLink');
+        function copyLink(panelId) {
+            const grafanaLinkElement = document.getElementById(`${panelId}-grafanaLink`);
             const linkToCopy = grafanaLinkElement.href;
 
             if (linkToCopy && linkToCopy !== '#' && linkToCopy !== 'Your link will appear here...' && !linkToCopy.includes('Please select an application name.')) {
-                // Use document.execCommand('copy') for clipboard operations in iframes
                 const textArea = document.createElement("textarea");
                 textArea.value = linkToCopy;
-                textArea.style.position = "fixed"; // Avoid scrolling to bottom
-                textArea.style.left = "-9999px"; // Hide from view
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
                 document.body.appendChild(textArea);
                 textArea.focus();
                 textArea.select();
@@ -663,103 +779,232 @@
             }
         }
 
-        // Event listener for data source change and input changes
-        function addFilterInput() {
-            const container = document.getElementById('lineFiltersContainer');
-            const filterGroup = document.createElement('div');
-            filterGroup.className = 'flex mb-2';
+        /**
+         * Saves all panels state to localStorage
+         */
+        function savePanelsState() {
+            const panelsData = panels.map(panelId => {
+                const formState = {
+                    panelId: panelId,
+                    grafanaDataSource: document.getElementById(`${panelId}-grafanaDataSource`).value,
+                    grafanaAppName: document.getElementById(`${panelId}-grafanaAppName`).value,
+                    prNumber: document.getElementById(`${panelId}-prNumber`).value,
+                    timeRangeFrom: document.getElementById(`${panelId}-timeRangeFrom`).value,
+                    timeRangeTo: document.getElementById(`${panelId}-timeRangeTo`).value,
+                    logLevels: Array.from(document.querySelectorAll(`[data-panel="${panelId}"].log-level-checkbox:checked`)).map(cb => cb.value),
+                    lineFilters: Array.from(document.querySelectorAll(`[data-panel="${panelId}"].line-filter-input`)).map(input => input.value).filter(val => val.trim() !== '')
+                };
+                return formState;
+            });
 
-            const newInput = document.createElement('input');
-            newInput.type = 'text';
-            newInput.className = 'line-filter-input focus:border-blue-500 focus:ring-blue-500 flex-grow';
-            newInput.placeholder = 'Enter text to filter...';
-            newInput.addEventListener('input', generateLink);
-
-            const removeButton = document.createElement('button');
-            removeButton.textContent = '-';
-            removeButton.className = 'ml-2 text-white bg-red-500 hover:bg-red-700 font-bold';
-            removeButton.style.borderRadius = '50%';
-            removeButton.style.width = '24px';
-            removeButton.style.height = '24px';
-            removeButton.style.lineHeight = '22px';
-            removeButton.style.textAlign = 'center';
-            removeButton.style.cursor = 'pointer';
-            removeButton.style.border = 'none';
-            removeButton.style.padding = '0';
-            removeButton.style.flexShrink = '0';
-
-            removeButton.onclick = function () {
-                container.removeChild(filterGroup);
-                generateLink();
-            };
-
-            filterGroup.appendChild(newInput);
-            filterGroup.appendChild(removeButton);
-            container.appendChild(filterGroup);
+            localStorage.setItem('lokiLinkBuilderPanels', JSON.stringify({
+                panels: panelsData,
+                panelCounter: panelCounter
+            }));
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const grafanaDataSourceSelect = document.getElementById('grafanaDataSource');
-            const grafanaAppNameSelect = document.getElementById('grafanaAppName');
-            const prNumberInput = document.getElementById('prNumber');
-            const timeRangeFromSelect = document.getElementById('timeRangeFrom');
-            const timeRangeToSelect = document.getElementById('timeRangeTo');
-            const addFilterButton = document.getElementById('addFilterButton');
-            const copyLinkButton = document.getElementById('copyLinkButton');
-            const resetButton = document.getElementById('resetButton');
+        /**
+         * Loads all panels state from localStorage
+         */
+        function loadPanelsState() {
+            const savedData = localStorage.getItem('lokiLinkBuilderPanels');
+            if (!savedData) {
+                // If no saved data, create the first panel
+                createPanel();
+                return;
+            }
 
-            // Add event listeners for changes that should trigger link generation and save state
-            grafanaDataSourceSelect.addEventListener('change', () => {
-                populateAppNames();
-                saveFormState();
-            });
-            grafanaAppNameSelect.addEventListener('change', () => {
-                updatePRFieldVisibility();
-                generateLink();
-                saveFormState();
-            });
-            prNumberInput.addEventListener('input', () => {
-                generateLink();
-                saveFormState();
-            });
-            timeRangeFromSelect.addEventListener('change', () => {
-                generateLink();
-                saveFormState();
-            });
-            timeRangeToSelect.addEventListener('change', () => {
-                generateLink();
-                saveFormState();
-            });
-            
-            // Add event listeners for log level checkboxes
+            try {
+                const data = JSON.parse(savedData);
+                panelCounter = data.panelCounter || 0;
+                
+                if (data.panels && data.panels.length > 0) {
+                    data.panels.forEach(panelData => {
+                        const panelId = panelData.panelId;
+                        
+                        // Create panel element
+                        const panelDiv = document.createElement('div');
+                        panelDiv.className = 'panel';
+                        panelDiv.id = panelId;
+                        
+                        panelDiv.innerHTML = `
+                            <div class="panel-header">
+                                <button class="remove-panel-btn" onclick="removePanel('${panelId}')" title="Remove Panel">×</button>
+                            </div>
+
+                            <label for="${panelId}-grafanaDataSource">Select Grafana Data Source:</label>
+                            <select id="${panelId}-grafanaDataSource" class="focus:border-blue-500 focus:ring-blue-500">
+                                <option value="PFDB45C165C6355FF">Prod</option>
+                                <option value="P31FC4C0F93B441EF">Trunk</option>
+                                <option value="P5A8999BC3E4BD4C5">QA3</option>
+                            </select>
+
+                            <label for="${panelId}-grafanaAppName">Application Name:</label>
+                            <select id="${panelId}-grafanaAppName" class="focus:border-blue-500 focus:ring-blue-500">
+                                <!-- Options will be populated by JavaScript -->
+                            </select>
+
+                            <div id="${panelId}-prNumberFieldContainer" class="hidden">
+                                <label for="${panelId}-prNumber">PR Number:</label>
+                                <input type="number" id="${panelId}-prNumber" placeholder="e.g., 3388"
+                                    class="focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+
+                            <label for="${panelId}-timeRangeFrom">Time Range From:</label>
+                            <select id="${panelId}-timeRangeFrom" class="focus:border-blue-500 focus:ring-blue-500">
+                                <option value="now-5m">Last 5 minutes</option>
+                                <option value="now-15m">Last 15 minutes</option>
+                                <option value="now-30m">Last 30 minutes</option>
+                                <option value="now-1h">Last 1 hour</option>
+                                <option value="now-3h">Last 3 hours</option>
+                                <option value="now-6h" selected>Last 6 hours</option>
+                                <option value="now-12h">Last 12 hours</option>
+                                <option value="now-24h">Last 24 hours</option>
+                                <option value="now-2d">Last 2 days</option>
+                                <option value="now-7d">Last 7 days</option>
+                                <option value="now-30d">Last 30 days</option>
+                            </select>
+
+                            <label for="${panelId}-timeRangeTo">Time Range To:</label>
+                            <select id="${panelId}-timeRangeTo" class="focus:border-blue-500 focus:ring-blue-500">
+                                <option value="now" selected>Now</option>
+                                <option value="now-5m">5 minutes ago</option>
+                                <option value="now-15m">15 minutes ago</option>
+                                <option value="now-30m">30 minutes ago</option>
+                                <option value="now-1h">1 hour ago</option>
+                                <option value="now-3h">3 hours ago</option>
+                                <option value="now-6h">6 hours ago</option>
+                                <option value="now-12h">12 hours ago</option>
+                                <option value="now-24h">24 hours ago</option>
+                                <option value="now-2d">2 days ago</option>
+                                <option value="now-7d">7 days ago</option>
+                                <option value="now-30d">30 days ago</option>
+                            </select>
+
+                            <label>Log Levels:</label>
+                            <div id="${panelId}-logLevelsContainer">
+                                <label class="inline-flex items-center mt-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="INFO" data-panel="${panelId}">
+                                    <span class="ml-2 text-gray-700">Info</span>
+                                </label>
+                                <label class="inline-flex items-center mt-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="WARN" data-panel="${panelId}">
+                                    <span class="ml-2 text-gray-700">Warn</span>
+                                </label>
+                                <label class="inline-flex items-center mt-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="ERROR" data-panel="${panelId}">
+                                    <span class="ml-2 text-gray-700">Error</span>
+                                </label>
+                                <label class="inline-flex items-center mt-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="DEBUG" data-panel="${panelId}">
+                                    <span class="ml-2 text-gray-700">Debug</span>
+                                </label>
+                                <label class="inline-flex items-center mt-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 log-level-checkbox" value="TRACE" data-panel="${panelId}">
+                                    <span class="ml-2 text-gray-700">Trace</span>
+                                </label>
+                            </div>
+
+                            <div id="${panelId}-lineFiltersContainer">
+                                <label>Line Contains Filters:</label>
+                                <!-- Dynamic filters will be added here -->
+                            </div>
+                            <button id="${panelId}-addFilterButton" class="mt-2 mb-4 text-sm" style="width: auto; padding: 0.5rem 1rem;">+ Add Filter</button>
+                            
+                            <button id="${panelId}-resetButton" class="mt-2 mb-4 text-sm bg-gray-500 hover:bg-gray-700" style="width: auto; padding: 0.5rem 1rem; margin-left: 0.5rem;">Reset All</button>
+
+                            <div class="outputLinkContainer">
+                                <p class="text-gray-700 font-semibold mb-2">Generated LogQL Query:</p>
+                                <div id="${panelId}-outputQuery" style="word-break: break-all; font-family: 'Inter', monospace; background-color: #f3f4f6; padding: 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; color: #1f2937; text-align: left; margin-bottom: 1rem; border: 1px solid #d1d5db;">
+                                    <span id="${panelId}-logqlQuery">Your LogQL query will appear here...</span>
+                                </div>
+                                
+                                <p class="text-gray-700 font-semibold mb-2">Generated Grafana Link:</p>
+                                <div class="outputLink">
+                                    <a id="${panelId}-grafanaLink" href="#" target="_blank" class="block">Your link will appear here...</a>
+                                </div>
+                                <button id="${panelId}-copyLinkButton" class="copy-button">Copy Link</button>
+                            </div>
+                        `;
+
+                        document.getElementById('panelsContainer').appendChild(panelDiv);
+                        panels.push(panelId);
+                        
+                        // Initialize the panel with event listeners
+                        initializePanel(panelId);
+                        
+                        // Restore saved values
+                        if (panelData.grafanaDataSource) {
+                            document.getElementById(`${panelId}-grafanaDataSource`).value = panelData.grafanaDataSource;
+                        }
+                        if (panelData.timeRangeFrom) {
+                            document.getElementById(`${panelId}-timeRangeFrom`).value = panelData.timeRangeFrom;
+                        }
+                        if (panelData.timeRangeTo) {
+                            document.getElementById(`${panelId}-timeRangeTo`).value = panelData.timeRangeTo;
+                        }
+                        if (panelData.prNumber) {
+                            document.getElementById(`${panelId}-prNumber`).value = panelData.prNumber;
+                        }
+                        
+                        // Restore log levels
+                        if (panelData.logLevels && Array.isArray(panelData.logLevels)) {
+                            panelData.logLevels.forEach(level => {
+                                const checkbox = document.querySelector(`[data-panel="${panelId}"].log-level-checkbox[value="${level}"]`);
+                                if (checkbox) {
+                                    checkbox.checked = true;
+                                }
+                            });
+                        }
+                        
+                        // Restore line filters
+                        if (panelData.lineFilters && Array.isArray(panelData.lineFilters) && panelData.lineFilters.length > 0) {
+                            panelData.lineFilters.forEach(filterValue => {
+                                addFilterInput(panelId);
+                                const inputs = document.querySelectorAll(`[data-panel="${panelId}"].line-filter-input`);
+                                const lastInput = inputs[inputs.length - 1];
+                                if (lastInput) {
+                                    lastInput.value = filterValue;
+                                }
+                            });
+                        }
+                        // Don't add any default filters - start with 0 filters
+                        
+                        // Populate app names and set the saved app name
+                        populateAppNames(panelId);
+                        if (panelData.grafanaAppName) {
+                            setTimeout(() => {
+                                document.getElementById(`${panelId}-grafanaAppName`).value = panelData.grafanaAppName;
+                                updatePRFieldVisibility(panelId);
+                                generateLink(panelId);
+                            }, 100);
+                        }
+                    });
+                } else {
+                    // If no panels in saved data, create the first panel
+                    createPanel();
+                }
+            } catch (error) {
+                console.error('Error loading saved panels state:', error);
+                // If error loading, create the first panel
+                createPanel();
+            }
+        }
+
+        // Global event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add event listeners for log level checkboxes (global delegation)
             document.addEventListener('change', (e) => {
                 if (e.target.classList.contains('log-level-checkbox')) {
-                    generateLink();
-                    saveFormState();
+                    const panelId = e.target.getAttribute('data-panel');
+                    generateLink(panelId);
+                    savePanelsState();
                 }
             });
             
-            // Add event listeners for line filter inputs
-            document.addEventListener('input', (e) => {
-                if (e.target.classList.contains('line-filter-input')) {
-                    generateLink();
-                    saveFormState();
-                }
-            });
-
-            addFilterButton.addEventListener('click', addFilterInput);
-            copyLinkButton.addEventListener('click', copyLink);
-            resetButton.addEventListener('click', resetForm);
-
-            // Load saved state first, then populate if no saved state exists
-            loadFormState();
-            
-            // If no saved state was loaded, do initial setup
-            const savedState = localStorage.getItem('lokiLinkBuilderState');
-            if (!savedState) {
-                populateAppNames();
-                addFilterInput(); // Start with one filter input
-            }
+            // Load saved state or create first panel and add button
+            loadPanelsState();
+            createAddButton();
         });
     </script>
 </body>
