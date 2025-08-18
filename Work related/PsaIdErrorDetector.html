@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PsaId Error Detector - Grafana Query Builder</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            background-color: #ffffff;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .page-title {
+            color: #1f2937;
+            text-align: center;
+            margin: 0;
+            font-size: 2.25rem;
+            font-weight: 700;
+        }
+
+        .page-subtitle {
+            color: #6b7280;
+            text-align: center;
+            margin: 0.5rem 0 0 0;
+            font-size: 1rem;
+            font-weight: 400;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .layout-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .panel {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e5e7eb;
+            margin-bottom: 1.5rem;
+        }
+
+        .output-panel {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        select,
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            color: #1f2937;
+            background-color: #f9fafb;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        select:focus,
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            border-color: #2563eb;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+
+        button {
+            background-color: #2563eb;
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 1rem;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .copy-button {
+            background-color: #10b981;
+            margin-top: 0.5rem;
+        }
+
+        .copy-button:hover {
+            background-color: #059669;
+        }
+
+        .reset-button {
+            background-color: #6b7280;
+            margin-top: 0.5rem;
+        }
+
+        .reset-button:hover {
+            background-color: #4b5563;
+        }
+
+        .output-container {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #e0f2fe;
+            border-radius: 0.5rem;
+            border: 1px dashed #93c5fd;
+        }
+
+        .query-output {
+            word-break: break-all;
+            font-family: 'Inter', monospace;
+            background-color: #f3f4f6;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            color: #1f2937;
+            margin-bottom: 1rem;
+            border: 1px solid #d1d5db;
+            white-space: pre-wrap;
+        }
+
+        .link-output {
+            word-break: break-all;
+            font-family: 'Inter', monospace;
+            background-color: #bfdbfe;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            color: #1e3a8a;
+            margin-bottom: 1rem;
+        }
+
+        a {
+            color: #1e40af;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .message-box.show {
+            opacity: 1;
+        }
+
+        .info-box {
+            background-color: #dbeafe;
+            border: 1px solid #93c5fd;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            color: #1e40af;
+        }
+
+        .info-box h3 {
+            margin: 0 0 0.5rem 0;
+            font-weight: 600;
+        }
+
+        .info-box p {
+            margin: 0;
+            font-size: 0.875rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .button-group button {
+            flex: 1;
+            margin-top: 0;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                margin: 1rem auto;
+                padding: 0 0.5rem;
+            }
+
+            .layout-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .panel {
+                padding: 1.5rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .button-group button {
+                width: 100%;
+            }
+
+            .output-container {
+                margin-top: 1rem;
+            }
+        }
+    </style>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL3LWXVBHR"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-LL3LWXVBHR');
+    </script>
+</head>
+
+<body>
+    <div class="page-header">
+        <h1 class="page-title">PsaId Error Detector</h1>
+        <p class="page-subtitle">Generate Grafana queries to count unique PsaIds affected by specific errors</p>
+    </div>
+
+    <div class="main-container">
+        <div class="layout-container">
+            <div class="panel">
+                <h2 class="section-title">Configuration</h2>
+
+                <label for="grafanaDataSource">Data Source:</label>
+                <select id="grafanaDataSource">
+                    <option value="PFDB45C165C6355FF">Prod</option>
+                    <option value="P31FC4C0F93B441EF">Trunk</option>
+                    <option value="P5A8999BC3E4BD4C5">QA3</option>
+                </select>
+
+                <label for="appName">Application:</label>
+                <select id="appName">
+                    <!-- Options will be populated by JavaScript -->
+                </select>
+
+                <div id="prNumberContainer" class="hidden">
+                    <label for="prNumber">PR Number:</label>
+                    <input type="number" id="prNumber" placeholder="e.g., 3388">
+                </div>
+
+                <label for="errorType">Error Type:</label>
+                <input type="text" id="errorType" placeholder="e.g., TokenSpinGuidNotFoundException" value="TokenSpinGuidNotFoundException">
+
+                <label for="timeRange">Time Range:</label>
+                <select id="timeRange">
+                    <option value="5m">Last 5 minutes</option>
+                    <option value="15m">Last 15 minutes</option>
+                    <option value="30m">Last 30 minutes</option>
+                    <option value="1h" selected>Last 1 hour</option>
+                    <option value="3h">Last 3 hours</option>
+                    <option value="6h">Last 6 hours</option>
+                    <option value="12h">Last 12 hours</option>
+                    <option value="24h">Last 24 hours</option>
+                    <option value="2d">Last 2 days</option>
+                    <option value="7d">Last 7 days</option>
+                </select>
+
+                <label for="additionalFilters">Additional Filters:</label>
+                <input type="text" id="additionalFilters" placeholder="e.g., |= &quot;specific text&quot;">
+
+                <button class="reset-button" onclick="resetForm()">Reset</button>
+            </div>
+
+            <div class="panel output-panel">
+                <h2 class="section-title">Query & Link</h2>
+
+                <div class="output-container">
+                    <p style="color: #374151; font-weight: 600; margin-bottom: 0.5rem;">LogQL Query:</p>
+                    <div class="query-output" id="queryOutput">
+                        Your LogQL query will appear here...
+                    </div>
+                    
+                    <p style="color: #374151; font-weight: 600; margin-bottom: 0.5rem;">Grafana Link:</p>
+                    <div class="link-output">
+                        <a id="grafanaLink" href="#" target="_blank">Your link will appear here...</a>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="copy-button" onclick="copyQuery()">Copy Query</button>
+                        <button class="copy-button" onclick="copyLink()">Copy Link</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="messageBox" class="message-box"></div>
+
+    <script>
+        // Define the mapping of Grafana data sources to their respective backend application names
+        // Note: PsaId error detection only works with backend applications
+        const grafanaEnvironments = {
+            "PFDB45C165C6355FF": { // Prod UID
+                name: "Prod",
+                appNames: ["backend"],
+                prEnabled: false
+            },
+            "P31FC4C0F93B441EF": { // Trunk UID
+                name: "Trunk",
+                appNames: ["tnk-ea-backend", "tnk-ea-backend-liveops"],
+                prEnabled: true
+            },
+            "P5A8999BC3E4BD4C5": { // QA3 UID
+                name: "QA3",
+                appNames: ["qa3-ea-backend"],
+                prEnabled: true
+            }
+        };
+
+        /**
+         * Displays a temporary message box with the given text.
+         */
+        function showMessageBox(message, type = 'success') {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.textContent = message;
+            messageBox.className = 'message-box show';
+            if (type === 'success') {
+                messageBox.style.backgroundColor = '#4CAF50';
+            } else if (type === 'error') {
+                messageBox.style.backgroundColor = '#f44336';
+            }
+
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 3000);
+        }
+
+        /**
+         * Populates the Application Name dropdown based on the selected Grafana Data Source.
+         */
+        function populateAppNames() {
+            const grafanaDataSourceSelect = document.getElementById('grafanaDataSource');
+            const appNameSelect = document.getElementById('appName');
+
+            const selectedDataSourceUid = grafanaDataSourceSelect.value;
+            const environment = grafanaEnvironments[selectedDataSourceUid];
+
+            appNameSelect.innerHTML = '';
+
+            const appNames = environment ? environment.appNames : [];
+
+            if (appNames.length > 0) {
+                appNames.forEach(appName => {
+                    const option = document.createElement('option');
+                    option.value = appName;
+                    option.textContent = appName;
+                    appNameSelect.appendChild(option);
+                });
+            } else {
+                const option = document.createElement('option');
+                option.value = "";
+                option.textContent = "No apps available";
+                appNameSelect.appendChild(option);
+                appNameSelect.disabled = true;
+            }
+            appNameSelect.disabled = appNames.length === 0;
+            
+            updatePRFieldVisibility();
+        }
+
+        /**
+         * Updates the visibility of the PR number field based on the selected app and environment.
+         */
+        function updatePRFieldVisibility() {
+            const grafanaDataSourceSelect = document.getElementById('grafanaDataSource');
+            const appNameSelect = document.getElementById('appName');
+            const prNumberContainer = document.getElementById('prNumberContainer');
+            const prNumberInput = document.getElementById('prNumber');
+
+            const selectedDataSourceUid = grafanaDataSourceSelect.value;
+            const selectedAppName = appNameSelect.value;
+            const environment = grafanaEnvironments[selectedDataSourceUid];
+
+            const shouldShowPR = environment && 
+                                environment.prEnabled && 
+                                selectedAppName && 
+                                selectedAppName.includes('backend');
+
+            if (shouldShowPR) {
+                prNumberContainer.classList.remove('hidden');
+            } else {
+                prNumberContainer.classList.add('hidden');
+                prNumberInput.value = '';
+            }
+        }
+
+        /**
+         * Generates the LogQL query and Grafana link
+         */
+        function generateQuery() {
+            const grafanaDataSourceUid = document.getElementById('grafanaDataSource').value;
+            const appName = document.getElementById('appName').value;
+            const prNumber = document.getElementById('prNumber').value;
+            const errorType = document.getElementById('errorType').value;
+            const timeRange = document.getElementById('timeRange').value;
+            const additionalFilters = document.getElementById('additionalFilters').value;
+
+            // Fixed PsaId regex pattern
+            const psaIdPattern = '   (?<PsaId>[0-9]+) ';
+
+            if (!appName) {
+                document.getElementById('queryOutput').textContent = 'Please select an application name.';
+                document.getElementById('grafanaLink').href = '#';
+                document.getElementById('grafanaLink').textContent = 'Please select an application name.';
+                return;
+            }
+
+            if (!errorType.trim()) {
+                document.getElementById('queryOutput').textContent = 'Please enter an error type.';
+                document.getElementById('grafanaLink').href = '#';
+                document.getElementById('grafanaLink').textContent = 'Please enter an error type.';
+                return;
+            }
+
+            const environment = grafanaEnvironments[grafanaDataSourceUid];
+            let finalAppName = appName;
+
+            // Handle PR number for backend apps in environments that support it
+            if (environment && 
+                environment.prEnabled && 
+                prNumber.trim() !== '' && 
+                appName && 
+                appName.includes('backend')) {
+                finalAppName = `${appName}-pr-${prNumber.trim()}`;
+            }
+
+            // Build the LogQL query
+            const escapedAppName = finalAppName.replace(/"/g, '\\"');
+            const escapedErrorType = errorType.trim().replace(/"/g, '\\"');
+            const escapedPattern = psaIdPattern.replace(/"/g, '\\"');
+            
+            let query = `count (count_over_time({app="${escapedAppName}"} |= "ERROR " |= "${escapedErrorType}"`;
+            
+            // Add additional filters if provided
+            if (additionalFilters.trim()) {
+                query += ` ${additionalFilters.trim()}`;
+            }
+            
+            query += ` | regexp "${escapedPattern}" | label_format PsaId="{{.PsaId}}" | PsaId != "" [${timeRange}]))`;
+
+            // Display the query
+            document.getElementById('queryOutput').textContent = query;
+
+            // Generate Grafana link
+            const panesObj = {
+                "c13": {
+                    "datasource": grafanaDataSourceUid,
+                    "queries": [
+                        {
+                            "refId": "A",
+                            "editorMode": "code",
+                            "expr": query,
+                            "queryType": "range",
+                            "datasource": { "type": "loki", "uid": grafanaDataSourceUid }
+                        }
+                    ],
+                    "range": { "from": `now-${timeRange}`, "to": "now" }
+                }
+            };
+
+            const encodedPanes = encodeURIComponent(JSON.stringify(panesObj));
+            const grafanaBaseUrl = "https://grafana.jarvis.tools/explore";
+            const orgId = "1";
+            const schemaVersion = "1";
+
+            const finalLink = `${grafanaBaseUrl}?schemaVersion=${schemaVersion}&panes=${encodedPanes}&orgId=${orgId}`;
+
+            const grafanaLinkElement = document.getElementById('grafanaLink');
+            grafanaLinkElement.href = finalLink;
+            grafanaLinkElement.textContent = finalLink;
+
+            // Save current state
+            saveFormState();
+        }
+
+        /**
+         * Copies the generated query to clipboard
+         */
+        function copyQuery() {
+            const queryOutput = document.getElementById('queryOutput');
+            const queryText = queryOutput.textContent;
+
+            if (queryText && queryText !== 'Your LogQL query will appear here...') {
+                navigator.clipboard.writeText(queryText).then(() => {
+                    showMessageBox('Query copied to clipboard!', 'success');
+                }).catch(() => {
+                    // Fallback for older browsers
+                    const textArea = document.createElement("textarea");
+                    textArea.value = queryText;
+                    textArea.style.position = "fixed";
+                    textArea.style.left = "-9999px";
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    
+                    try {
+                        document.execCommand('copy');
+                        showMessageBox('Query copied to clipboard!', 'success');
+                    } catch (err) {
+                        showMessageBox('Failed to copy query. Please copy manually.', 'error');
+                    } finally {
+                        document.body.removeChild(textArea);
+                    }
+                });
+            } else {
+                showMessageBox('No query to copy. Generate a query first.', 'error');
+            }
+        }
+
+        /**
+         * Copies the generated Grafana link to clipboard
+         */
+        function copyLink() {
+            const grafanaLinkElement = document.getElementById('grafanaLink');
+            const linkToCopy = grafanaLinkElement.href;
+
+            if (linkToCopy && linkToCopy !== '#' && linkToCopy !== 'Your link will appear here...') {
+                navigator.clipboard.writeText(linkToCopy).then(() => {
+                    showMessageBox('Link copied to clipboard!', 'success');
+                }).catch(() => {
+                    // Fallback for older browsers
+                    const textArea = document.createElement("textarea");
+                    textArea.value = linkToCopy;
+                    textArea.style.position = "fixed";
+                    textArea.style.left = "-9999px";
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    
+                    try {
+                        document.execCommand('copy');
+                        showMessageBox('Link copied to clipboard!', 'success');
+                    } catch (err) {
+                        showMessageBox('Failed to copy link. Please copy manually.', 'error');
+                    } finally {
+                        document.body.removeChild(textArea);
+                    }
+                });
+            } else {
+                showMessageBox('No valid link to copy. Generate a query first.', 'error');
+            }
+        }
+
+        /**
+         * Resets the form to default values
+         */
+        function resetForm() {
+            document.getElementById('grafanaDataSource').value = 'PFDB45C165C6355FF';
+            document.getElementById('prNumber').value = '';
+            document.getElementById('errorType').value = 'TokenSpinGuidNotFoundException';
+            document.getElementById('timeRange').value = '1h';
+            document.getElementById('additionalFilters').value = '';
+            
+            populateAppNames();
+            generateQuery();
+            saveFormState();
+            
+            showMessageBox('Form reset successfully!', 'success');
+        }
+
+        /**
+         * Saves form state to localStorage
+         */
+        function saveFormState() {
+            const formState = {
+                grafanaDataSource: document.getElementById('grafanaDataSource').value,
+                appName: document.getElementById('appName').value,
+                prNumber: document.getElementById('prNumber').value,
+                errorType: document.getElementById('errorType').value,
+                timeRange: document.getElementById('timeRange').value,
+                additionalFilters: document.getElementById('additionalFilters').value
+            };
+
+            localStorage.setItem('psaIdErrorDetectorState', JSON.stringify(formState));
+        }
+
+        /**
+         * Loads form state from localStorage
+         */
+        function loadFormState() {
+            const savedState = localStorage.getItem('psaIdErrorDetectorState');
+            if (!savedState) return;
+
+            try {
+                const state = JSON.parse(savedState);
+                
+                if (state.grafanaDataSource) {
+                    document.getElementById('grafanaDataSource').value = state.grafanaDataSource;
+                }
+                if (state.prNumber) {
+                    document.getElementById('prNumber').value = state.prNumber;
+                }
+                if (state.errorType) {
+                    document.getElementById('errorType').value = state.errorType;
+                }
+                if (state.timeRange) {
+                    document.getElementById('timeRange').value = state.timeRange;
+                }
+                if (state.additionalFilters) {
+                    document.getElementById('additionalFilters').value = state.additionalFilters;
+                }
+                
+                populateAppNames();
+                
+                // Set app name after populating options
+                if (state.appName) {
+                    setTimeout(() => {
+                        document.getElementById('appName').value = state.appName;
+                        updatePRFieldVisibility();
+                        generateQuery();
+                    }, 100);
+                } else {
+                    generateQuery();
+                }
+            } catch (error) {
+                console.error('Error loading saved state:', error);
+                generateQuery();
+            }
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add event listeners that auto-generate query
+            document.getElementById('grafanaDataSource').addEventListener('change', () => {
+                populateAppNames();
+                generateQuery();
+                saveFormState();
+            });
+            
+            document.getElementById('appName').addEventListener('change', () => {
+                updatePRFieldVisibility();
+                generateQuery();
+                saveFormState();
+            });
+            
+            // Add input event listeners for auto-generation and auto-save
+            ['prNumber', 'errorType', 'timeRange', 'additionalFilters'].forEach(id => {
+                const element = document.getElementById(id);
+                element.addEventListener('input', () => {
+                    generateQuery();
+                    saveFormState();
+                });
+                element.addEventListener('change', () => {
+                    generateQuery();
+                    saveFormState();
+                });
+            });
+            
+            // Load saved state and initialize
+            loadFormState();
+            populateAppNames();
+            
+            // Generate initial query on page load
+            setTimeout(() => {
+                generateQuery();
+            }, 200);
+        });
+    </script>
+</body>
+
+</html>
