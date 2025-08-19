@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOTP Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .add-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px 25px;
+            margin-bottom: 30px;
+            border: 2px dashed #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .add-section.collapsed {
+            padding: 15px 25px;
+        }
+
+        .add-section.collapsed .form-content {
+            display: none;
+        }
+
+        .add-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        .add-section.collapsed .add-toggle {
+            margin-bottom: 0;
+        }
+
+        .add-toggle h3 {
+            margin: 0;
+            color: #495057;
+        }
+
+        .toggle-icon {
+            font-size: 1.2em;
+            transition: transform 0.3s ease;
+        }
+
+        .add-section.collapsed .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus, input[type="password"]:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn:hover {
+            background: #0056b3;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .totp-list {
+            display: grid;
+            gap: 20px;
+        }
+
+        .totp-item {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .totp-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .totp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .totp-name {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .totp-code {
+            font-family: 'Courier New', monospace;
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            text-align: center;
+            margin: 20px 0;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .totp-code:hover {
+            color: #007bff;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #007bff;
+            border-radius: 4px;
+            transition: width 0.1s ease;
+        }
+
+        .totp-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+
+        .copy-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .copy-notification.show {
+            transform: translateX(0);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .qr-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .qr-input {
+            display: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .totp-code {
+                font-size: 1.8em;
+            }
+            
+            .totp-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 TOTP Generator</h1>
+            <p>Secure Time-based One-Time Password Generator</p>
+            <div id="syncStatus" style="margin-top: 10px; font-size: 0.9em;">
+                🟡 Syncing time...
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="add-section collapsed" id="addSection">
+                <div class="add-toggle" onclick="toggleAddForm()">
+                    <h3>➕ Add New TOTP Secret</h3>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                
+                <div class="form-content">
+                    <div class="form-group">
+                        <label for="serviceName">Service Name</label>
+                        <input type="text" id="serviceName" placeholder="e.g., Google, GitHub, AWS">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="secretKey">Secret Key or otpauth:// URI</label>
+                        <input type="password" id="secretKey" placeholder="Enter your secret key or paste otpauth:// URI">
+                    </div>
+                    
+                    <button class="btn" onclick="addTOTP()">Add TOTP</button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('qrInput').click()">Scan QR Code</button>
+                    
+                    <div class="qr-section">
+                        <input type="file" id="qrInput" class="qr-input" accept="image/*" onchange="handleQRUpload(event)">
+                        <p style="font-size: 0.9em; color: #6c757d; margin-top: 10px;">
+                            💡 Tip: You can upload a QR code image to automatically extract the secret
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="totpList" class="totp-list">
+                <div class="empty-state">
+                    <h3>No TOTP codes yet</h3>
+                    <p>Add your first TOTP secret above to get started</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="copyNotification" class="copy-notification">
+        Code copied to clipboard! 📋
+    </div>
+
+    <script>
+        // Time synchronization
+        let timeOffset = 0;
+        let lastSyncTime = 0;
+        const SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
+        async function syncTime() {
+            try {
+                const start = Date.now();
+                const response = await fetch('https://worldtimeapi.org/api/timezone/Etc/UTC');
+                const data = await response.json();
+                const end = Date.now();
+                
+                const networkDelay = (end - start) / 2;
+                const serverTime = new Date(data.datetime).getTime();
+                const adjustedServerTime = serverTime + networkDelay;
+                
+                timeOffset = adjustedServerTime - end;
+                lastSyncTime = end;
+                
+                console.log(`Time synced. Offset: ${timeOffset}ms`);
+                updateSyncStatus(true);
+            } catch (error) {
+                console.warn('Time sync failed, using local time:', error);
+                updateSyncStatus(false);
+            }
+        }
+
+        function updateSyncStatus(synced) {
+            const statusElement = document.getElementById('syncStatus');
+            if (statusElement) {
+                if (synced) {
+                    statusElement.innerHTML = '🟢 Time synced with NTP';
+                    statusElement.style.color = '#28a745';
+                } else {
+                    statusElement.innerHTML = '🟡 Using local time (may be inaccurate)';
+                    statusElement.style.color = '#ffc107';
+                }
+            }
+        }
+
+        function getAccurateTime() {
+            const now = Date.now();
+            
+            // Re-sync if it's been too long
+            if (now - lastSyncTime > SYNC_INTERVAL) {
+                syncTime();
+            }
+            
+            return now + timeOffset;
+        }
+
+        // TOTP Implementation
+        class TOTP {
+            constructor(secret, period = 30, digits = 6) {
+                this.secret = secret;
+                this.period = period;
+                this.digits = digits;
+            }
+
+            // Base32 decode
+            base32Decode(base32) {
+                const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+                
+                // Clean input
+                base32 = base32.toUpperCase().replace(/[^A-Z2-7=]/g, '');
+                
+                // Remove padding
+                base32 = base32.replace(/=+$/, '');
+                
+                let bits = 0;
+                let value = 0;
+                let output = [];
+                
+                for (let i = 0; i < base32.length; i++) {
+                    const char = base32[i];
+                    const index = alphabet.indexOf(char);
+                    
+                    if (index === -1) continue;
+                    
+                    value = (value << 5) | index;
+                    bits += 5;
+                    
+                    if (bits >= 8) {
+                        output.push((value >>> (bits - 8)) & 255);
+                        bits -= 8;
+                    }
+                }
+                
+                return new Uint8Array(output);
+            }
+
+            // HMAC-SHA1
+            async hmacSha1(key, message) {
+                const cryptoKey = await crypto.subtle.importKey(
+                    'raw',
+                    key,
+                    { name: 'HMAC', hash: 'SHA-1' },
+                    false,
+                    ['sign']
+                );
+                
+                const signature = await crypto.subtle.sign('HMAC', cryptoKey, message);
+                return new Uint8Array(signature);
+            }
+
+            // Generate TOTP
+            async generate(timestamp = getAccurateTime()) {
+                const timeStep = Math.floor(timestamp / 1000 / this.period);
+                const timeBytes = new ArrayBuffer(8);
+                const timeView = new DataView(timeBytes);
+                timeView.setUint32(4, timeStep, false);
+                
+                const key = this.base32Decode(this.secret);
+                const hmac = await this.hmacSha1(key, timeBytes);
+                
+                const offset = hmac[hmac.length - 1] & 0x0f;
+                const code = (
+                    ((hmac[offset] & 0x7f) << 24) |
+                    ((hmac[offset + 1] & 0xff) << 16) |
+                    ((hmac[offset + 2] & 0xff) << 8) |
+                    (hmac[offset + 3] & 0xff)
+                ) % Math.pow(10, this.digits);
+                
+                return code.toString().padStart(this.digits, '0');
+            }
+
+            // Get remaining time in current period
+            getRemainingTime(timestamp = getAccurateTime()) {
+                const timeStep = Math.floor(timestamp / 1000 / this.period);
+                const nextStep = (timeStep + 1) * this.period;
+                return nextStep - Math.floor(timestamp / 1000);
+            }
+        }
+
+        // Storage management
+        function saveTOTPs(totps) {
+            localStorage.setItem('totp_secrets', JSON.stringify(totps));
+        }
+
+        function loadTOTPs() {
+            const stored = localStorage.getItem('totp_secrets');
+            return stored ? JSON.parse(stored) : [];
+        }
+
+        function parseOtpAuthUri(uri) {
+            try {
+                const url = new URL(uri);
+                if (url.protocol !== 'otpauth:') {
+                    return null;
+                }
+                
+                const params = new URLSearchParams(url.search);
+                const secret = params.get('secret');
+                const issuer = params.get('issuer') || '';
+                const period = parseInt(params.get('period')) || 30;
+                const digits = parseInt(params.get('digits')) || 6;
+                
+                // Extract service name from path
+                const pathParts = url.pathname.split(':');
+                let serviceName = '';
+                if (pathParts.length > 1) {
+                    serviceName = decodeURIComponent(pathParts[1]);
+                } else {
+                    serviceName = decodeURIComponent(url.pathname.substring(1));
+                }
+                
+                if (issuer && !serviceName.includes(issuer)) {
+                    serviceName = issuer + (serviceName ? ': ' + serviceName : '');
+                }
+                
+                return {
+                    name: serviceName,
+                    secret: decodeURIComponent(secret),
+                    period: period,
+                    digits: digits
+                };
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function addTOTP() {
+            let serviceName = document.getElementById('serviceName').value.trim();
+            let secretKey = document.getElementById('secretKey').value.trim().replace(/\s/g, '');
+            
+            if (!serviceName || !secretKey) {
+                alert('Please fill in both service name and secret key');
+                return;
+            }
+            
+            // Check if it's an otpauth:// URI
+            if (secretKey.startsWith('otpauth://')) {
+                const parsed = parseOtpAuthUri(secretKey);
+                if (parsed) {
+                    if (!serviceName || serviceName === '') {
+                        serviceName = parsed.name;
+                    }
+                    secretKey = parsed.secret;
+                } else {
+                    alert('Invalid otpauth:// URI format');
+                    return;
+                }
+            }
+            
+            // Clean up secret key - remove spaces and ensure proper padding
+            secretKey = secretKey.replace(/\s/g, '').toUpperCase();
+            
+            // Add padding if needed for base32
+            while (secretKey.length % 8 !== 0) {
+                secretKey += '=';
+            }
+            
+            // Validate secret key (should be base32)
+            if (!/^[A-Z2-7]+=*$/i.test(secretKey)) {
+                alert('Invalid secret key format. Please enter a valid base32 encoded secret.');
+                return;
+            }
+            
+            const totps = loadTOTPs();
+            totps.push({
+                id: Date.now(),
+                name: serviceName,
+                secret: secretKey
+            });
+            
+            saveTOTPs(totps);
+            
+            // Clear form
+            document.getElementById('serviceName').value = '';
+            document.getElementById('secretKey').value = '';
+            
+            buildTOTPList();
+        }
+
+        function deleteTOTP(id) {
+            if (confirm('Are you sure you want to delete this TOTP?')) {
+                const totps = loadTOTPs().filter(totp => totp.id !== id);
+                saveTOTPs(totps);
+                renderTOTPs();
+            }
+        }
+
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showCopyNotification();
+            } catch (err) {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showCopyNotification();
+            }
+        }
+
+        function showCopyNotification() {
+            const notification = document.getElementById('copyNotification');
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+
+        async function renderTOTPs() {
+            const totps = loadTOTPs();
+            const container = document.getElementById('totpList');
+            
+            if (totps.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No TOTP codes yet</h3>
+                        <p>Add your first TOTP secret above to get started</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Check if we need to rebuild the entire list
+            const existingItems = container.querySelectorAll('.totp-item');
+            if (existingItems.length !== totps.length) {
+                // Rebuild entire list if count changed
+                await buildTOTPList();
+                return;
+            }
+            
+            // Update existing items
+            for (let i = 0; i < totps.length; i++) {
+                const totpData = totps[i];
+                const item = existingItems[i];
+                const totp = new TOTP(totpData.secret);
+                const code = await totp.generate();
+                const remaining = totp.getRemainingTime();
+                const progress = (remaining / 30) * 100;
+                
+                // Update only the dynamic parts
+                const codeElement = item.querySelector('.totp-code');
+                const progressElement = item.querySelector('.progress-fill');
+                const timeElement = item.querySelector('.totp-footer span');
+                
+                if (codeElement && codeElement.textContent !== code) {
+                    codeElement.textContent = code;
+                    codeElement.onclick = () => copyToClipboard(code);
+                }
+                
+                if (progressElement) {
+                    progressElement.style.width = `${progress}%`;
+                }
+                
+                if (timeElement) {
+                    timeElement.textContent = `Expires in ${remaining}s`;
+                }
+            }
+        }
+
+        async function buildTOTPList() {
+            const totps = loadTOTPs();
+            const container = document.getElementById('totpList');
+            
+            container.innerHTML = '';
+            
+            for (const totpData of totps) {
+                const totp = new TOTP(totpData.secret);
+                const code = await totp.generate();
+                const remaining = totp.getRemainingTime();
+                const progress = (remaining / 30) * 100;
+                
+                const item = document.createElement('div');
+                item.className = 'totp-item';
+                item.setAttribute('data-id', totpData.id);
+                item.innerHTML = `
+                    <div class="totp-header">
+                        <div class="totp-name">${totpData.name}</div>
+                        <button class="btn btn-danger" onclick="deleteTOTP(${totpData.id})" style="padding: 8px 15px; font-size: 14px;">Delete</button>
+                    </div>
+                    <div class="totp-code" onclick="copyToClipboard('${code}')" title="Click to copy">${code}</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="totp-footer">
+                        <span>Expires in ${remaining}s</span>
+                        <span>Click code to copy</span>
+                    </div>
+                `;
+                
+                container.appendChild(item);
+            }
+        }
+
+        // Toggle add form visibility
+        function toggleAddForm() {
+            const addSection = document.getElementById('addSection');
+            addSection.classList.toggle('collapsed');
+        }
+
+        // QR Code handling (basic implementation)
+        function handleQRUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // For a complete implementation, you would use a QR code library
+            // This is a placeholder that shows how it could work
+            alert('QR code scanning requires additional libraries. For now, please manually enter the secret key from your QR code.');
+        }
+
+        // Initialize time sync and start the app
+        async function initializeApp() {
+            // Start time sync immediately
+            await syncTime();
+            
+            // Initial render
+            renderTOTPs();
+            
+            // Auto-refresh every second
+            setInterval(renderTOTPs, 1000);
+        }
+
+        // Handle Enter key in form
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && (e.target.id === 'serviceName' || e.target.id === 'secretKey')) {
+                addTOTP();
+            }
+        });
+
+        // Start the app when page loads
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+</body>
+</html>
