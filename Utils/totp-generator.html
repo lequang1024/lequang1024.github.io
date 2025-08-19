@@ -4,337 +4,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TOTP Generator</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: #2c3e50;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 1.8em;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 0.9em;
-        }
-
-        .content {
-            padding: 30px;
-        }
-
-        .add-section {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px 25px;
-            margin-bottom: 30px;
-            border: 2px dashed #dee2e6;
-            transition: all 0.3s ease;
-        }
-
-        .add-section.collapsed {
-            padding: 15px 25px;
-        }
-
-        .add-section.collapsed .form-content {
-            display: none;
-        }
-
-        .add-toggle {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            margin-bottom: 15px;
-        }
-
-        .add-section.collapsed .add-toggle {
-            margin-bottom: 0;
-        }
-
-        .add-toggle h3 {
-            margin: 0;
-            color: #495057;
-        }
-
-        .toggle-icon {
-            font-size: 1.2em;
-            transition: transform 0.3s ease;
-        }
-
-        .add-section.collapsed .toggle-icon {
-            transform: rotate(180deg);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #495057;
-        }
-
-        input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s ease;
-        }
-
-        input[type="text"]:focus, input[type="password"]:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-        }
-
-        .btn {
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-
-        .btn:hover {
-            background: #0056b3;
-        }
-
-        .btn-danger {
-            background: #dc3545;
-        }
-
-        .btn-danger:hover {
-            background: #c82333;
-        }
-
-        .totp-list {
-            display: grid;
-            gap: 20px;
-        }
-
-        .totp-item {
-            background: white;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .totp-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-        }
-
-        .totp-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .totp-name {
-            font-size: 1.3em;
-            font-weight: 700;
-            color: #2c3e50;
-        }
-
-        .totp-code {
-            font-family: 'Courier New', monospace;
-            font-size: 2.2em;
-            font-weight: bold;
-            color: #2c3e50;
-            text-align: center;
-            margin: 20px 0;
-            letter-spacing: 3px;
-            cursor: pointer;
-            transition: color 0.2s ease;
-        }
-
-        .totp-code:hover {
-            color: #007bff;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #e9ecef;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 15px;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: #007bff;
-            border-radius: 4px;
-            transition: width 0.1s ease;
-        }
-
-        .totp-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9em;
-            color: #6c757d;
-        }
-
-        .copy-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #28a745;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
-            z-index: 1000;
-        }
-
-        .copy-notification.show {
-            transform: translateX(0);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #6c757d;
-        }
-
-        .empty-state h3 {
-            margin-bottom: 15px;
-            font-size: 1.5em;
-        }
-
-        .qr-section {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #dee2e6;
-        }
-
-        .qr-input {
-            display: none;
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-            margin-left: 10px;
-        }
-
-        .btn-secondary:hover {
-            background: #5a6268;
-            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                margin: 10px;
-                border-radius: 10px;
-            }
-            
-            .content {
-                padding: 20px;
-            }
-            
-            .totp-code {
-                font-size: 1.8em;
-            }
-            
-            .totp-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'mono': ['Courier New', 'monospace']
+                    }
+                }
             }
         }
-    </style>
+    </script>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🔐 TOTP Generator</h1>
-            <p>Secure Time-based One-Time Password Generator</p>
-            <div id="syncStatus" style="margin-top: 10px; font-size: 0.9em;">
+<body class="bg-gray-100 min-h-screen p-5">
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="bg-gray-800 text-white p-5 text-center">
+            <h1 class="text-2xl font-semibold mb-1">🔐 TOTP Generator</h1>
+            <p class="opacity-90 text-sm">Secure Time-based One-Time Password Generator</p>
+            <div id="syncStatus" class="mt-2 text-sm">
                 🟡 Syncing time...
             </div>
         </div>
         
-        <div class="content">
-            <div class="add-section collapsed" id="addSection">
-                <div class="add-toggle" onclick="toggleAddForm()">
-                    <h3>➕ Add New TOTP Secret</h3>
-                    <span class="toggle-icon">▼</span>
+        <div class="p-8">
+            <div id="addSection" class="bg-gray-50 rounded-lg p-6 mb-8 border-2 border-dashed border-gray-300 transition-all duration-300 collapsed">
+                <div class="flex justify-between items-center cursor-pointer mb-0" onclick="toggleAddForm()">
+                    <h3 class="text-lg font-medium text-gray-700">➕ Add New TOTP Secret</h3>
+                    <span class="toggle-icon text-xl transition-transform duration-300">▼</span>
                 </div>
                 
-                <div class="form-content">
-                    <div class="form-group">
-                        <label for="serviceName">Service Name</label>
-                        <input type="text" id="serviceName" placeholder="e.g., Google, GitHub, AWS">
+                <div class="form-content hidden">
+                    <div class="mb-5">
+                        <label for="serviceName" class="block mb-2 font-semibold text-gray-700">Service Name</label>
+                        <input type="text" id="serviceName" placeholder="e.g., Google, GitHub, AWS" 
+                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-base transition-colors focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
                     </div>
                     
-                    <div class="form-group">
-                        <label for="secretKey">Secret Key or otpauth:// URI</label>
-                        <input type="password" id="secretKey" placeholder="Enter your secret key or paste otpauth:// URI">
+                    <div class="mb-5">
+                        <label for="secretKey" class="block mb-2 font-semibold text-gray-700">Secret Key or otpauth:// URI</label>
+                        <input type="password" id="secretKey" placeholder="Enter your secret key or paste otpauth:// URI"
+                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-base transition-colors focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
                     </div>
                     
-                    <button class="btn" onclick="addTOTP()">Add TOTP</button>
-                    <button class="btn btn-secondary" onclick="document.getElementById('qrInput').click()">Scan QR Code</button>
+                    <button onclick="addTOTP()" class="bg-blue-500 text-white px-6 py-3 rounded-md text-base font-medium hover:bg-blue-600 transition-colors">
+                        Add TOTP
+                    </button>
                     
-                    <div class="qr-section">
-                        <input type="file" id="qrInput" class="qr-input" accept="image/*" onchange="handleQRUpload(event)">
-                        <p style="font-size: 0.9em; color: #6c757d; margin-top: 10px;">
-                            💡 Tip: You can upload a QR code image to automatically extract the secret
+                    <div class="mt-5 pt-5 border-t border-gray-200">
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="exportSecrets()" class="bg-green-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-600 transition-colors">
+                                Export Secrets
+                            </button>
+                            <button onclick="document.getElementById('importInput').click()" class="bg-purple-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-purple-600 transition-colors">
+                                Import Secrets
+                            </button>
+                            <input type="file" id="importInput" class="hidden" accept=".json" onchange="importSecrets(event)">
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">
+                            💾 Export your secrets to a JSON file for backup or import from a previous backup
                         </p>
                     </div>
+                    
                 </div>
             </div>
             
-            <div id="totpList" class="totp-list">
-                <div class="empty-state">
-                    <h3>No TOTP codes yet</h3>
+            <div id="totpList" class="grid gap-5">
+                <div class="text-center py-16 text-gray-500">
+                    <h3 class="text-xl mb-4">No TOTP codes yet</h3>
                     <p>Add your first TOTP secret above to get started</p>
                 </div>
             </div>
         </div>
     </div>
     
-    <div id="copyNotification" class="copy-notification">
+    <div id="copyNotification" class="fixed top-5 right-5 bg-green-500 text-white px-5 py-4 rounded-lg shadow-lg transform translate-x-96 transition-transform duration-300 z-50">
         Code copied to clipboard! 📋
     </div>
 
@@ -371,10 +115,10 @@
             if (statusElement) {
                 if (synced) {
                     statusElement.innerHTML = '🟢 Time synced with NTP';
-                    statusElement.style.color = '#28a745';
+                    statusElement.className = 'mt-2 text-sm text-green-400';
                 } else {
                     statusElement.innerHTML = '🟡 Using local time (may be inaccurate)';
-                    statusElement.style.color = '#ffc107';
+                    statusElement.className = 'mt-2 text-sm text-yellow-400';
                 }
             }
         }
@@ -599,9 +343,11 @@
 
         function showCopyNotification() {
             const notification = document.getElementById('copyNotification');
-            notification.classList.add('show');
+            notification.classList.remove('translate-x-96');
+            notification.classList.add('translate-x-0');
             setTimeout(() => {
-                notification.classList.remove('show');
+                notification.classList.remove('translate-x-0');
+                notification.classList.add('translate-x-96');
             }, 2000);
         }
 
@@ -611,8 +357,8 @@
             
             if (totps.length === 0) {
                 container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>No TOTP codes yet</h3>
+                    <div class="text-center py-16 text-gray-500">
+                        <h3 class="text-xl mb-4">No TOTP codes yet</h3>
                         <p>Add your first TOTP secret above to get started</p>
                     </div>
                 `;
@@ -669,18 +415,18 @@
                 const progress = (remaining / 30) * 100;
                 
                 const item = document.createElement('div');
-                item.className = 'totp-item';
+                item.className = 'totp-item bg-white border-2 border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200';
                 item.setAttribute('data-id', totpData.id);
                 item.innerHTML = `
-                    <div class="totp-header">
-                        <div class="totp-name">${totpData.name}</div>
-                        <button class="btn btn-danger" onclick="deleteTOTP(${totpData.id})" style="padding: 8px 15px; font-size: 14px;">Delete</button>
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="text-xl font-bold text-gray-800">${totpData.name}</div>
+                        <button onclick="deleteTOTP(${totpData.id})" class="bg-red-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-600 transition-colors">Delete</button>
                     </div>
-                    <div class="totp-code" onclick="copyToClipboard('${code}')" title="Click to copy">${code}</div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${progress}%"></div>
+                    <div class="totp-code font-mono text-4xl font-bold text-gray-800 text-center my-5 tracking-wider cursor-pointer hover:text-blue-500 transition-colors" onclick="copyToClipboard('${code}')" title="Click to copy">${code}</div>
+                    <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-4">
+                        <div class="progress-fill h-full bg-blue-500 rounded-full transition-all duration-100" style="width: ${progress}%"></div>
                     </div>
-                    <div class="totp-footer">
+                    <div class="totp-footer flex justify-between items-center text-sm text-gray-500">
                         <span>Expires in ${remaining}s</span>
                         <span>Click code to copy</span>
                     </div>
@@ -693,18 +439,25 @@
         // Toggle add form visibility
         function toggleAddForm() {
             const addSection = document.getElementById('addSection');
-            addSection.classList.toggle('collapsed');
+            const formContent = addSection.querySelector('.form-content');
+            const toggleIcon = addSection.querySelector('.toggle-icon');
+            const toggleDiv = addSection.querySelector('.flex.justify-between.items-center.cursor-pointer');
+            
+            if (addSection.classList.contains('collapsed')) {
+                addSection.classList.remove('collapsed');
+                formContent.classList.remove('hidden');
+                toggleIcon.style.transform = 'rotate(180deg)';
+                toggleDiv.classList.remove('mb-0');
+                toggleDiv.classList.add('mb-4');
+            } else {
+                addSection.classList.add('collapsed');
+                formContent.classList.add('hidden');
+                toggleIcon.style.transform = 'rotate(0deg)';
+                toggleDiv.classList.remove('mb-4');
+                toggleDiv.classList.add('mb-0');
+            }
         }
 
-        // QR Code handling (basic implementation)
-        function handleQRUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            // For a complete implementation, you would use a QR code library
-            // This is a placeholder that shows how it could work
-            alert('QR code scanning requires additional libraries. For now, please manually enter the secret key from your QR code.');
-        }
 
         // Initialize time sync and start the app
         async function initializeApp() {
@@ -716,6 +469,131 @@
             
             // Auto-refresh every second
             setInterval(renderTOTPs, 1000);
+        }
+
+        // Export/Import functions
+        function exportSecrets() {
+            const totps = loadTOTPs();
+            if (totps.length === 0) {
+                alert('No secrets to export');
+                return;
+            }
+            
+            const exportData = {
+                version: '1.0',
+                exportDate: new Date().toISOString(),
+                secrets: totps.map(totp => ({
+                    name: totp.name,
+                    secret: totp.secret,
+                    id: totp.id
+                }))
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `totp-secrets-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('Secrets exported successfully! 📁', 'bg-blue-500');
+        }
+        
+        function importSecrets(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importData = JSON.parse(e.target.result);
+                    
+                    // Validate import data structure
+                    if (!importData.secrets || !Array.isArray(importData.secrets)) {
+                        throw new Error('Invalid file format');
+                    }
+                    
+                    // Validate each secret
+                    for (const secret of importData.secrets) {
+                        if (!secret.name || !secret.secret) {
+                            throw new Error('Invalid secret data in file');
+                        }
+                        
+                        // Validate secret key format
+                        if (!/^[A-Z2-7]+=*$/i.test(secret.secret)) {
+                            throw new Error(`Invalid secret key format for ${secret.name}`);
+                        }
+                    }
+                    
+                    const currentTotps = loadTOTPs();
+                    const importCount = importData.secrets.length;
+                    let addedCount = 0;
+                    let skippedCount = 0;
+                    
+                    // Check for duplicates and add new secrets
+                    for (const importSecret of importData.secrets) {
+                        const exists = currentTotps.some(existing => 
+                            existing.name.toLowerCase() === importSecret.name.toLowerCase() ||
+                            existing.secret === importSecret.secret
+                        );
+                        
+                        if (!exists) {
+                            currentTotps.push({
+                                id: Date.now() + Math.random(), // Ensure unique ID
+                                name: importSecret.name,
+                                secret: importSecret.secret
+                            });
+                            addedCount++;
+                        } else {
+                            skippedCount++;
+                        }
+                    }
+                    
+                    saveTOTPs(currentTotps);
+                    buildTOTPList();
+                    
+                    let message = `Import completed! Added ${addedCount} secrets.`;
+                    if (skippedCount > 0) {
+                        message += ` Skipped ${skippedCount} duplicates.`;
+                    }
+                    
+                    showNotification(message + ' 📥', 'bg-green-500');
+                    
+                } catch (error) {
+                    console.error('Import error:', error);
+                    alert(`Import failed: ${error.message}`);
+                }
+            };
+            
+            reader.readAsText(file);
+            // Clear the input so the same file can be selected again
+            event.target.value = '';
+        }
+        
+        function showNotification(message, bgColor = 'bg-green-500') {
+            const notification = document.getElementById('copyNotification');
+            const originalMessage = notification.textContent;
+            const originalClass = notification.className;
+            
+            notification.textContent = message;
+            notification.className = notification.className.replace(/bg-\w+-\d+/, bgColor);
+            
+            notification.classList.remove('translate-x-96');
+            notification.classList.add('translate-x-0');
+            
+            setTimeout(() => {
+                notification.classList.remove('translate-x-0');
+                notification.classList.add('translate-x-96');
+                
+                // Restore original notification after animation
+                setTimeout(() => {
+                    notification.textContent = originalMessage;
+                    notification.className = originalClass;
+                }, 300);
+            }, 3000);
         }
 
         // Handle Enter key in form
