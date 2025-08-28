@@ -34,6 +34,16 @@
                     <option value="qa" data-prefix="mxqa">QA (mxqa:)</option>
                     <option value="prod" data-prefix="mx">Production (mx:)</option>
                 </select>
+                
+                <!-- Couchbase UI Link -->
+                <div id="couchbaseLink" class="mt-2 hidden">
+                    <a id="couchbaseUrl" href="#" target="_blank" class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors duration-200">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                        Open Couchbase UI
+                    </a>
+                </div>
             </div>
 
             <!-- Document Type Selection -->
@@ -103,21 +113,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Key Structure Info -->
-            <div class="bg-blue-50 rounded-lg p-6 border border-blue-200">
-                <h3 class="text-lg font-semibold text-blue-800 mb-3">Key Structure Information</h3>
-                <div class="text-sm text-blue-700 space-y-2">
-                    <p><strong>Format:</strong> [environment_prefix]:[document_type_key]</p>
-                    <p><strong>Environment Prefixes:</strong></p>
-                    <ul class="list-disc list-inside ml-4 space-y-1">
-                        <li><code class="bg-blue-100 px-1 rounded">mxhk:</code> - Trunk environment</li>
-                        <li><code class="bg-blue-100 px-1 rounded">mxqa:</code> - QA environment</li>
-                        <li><code class="bg-blue-100 px-1 rounded">mx:</code> - Production environment</li>
-                    </ul>
-                    <p><strong>Example:</strong> <code class="bg-blue-100 px-1 rounded">mxhk:s:12345</code> (Trunk environment, Player Saga document for PSA ID 12345)</p>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -125,6 +120,11 @@
         class CouchbaseKeyBuilder {
             constructor() {
                 this.selectedPrefix = null;
+                this.couchbaseUrls = {
+                    'trunk': 'http://10.112.64.108:8091/ui/index.html#/docs/editor?commonBucket=mvmx_arthur_trunk_ephemeral&scenarioZoom=minute&scenario=zl7an9ein',
+                    'qa': 'http://10.176.0.223:8091/ui/index.html#/docs/editor?commonBucket=mvmx_arthur_qa&scenarioZoom=minute&scenario=oonar29lw',
+                    'prod': 'http://couch001.ps2.int:8091/ui/index.html#/docs/editor?commonBucket=mvmx_backend_production&scenarioZoom=minute&scenario=jip4ztbz2'
+                };
                 this.initializeEventListeners();
                 this.loadSavedValues();
             }
@@ -145,7 +145,20 @@
 
             handleEnvironmentChange(e) {
                 const selectedOption = e.target.selectedOptions[0];
+                const environment = e.target.value;
                 this.selectedPrefix = selectedOption.dataset.prefix || null;
+                
+                // Show/hide Couchbase UI link
+                const linkContainer = document.getElementById('couchbaseLink');
+                const linkElement = document.getElementById('couchbaseUrl');
+                
+                if (environment && this.couchbaseUrls[environment]) {
+                    linkElement.href = this.couchbaseUrls[environment];
+                    linkContainer.classList.remove('hidden');
+                } else {
+                    linkContainer.classList.add('hidden');
+                }
+                
                 this.saveValues();
                 this.generateKey();
             }
@@ -262,6 +275,9 @@
                 document.getElementById('environment').value = '';
                 document.getElementById('docType').value = '';
                 document.getElementById('parameterInputs').innerHTML = '';
+                
+                // Hide Couchbase link
+                document.getElementById('couchbaseLink').classList.add('hidden');
                 
                 const keyDisplay = document.getElementById('generatedKey');
                 keyDisplay.innerHTML = '<span class="text-gray-400 italic">Select environment and document type to generate key</span>';
