@@ -181,20 +181,69 @@
                 const paramList = params.split(',');
                 paramList.forEach(param => {
                     const div = document.createElement('div');
-                    div.innerHTML = `
-                        <label for="${param}" class="block text-sm font-medium text-gray-700 mb-2">${this.formatParamLabel(param)}</label>
-                        <input type="text" id="${param}" name="${param}" 
-                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                               placeholder="Enter ${param}">
-                    `;
-                    container.appendChild(div);
+                    
+                    // Special handling for 'system' parameter - use dropdown for Award System
+                    if (param === 'system') {
+                        div.innerHTML = `
+                            <label for="${param}" class="block text-sm font-medium text-gray-700 mb-2">${this.formatParamLabel(param)}</label>
+                            <select id="${param}" name="${param}"
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                                <option value="">Select Award System</option>
+                                <option value="None">None</option>
+                                <option value="Rollback">Rollback</option>
+                                <option value="Inbox">Inbox</option>
+                                <option value="Admon">Admon</option>
+                                <option value="Purchase">Purchase</option>
+                                <option value="PurchaseBonus">PurchaseBonus</option>
+                                <option value="Gifting">Gifting</option>
+                                <option value="SeasonItemExpired">SeasonItemExpired</option>
+                                <option value="QuestMilestoneComplete">QuestMilestoneComplete</option>
+                                <option value="QuestComplete">QuestComplete</option>
+                                <option value="QuestEnd">QuestEnd</option>
+                                <option value="QuestCampaignComplete">QuestCampaignComplete</option>
+                                <option value="CounterGoal">CounterGoal</option>
+                                <option value="SibylAction">SibylAction</option>
+                                <option value="DailyBonus">DailyBonus</option>
+                                <option value="HourlyBonus">HourlyBonus</option>
+                                <option value="GoBroke">GoBroke</option>
+                                <option value="Coupon">Coupon</option>
+                                <option value="LevelUp">LevelUp</option>
+                                <option value="FacebookLogin">FacebookLogin</option>
+                                <option value="Teak">Teak</option>
+                                <option value="CounterManipulate">CounterManipulate</option>
+                                <option value="TimedCollect">TimedCollect</option>
+                                <option value="GameSpin">GameSpin</option>
+                                <option value="Preview">Preview</option>
+                                <option value="Inventory">Inventory</option>
+                                <option value="Album">Album</option>
+                                <option value="Leaderboard">Leaderboard</option>
+                            </select>
+                        `;
+                        container.appendChild(div);
 
-                    // Add event listener for input changes
-                    const input = div.querySelector('input');
-                    input.addEventListener('input', () => {
-                        this.saveValues();
-                        this.generateKey();
-                    });
+                        // Add event listener for select changes
+                        const select = div.querySelector('select');
+                        select.addEventListener('change', () => {
+                            this.saveValues();
+                            this.generateKey();
+                        });
+                    } else {
+                        // Regular text input for other parameters
+                        div.innerHTML = `
+                            <label for="${param}" class="block text-sm font-medium text-gray-700 mb-2">${this.formatParamLabel(param)}</label>
+                            <input type="text" id="${param}" name="${param}"
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                   placeholder="Enter ${param}">
+                        `;
+                        container.appendChild(div);
+
+                        // Add event listener for input changes
+                        const input = div.querySelector('input');
+                        input.addEventListener('input', () => {
+                            this.saveValues();
+                            this.generateKey();
+                        });
+                    }
                 });
 
                 // Load saved parameter values
@@ -211,7 +260,7 @@
                     'scheduleId': 'Schedule ID',
                     'counterId': 'Counter ID',
                     'sessionId': 'Session ID',
-                    'system': 'System'
+                    'system': 'Award System'
                 };
                 return labels[param] || param;
             }
@@ -220,6 +269,7 @@
                 const environment = document.getElementById('environment').value;
                 const docType = document.getElementById('docType').value;
                 const paramInputs = document.querySelectorAll('#parameterInputs input');
+                const paramSelects = document.querySelectorAll('#parameterInputs select');
                 const keyDisplay = document.getElementById('generatedKey');
                 const copyBtn = document.getElementById('copyBtn');
                 
@@ -230,9 +280,12 @@
                     return;
                 }
 
-                // Check if all required parameters are filled
-                const allParamsFilled = Array.from(paramInputs).every(input => input.value.trim() !== '');
-                if (paramInputs.length > 0 && !allParamsFilled) {
+                // Check if all required parameters are filled (both inputs and selects)
+                const allInputsFilled = Array.from(paramInputs).every(input => input.value.trim() !== '');
+                const allSelectsFilled = Array.from(paramSelects).every(select => select.value.trim() !== '');
+                const totalParams = paramInputs.length + paramSelects.length;
+                
+                if (totalParams > 0 && (!allInputsFilled || !allSelectsFilled)) {
                     keyDisplay.innerHTML = '<span class="text-gray-400 italic">Fill in all parameters to generate key</span>';
                     copyBtn.disabled = true;
                     return;
@@ -240,8 +293,11 @@
 
                 // Generate the key
                 let keyParts = [docType];
-                paramInputs.forEach(input => {
-                    keyParts.push(input.value.trim());
+                
+                // Add values from both inputs and selects in the order they appear
+                const allElements = document.querySelectorAll('#parameterInputs input, #parameterInputs select');
+                allElements.forEach(element => {
+                    keyParts.push(element.value.trim());
                 });
                 
                 const documentKey = keyParts.join(':');
@@ -297,9 +353,9 @@
                     parameters: {}
                 };
 
-                // Save parameter values
-                document.querySelectorAll('#parameterInputs input').forEach(input => {
-                    data.parameters[input.name] = input.value;
+                // Save parameter values from both inputs and selects
+                document.querySelectorAll('#parameterInputs input, #parameterInputs select').forEach(element => {
+                    data.parameters[element.name] = element.value;
                 });
 
                 localStorage.setItem('couchbaseKeyBuilder', JSON.stringify(data));
@@ -337,9 +393,9 @@
                 if (!this.savedParameters) return;
 
                 Object.entries(this.savedParameters).forEach(([name, value]) => {
-                    const input = document.getElementById(name);
-                    if (input) {
-                        input.value = value;
+                    const element = document.getElementById(name);
+                    if (element) {
+                        element.value = value;
                     }
                 });
 
