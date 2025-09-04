@@ -378,22 +378,34 @@
                 try {
                     const data = JSON.parse(saved);
                     
+                    // Store saved parameters for later use
+                    this.savedParameters = data.parameters || {};
+                    
                     // Restore environment selection
                     if (data.environment) {
                         document.getElementById('environment').value = data.environment;
-                        const event = new Event('change');
-                        document.getElementById('environment').dispatchEvent(event);
+                        this.selectedPrefix = document.getElementById('environment').selectedOptions[0]?.dataset.prefix || null;
+                        
+                        // Show Couchbase link if applicable
+                        const linkContainer = document.getElementById('couchbaseLink');
+                        const linkElement = document.getElementById('couchbaseUrl');
+                        if (data.environment && this.couchbaseUrls[data.environment]) {
+                            linkElement.href = this.couchbaseUrls[data.environment];
+                            linkContainer.classList.remove('hidden');
+                        }
                     }
 
-                    // Restore document type
+                    // Restore document type and generate parameter inputs
                     if (data.docType) {
                         document.getElementById('docType').value = data.docType;
-                        const event = new Event('change');
-                        document.getElementById('docType').dispatchEvent(event);
+                        const selectedOption = document.getElementById('docType').selectedOptions[0];
+                        const params = selectedOption?.dataset.params;
+                        
+                        if (params) {
+                            this.generateParameterInputs(params);
+                            // loadParameterValues will be called from generateParameterInputs
+                        }
                     }
-
-                    // Restore parameters will be handled by loadParameterValues
-                    this.savedParameters = data.parameters || {};
                 } catch (e) {
                     console.error('Error loading saved values:', e);
                 }
@@ -402,14 +414,17 @@
             loadParameterValues() {
                 if (!this.savedParameters) return;
 
-                Object.entries(this.savedParameters).forEach(([name, value]) => {
-                    const element = document.getElementById(name);
-                    if (element) {
-                        element.value = value;
-                    }
-                });
+                // Use setTimeout to ensure DOM elements are fully created
+                setTimeout(() => {
+                    Object.entries(this.savedParameters).forEach(([name, value]) => {
+                        const element = document.getElementById(name);
+                        if (element && value) {
+                            element.value = value;
+                        }
+                    });
 
-                this.generateKey();
+                    this.generateKey();
+                }, 100);
             }
         }
 
