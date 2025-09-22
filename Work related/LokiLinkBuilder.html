@@ -178,7 +178,6 @@
             font-size: 1rem;
             font-weight: 600;
             width: 100%;
-            margin-top: 1rem;
             transition: background-color 0.2s, transform 0.1s;
         }
 
@@ -294,7 +293,7 @@
         const grafanaEnvironments = {
             "PFDB45C165C6355FF": { // Prod UID
                 name: "Prod",
-                appNames: ["backend", "alita"],
+                appNames: ["backend", "prd-scu-alita"],
                 prEnabled: false
             },
             "P31FC4C0F93B441EF": { // Trunk UID
@@ -343,7 +342,12 @@
             
             panelDiv.innerHTML = `
                 <div class="panel-header">
-                    <button class="remove-panel-btn" onclick="removePanel('${panelId}')" title="Remove Panel">×</button>
+                    <h2 id="${panelId}-title" contenteditable="true" class="text-lg font-bold flex-grow" onblur="savePanelsState()">Panel ${panelCounter}</h2>
+                    <button class="remove-panel-btn" onclick="removePanel('${panelId}')" title="Remove Panel">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
 
                 <label for="${panelId}-grafanaDataSource">Select Grafana Data Source:</label>
@@ -786,6 +790,7 @@
             const panelsData = panels.map(panelId => {
                 const formState = {
                     panelId: panelId,
+                    title: document.getElementById(`${panelId}-title`).textContent,
                     grafanaDataSource: document.getElementById(`${panelId}-grafanaDataSource`).value,
                     grafanaAppName: document.getElementById(`${panelId}-grafanaAppName`).value,
                     prNumber: document.getElementById(`${panelId}-prNumber`).value,
@@ -829,7 +834,12 @@
                         
                         panelDiv.innerHTML = `
                             <div class="panel-header">
-                                <button class="remove-panel-btn" onclick="removePanel('${panelId}')" title="Remove Panel">×</button>
+                                <h2 id="${panelId}-title" contenteditable="true" class="text-lg font-bold flex-grow" onblur="savePanelsState()">${panelData.title || `Panel ${panelId.split('-')[1]}`}</h2>
+                                <button class="remove-panel-btn" onclick="removePanel('${panelId}')" title="Remove Panel">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
                             </div>
 
                             <label for="${panelId}-grafanaDataSource">Select Grafana Data Source:</label>
