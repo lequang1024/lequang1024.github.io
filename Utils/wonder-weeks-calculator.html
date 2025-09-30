@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wonder Weeks Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-50 to-pink-50 min-h-screen p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-purple-900 mb-2">👶 Wonder Weeks Calculator</h1>
+            <p class="text-gray-600 text-lg">Track your baby's developmental leaps</p>
+        </div>
+
+        <!-- Input Section -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-8">
+            <div class="max-w-md mx-auto">
+                <label for="dueDate" class="block text-lg font-semibold text-gray-700 mb-2">
+                    Baby's Due Date (or Birth Date)
+                </label>
+                <input 
+                    type="date" 
+                    id="dueDate" 
+                    class="w-full px-4 py-3 border-2 border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
+                />
+                <p class="text-sm text-gray-500 mt-2">
+                    Enter your baby's due date or actual birth date to calculate Wonder Weeks
+                </p>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="hidden">
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
+                    <div class="text-sm text-gray-600 mb-1">Current Age</div>
+                    <div id="currentAge" class="text-2xl font-bold text-purple-900">-</div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-pink-500">
+                    <div class="text-sm text-gray-600 mb-1">Current/Next Leap</div>
+                    <div id="currentLeap" class="text-2xl font-bold text-pink-900">-</div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-indigo-500">
+                    <div class="text-sm text-gray-600 mb-1">Days Until Next</div>
+                    <div id="daysUntil" class="text-2xl font-bold text-indigo-900">-</div>
+                </div>
+            </div>
+
+            <!-- Calendar View -->
+            <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <span class="text-3xl mr-2">📅</span>
+                    Wonder Weeks Timeline
+                </h2>
+                <div id="wonderWeeksCalendar" class="space-y-4">
+                    <!-- Calendar items will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Information Section -->
+            <div class="bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl p-6 md:p-8 mt-8">
+                <h3 class="text-xl font-bold text-purple-900 mb-3">ℹ️ About Wonder Weeks</h3>
+                <p class="text-gray-700 mb-3">
+                    The Wonder Weeks are periods when your baby goes through major developmental leaps. 
+                    During these times, babies often become more fussy and clingy as their brain develops new skills.
+                </p>
+                <p class="text-gray-700">
+                    Each leap brings new perceptions and abilities. Understanding when these leaps occur can help 
+                    you better support your baby during challenging periods.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Wonder Weeks data (in weeks from due date)
+        const wonderWeeks = [
+            { 
+                week: 5, 
+                name: "The World of Sensations", 
+                description: "Baby discovers their senses", 
+                duration: "1-2 weeks",
+                details: "Your baby's senses are awakening! They'll notice different smells, tastes, textures, lights, and sounds. You may notice more crying as they're overwhelmed by sensory input. New abilities: focusing on objects, responding to voices, and showing more interest in their surroundings.",
+                skills: ["Increased alertness", "Crying more (processing new sensations)", "Following objects with eyes", "Responding to sounds", "First social smile may appear"]
+            },
+            { 
+                week: 8, 
+                name: "The World of Patterns", 
+                description: "Baby recognizes patterns in the world", 
+                duration: "1 week",
+                details: "Baby starts recognizing patterns everywhere - in light and shadow, sounds, movements, and even in their own body. They discover they have hands and feet!",
+                skills: ["Discovering hands and feet", "Recognizing patterns in music/voices", "More vocal experimentation (cooing)", "Better head control", "Following moving objects smoothly"]
+            },
+            { 
+                week: 12, 
+                name: "The World of Smooth Transitions", 
+                description: "Baby's movements become smoother", 
+                duration: "1-2 weeks",
+                details: "Movements become fluid and coordinated. Baby realizes they can control the volume of their voice and make smooth transitions between different states and activities.",
+                skills: ["Rolling from tummy to back", "Smoother, more coordinated movements", "Varying voice volume and pitch", "Better hand-eye coordination", "Reaching for objects with more success"]
+            },
+            { 
+                week: 19, 
+                name: "The World of Events", 
+                description: "Baby understands event sequences", 
+                duration: "4-6 weeks",
+                details: "A major leap! Baby understands that one action leads to another. They can now plan short sequences and understand routines. Separation anxiety often begins here.",
+                skills: ["Understanding cause and effect", "Anticipating routines (bath, feeding)", "First real attempts at crawling", "More deliberate reaching and grabbing", "May show separation anxiety", "Imitating simple sounds"]
+            },
+            { 
+                week: 26, 
+                name: "The World of Relationships", 
+                description: "Baby grasps distances and relationships", 
+                duration: "3-4 weeks",
+                details: "Baby understands spatial relationships and distances between objects. They realize they are separate from you. Peak separation anxiety often occurs during this leap.",
+                skills: ["Understanding distance (near/far)", "Separation anxiety peaks", "May start crawling or improve crawling", "Pointing at things", "Understanding object permanence", "Showing clear preferences"]
+            },
+            { 
+                week: 37, 
+                name: "The World of Categories", 
+                description: "Baby sorts things into groups", 
+                duration: "4-5 weeks",
+                details: "Baby starts sorting the world into categories: people, animals, food, toys. They understand things can belong to groups and have similar characteristics.",
+                skills: ["Sorting objects", "Recognizing familiar vs unfamiliar people", "May say first words", "Standing with support", "More complex play with toys", "Understanding 'no'"]
+            },
+            { 
+                week: 46, 
+                name: "The World of Sequences", 
+                description: "Baby learns to do things in order", 
+                duration: "4-5 weeks",
+                details: "Baby realizes things must happen in a certain order. They can follow simple sequences and start understanding that their actions have specific results.",
+                skills: ["Following two-step instructions", "Stacking blocks in order", "First steps may occur", "Using objects correctly (brush for hair, phone to ear)", "More complex babbling", "Understanding daily routines"]
+            },
+            { 
+                week: 55, 
+                name: "The World of Programs", 
+                description: "Baby develops own goals and plans", 
+                duration: "4-6 weeks",
+                details: "Your baby becomes more independent and determined. They set goals and work to achieve them, adjusting their approach when something doesn't work.",
+                skills: ["Walking independently", "Showing determination and stubbornness", "Problem-solving skills", "Feeding themselves better", "More vocabulary", "Testing boundaries intentionally"]
+            },
+            { 
+                week: 64, 
+                name: "The World of Principles", 
+                description: "Baby understands rules and principles", 
+                duration: "5-6 weeks",
+                details: "Toddler understands that principles and rules govern behavior. They learn they can negotiate, manipulate situations, and that different rules apply in different contexts.",
+                skills: ["Understanding rules can be negotiated", "Testing limits actively", "More complex language", "Empathy emerging", "Running, climbing", "Helping with simple tasks", "Understanding ownership (mine!)"]
+            },
+            { 
+                week: 75, 
+                name: "The World of Systems", 
+                description: "Baby grasps complex systems", 
+                duration: "5-6 weeks",
+                details: "The final leap of the Wonder Weeks! Your toddler understands they are part of larger systems (family, society). They can think about their own thoughts and feelings.",
+                skills: ["Understanding complex systems", "More self-aware", "Imaginative play flourishes", "Speaking in sentences", "Understanding time concepts (later, tomorrow)", "More cooperative", "Potty training readiness"]
+            }
+        ];
+
+        const dueDateInput = document.getElementById('dueDate');
+        const resultsDiv = document.getElementById('results');
+        const currentAgeDiv = document.getElementById('currentAge');
+        const currentLeapDiv = document.getElementById('currentLeap');
+        const daysUntilDiv = document.getElementById('daysUntil');
+        const calendarDiv = document.getElementById('wonderWeeksCalendar');
+
+        // Set default due date to June 5th, 2025
+        const today = new Date();
+        dueDateInput.value = '2025-06-05';
+        
+        // Calculate on load
+        calculateWonderWeeks();
+
+        dueDateInput.addEventListener('change', calculateWonderWeeks);
+
+        function calculateWonderWeeks() {
+            const dueDate = new Date(dueDateInput.value);
+            if (!dueDate || isNaN(dueDate.getTime())) {
+                resultsDiv.classList.add('hidden');
+                return;
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            dueDate.setHours(0, 0, 0, 0);
+
+            // Calculate current age in weeks
+            const daysDiff = Math.floor((today - dueDate) / (1000 * 60 * 60 * 24));
+            const weeksDiff = Math.floor(daysDiff / 7);
+            const daysPart = daysDiff % 7;
+
+            // Update current age
+            if (daysDiff < 0) {
+                currentAgeDiv.textContent = `Not born yet (${Math.abs(daysDiff)} days to go)`;
+            } else if (weeksDiff === 0) {
+                currentAgeDiv.textContent = `${daysDiff} days`;
+            } else {
+                currentAgeDiv.textContent = `${weeksDiff} weeks${daysPart > 0 ? ` ${daysPart}d` : ''}`;
+            }
+
+            // Find current/next leap
+            let currentLeap = null;
+            let nextLeap = null;
+            let daysUntilNext = null;
+
+            for (let i = 0; i < wonderWeeks.length; i++) {
+                const leapWeek = wonderWeeks[i].week;
+                const leapDays = leapWeek * 7;
+                const leapDate = new Date(dueDate);
+                leapDate.setDate(leapDate.getDate() + leapDays);
+
+                if (today < leapDate) {
+                    nextLeap = wonderWeeks[i];
+                    daysUntilNext = Math.floor((leapDate - today) / (1000 * 60 * 60 * 24));
+                    break;
+                }
+                
+                // Check if currently in a leap (within ±2 weeks)
+                const leapEndDays = leapWeek * 7 + 14;
+                const leapEndDate = new Date(dueDate);
+                leapEndDate.setDate(leapEndDate.getDate() + leapEndDays);
+                
+                if (today >= leapDate && today <= leapEndDate) {
+                    currentLeap = wonderWeeks[i];
+                }
+            }
+
+            if (currentLeap) {
+                currentLeapDiv.innerHTML = `<span class="text-red-600">In Leap ${currentLeap.week}!</span>`;
+                currentLeapDiv.classList.add('animate-pulse');
+            } else if (nextLeap) {
+                currentLeapDiv.innerHTML = `Leap ${nextLeap.week}`;
+                currentLeapDiv.classList.remove('animate-pulse');
+            } else {
+                currentLeapDiv.textContent = "All leaps completed!";
+                currentLeapDiv.classList.remove('animate-pulse');
+            }
+
+            if (daysUntilNext !== null) {
+                if (daysUntilNext === 0) {
+                    daysUntilDiv.innerHTML = `<span class="text-red-600">Today!</span>`;
+                } else if (daysUntilNext < 7) {
+                    daysUntilDiv.textContent = `${daysUntilNext} days`;
+                } else {
+                    const weeksUntil = Math.floor(daysUntilNext / 7);
+                    const daysRemainder = daysUntilNext % 7;
+                    daysUntilDiv.textContent = `${weeksUntil}w ${daysRemainder}d`;
+                }
+            } else {
+                daysUntilDiv.textContent = "-";
+            }
+
+            // Generate calendar
+            generateCalendar(dueDate, today, weeksDiff);
+
+            resultsDiv.classList.remove('hidden');
+            resultsDiv.classList.add('fade-in');
+        }
+
+        function generateCalendar(dueDate, today, currentWeek) {
+            calendarDiv.innerHTML = '';
+
+            wonderWeeks.forEach((leap, index) => {
+                const leapDate = new Date(dueDate);
+                leapDate.setDate(leapDate.getDate() + (leap.week * 7));
+
+                const isPast = leapDate < today;
+                const isCurrent = Math.abs((leapDate - today) / (1000 * 60 * 60 * 24)) <= 14;
+                const isFuture = leapDate > today && !isCurrent;
+
+                let statusColor = 'gray';
+                let statusBg = 'bg-gray-100';
+                let statusBorder = 'border-gray-300';
+                let statusText = 'Upcoming';
+                let statusIcon = '⏳';
+
+                if (isPast && !isCurrent) {
+                    statusColor = 'green';
+                    statusBg = 'bg-green-50';
+                    statusBorder = 'border-green-300';
+                    statusText = 'Completed';
+                    statusIcon = '✅';
+                } else if (isCurrent) {
+                    statusColor = 'red';
+                    statusBg = 'bg-red-50';
+                    statusBorder = 'border-red-300';
+                    statusText = 'Active Now';
+                    statusIcon = '🔥';
+                }
+
+                const leapCard = document.createElement('div');
+                leapCard.className = `${statusBg} border-2 ${statusBorder} rounded-xl p-5 transition-all hover:shadow-lg ${isCurrent ? 'ring-2 ring-red-400' : ''}`;
+                
+                // Generate skills list HTML
+                const skillsHTML = leap.skills.map(skill => 
+                    `<li class="flex items-start gap-2">
+                        <span class="text-purple-500 mt-1">•</span>
+                        <span>${skill}</span>
+                    </li>`
+                ).join('');
+                
+                leapCard.innerHTML = `
+                    <div class="flex flex-col gap-4">
+                        <!-- Header Section -->
+                        <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="text-2xl">${statusIcon}</span>
+                                    <span class="text-xs font-semibold px-3 py-1 rounded-full bg-white text-${statusColor}-700 border border-${statusColor}-300">
+                                        ${statusText}
+                                    </span>
+                                    <span class="text-sm font-bold text-${statusColor}-900">Week ${leap.week}</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-800 mb-2">${leap.name}</h3>
+                                <p class="text-sm text-gray-600 mb-3">${leap.description}</p>
+                                <div class="flex flex-wrap gap-3 text-sm text-gray-500 mb-3">
+                                    <span>📅 ${leapDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                    <span>⏱️ Duration: ${leap.duration}</span>
+                                </div>
+                            </div>
+                            <div class="text-center md:text-right flex-shrink-0">
+                                <div class="text-3xl font-bold text-${statusColor}-700">
+                                    ${leap.week}
+                                </div>
+                                <div class="text-xs text-gray-500">weeks</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Details Section -->
+                        <div class="border-t border-${statusColor}-200 pt-4">
+                            <p class="text-sm text-gray-700 leading-relaxed mb-4">
+                                ${leap.details}
+                            </p>
+                            
+                            <!-- Skills/Abilities Section -->
+                            <div class="bg-white bg-opacity-50 rounded-lg p-4">
+                                <h4 class="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
+                                    <span>🌟</span>
+                                    <span>New Skills & Abilities:</span>
+                                </h4>
+                                <ul class="text-sm text-gray-700 space-y-2">
+                                    ${skillsHTML}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                calendarDiv.appendChild(leapCard);
+            });
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            calculateWonderWeeks();
+        });
+    </script>
+</body>
+</html>
