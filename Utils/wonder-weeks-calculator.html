@@ -27,7 +27,7 @@
         <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-8">
             <div class="max-w-md mx-auto">
                 <label for="dueDate" class="block text-lg font-semibold text-gray-700 mb-2">
-                    Baby's Due Date (or Birth Date)
+                    Baby's Due Date
                 </label>
                 <input 
                     type="date" 
@@ -35,7 +35,7 @@
                     class="w-full px-4 py-3 border-2 border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
                 />
                 <p class="text-sm text-gray-500 mt-2">
-                    Enter your baby's due date or actual birth date to calculate Wonder Weeks
+                    Enter your baby's due date to calculate Wonder Weeks. Assumes full-term birth; leaps start at specific postnatal weeks after the due date.
                 </p>
             </div>
         </div>
@@ -87,36 +87,36 @@
     <script>
         // Wonder Weeks data (in weeks from due date)
         const wonderWeeks = [
-            { 
-                week: 5, 
-                name: "The World of Sensations", 
-                description: "Baby discovers their senses", 
+            {
+                week: 5,
+                name: "The World of Sensations",
+                description: "Baby discovers their senses",
                 duration: "1-2 weeks",
-                details: "Your baby's senses are awakening! They'll notice different smells, tastes, textures, lights, and sounds. You may notice more crying as they're overwhelmed by sensory input. New abilities: focusing on objects, responding to voices, and showing more interest in their surroundings.",
+                details: "During this leap, you might notice your baby being more fussy and clingy than usual. They may cry more easily as their brain is processing new sensory information. Expect them to suddenly start focusing on objects for longer periods, responding more actively to voices, and showing their first social smiles. Parents can help by providing extra comfort, creating a calming environment, and gradually introducing new sensory experiences like different textures, sounds, or soft lights.",
                 skills: ["Increased alertness", "Crying more (processing new sensations)", "Following objects with eyes", "Responding to sounds", "First social smile may appear"]
             },
-            { 
-                week: 8, 
-                name: "The World of Patterns", 
-                description: "Baby recognizes patterns in the world", 
+            {
+                week: 8,
+                name: "The World of Patterns",
+                description: "Baby recognizes patterns in the world",
                 duration: "1 week",
-                details: "Baby starts recognizing patterns everywhere - in light and shadow, sounds, movements, and even in their own body. They discover they have hands and feet!",
+                details: "Baby starts recognizing patterns everywhere - in light and shadow, sounds, movements, and even in their own body. They discover they have hands and feet! During this leap, your baby may become more demanding and less satisfied with just sucking on hands or pacifiers. Expect increased vocalizations, cooing, and experimentation with sounds. They might appear moodier or more sensitive to changes. Support them by talking, singing, and providing consistent comfort to help them explore their newfound awareness of patterns and self-discovery.",
                 skills: ["Discovering hands and feet", "Recognizing patterns in music/voices", "More vocal experimentation (cooing)", "Better head control", "Following moving objects smoothly"]
             },
-            { 
-                week: 12, 
-                name: "The World of Smooth Transitions", 
-                description: "Baby's movements become smoother", 
+            {
+                week: 12,
+                name: "The World of Smooth Transitions",
+                description: "Baby's movements become smoother",
                 duration: "1-2 weeks",
-                details: "Movements become fluid and coordinated. Baby realizes they can control the volume of their voice and make smooth transitions between different states and activities.",
+                details: "Movements become fluid and coordinated. Baby realizes they can control the volume of their voice and make smooth transitions between different states and activities. During this leap, babies often become more active and demanding, with sudden increases in physical coordination. You might notice more rolling over, reaching for objects successfully, and changes in vocal volume. Expect your baby to be less content just observing and more wanting to interact with their environment. Provide plenty of floor time, safe toys within reach, and respond to their active explorations to support their development.",
                 skills: ["Rolling from tummy to back", "Smoother, more coordinated movements", "Varying voice volume and pitch", "Better hand-eye coordination", "Reaching for objects with more success"]
             },
-            { 
-                week: 19, 
-                name: "The World of Events", 
-                description: "Baby understands event sequences", 
+            {
+                week: 19,
+                name: "The World of Events",
+                description: "Baby understands event sequences",
                 duration: "4-6 weeks",
-                details: "A major leap! Baby understands that one action leads to another. They can now plan short sequences and understand routines. Separation anxiety often begins here.",
+                details: "A major leap! Baby understands that one action leads to another. They can now plan short sequences and understand routines. Separation anxiety often begins here. This intensive leap often brings particularly strong fussiness and clinginess. Your baby might cry when you leave the room or try crawling after you to follow. They may also have changed sleeping or feeding patterns. Maintain consistent routines, intentionally leave for short moments and return, and provide extra comfort to help them through this challenging developmental phase.",
                 skills: ["Understanding cause and effect", "Anticipating routines (bath, feeding)", "First real attempts at crawling", "More deliberate reaching and grabbing", "May show separation anxiety", "Imitating simple sounds"]
             },
             { 
@@ -156,7 +156,7 @@
                 name: "The World of Principles", 
                 description: "Baby understands rules and principles", 
                 duration: "5-6 weeks",
-                details: "Toddler understands that principles and rules govern behavior. They learn they can negotiate, manipulate situations, and that different rules apply in different contexts.",
+                details: "Baby understands that principles and rules govern behavior. They learn they can negotiate, manipulate situations, and that different rules apply in different contexts.",
                 skills: ["Understanding rules can be negotiated", "Testing limits actively", "More complex language", "Empathy emerging", "Running, climbing", "Helping with simple tasks", "Understanding ownership (mine!)"]
             },
             { 
@@ -185,6 +185,14 @@
 
         dueDateInput.addEventListener('change', calculateWonderWeeks);
 
+        function parseDuration(dur) {
+            const match = dur.match(/(\d+)(?:-(\d+))?\s*weeks?/i);
+            if (!match) return 1; // default 1 week
+            const lower = parseFloat(match[1]);
+            const upper = match[2] ? parseFloat(match[2]) : lower;
+            return (lower + upper) / 2;
+        }
+
         function calculateWonderWeeks() {
             const dueDate = new Date(dueDateInput.value);
             if (!dueDate || isNaN(dueDate.getTime())) {
@@ -196,7 +204,7 @@
             today.setHours(0, 0, 0, 0);
             dueDate.setHours(0, 0, 0, 0);
 
-            // Calculate current age in weeks
+            // Calculate current age in weeks (postnatal age assuming born on due date)
             const daysDiff = Math.floor((today - dueDate) / (1000 * 60 * 60 * 24));
             const weeksDiff = Math.floor(daysDiff / 7);
             const daysPart = daysDiff % 7;
@@ -217,9 +225,12 @@
 
             for (let i = 0; i < wonderWeeks.length; i++) {
                 const leapWeek = wonderWeeks[i].week;
-                const leapDays = leapWeek * 7;
                 const leapDate = new Date(dueDate);
-                leapDate.setDate(leapDate.getDate() + leapDays);
+                leapDate.setDate(leapDate.getDate() + leapWeek * 7);
+
+                const durAvg = parseDuration(wonderWeeks[i].duration);
+                const leapEndDate = new Date(dueDate);
+                leapEndDate.setDate(leapEndDate.getDate() + (leapWeek + durAvg) * 7);
 
                 if (today < leapDate) {
                     nextLeap = wonderWeeks[i];
@@ -227,11 +238,7 @@
                     break;
                 }
                 
-                // Check if currently in a leap (within ±2 weeks)
-                const leapEndDays = leapWeek * 7 + 14;
-                const leapEndDate = new Date(dueDate);
-                leapEndDate.setDate(leapEndDate.getDate() + leapEndDays);
-                
+                // Check if currently in a leap (within the leap duration)
                 if (today >= leapDate && today <= leapEndDate) {
                     currentLeap = wonderWeeks[i];
                 }
@@ -274,11 +281,15 @@
 
             wonderWeeks.forEach((leap, index) => {
                 const leapDate = new Date(dueDate);
-                leapDate.setDate(leapDate.getDate() + (leap.week * 7));
+                leapDate.setDate(leapDate.getDate() + leap.week * 7);
 
-                const isPast = leapDate < today;
-                const isCurrent = Math.abs((leapDate - today) / (1000 * 60 * 60 * 24)) <= 14;
-                const isFuture = leapDate > today && !isCurrent;
+                const durAvg = parseDuration(leap.duration);
+                const leapEndDate = new Date(dueDate);
+                leapEndDate.setDate(leapEndDate.getDate() + (leap.week + durAvg) * 7);
+
+                const isPast = leapEndDate < today;
+                const isCurrent = today >= leapDate && today <= leapEndDate;
+                const isFuture = leapDate > today;
 
                 let statusColor = 'gray';
                 let statusBg = 'bg-gray-100';
@@ -312,50 +323,50 @@
                 ).join('');
                 
                 leapCard.innerHTML = `
-                    <div class="flex flex-col gap-4">
-                        <!-- Header Section -->
-                        <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="text-2xl">${statusIcon}</span>
-                                    <span class="text-xs font-semibold px-3 py-1 rounded-full bg-white text-${statusColor}-700 border border-${statusColor}-300">
-                                        ${statusText}
-                                    </span>
-                                    <span class="text-sm font-bold text-${statusColor}-900">Week ${leap.week}</span>
-                                </div>
-                                <h3 class="text-xl font-bold text-gray-800 mb-2">${leap.name}</h3>
-                                <p class="text-sm text-gray-600 mb-3">${leap.description}</p>
-                                <div class="flex flex-wrap gap-3 text-sm text-gray-500 mb-3">
-                                    <span>📅 ${leapDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                                    <span>⏱️ Duration: ${leap.duration}</span>
-                                </div>
-                            </div>
-                            <div class="text-center md:text-right flex-shrink-0">
-                                <div class="text-3xl font-bold text-${statusColor}-700">
-                                    ${leap.week}
-                                </div>
-                                <div class="text-xs text-gray-500">weeks</div>
-                            </div>
-                        </div>
-                        
-                        <!-- Details Section -->
-                        <div class="border-t border-${statusColor}-200 pt-4">
-                            <p class="text-sm text-gray-700 leading-relaxed mb-4">
-                                ${leap.details}
-                            </p>
-                            
-                            <!-- Skills/Abilities Section -->
-                            <div class="bg-white bg-opacity-50 rounded-lg p-4">
-                                <h4 class="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
-                                    <span>🌟</span>
-                                    <span>New Skills & Abilities:</span>
-                                </h4>
-                                <ul class="text-sm text-gray-700 space-y-2">
-                                    ${skillsHTML}
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
+<div class="flex flex-col gap-4">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+        <div class="flex-1">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="text-2xl">${statusIcon}</span>
+                <span class="text-xs font-semibold px-3 py-1 rounded-full bg-white text-${statusColor}-700 border border-${statusColor}-300">
+                    ${statusText}
+                </span>
+                <span class="text-sm font-bold text-${statusColor}-900">Week ${leap.week}</span>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">${leap.name}</h3>
+            <p class="text-sm text-gray-600 mb-3">${leap.description}</p>
+            <div class="flex flex-wrap gap-3 text-sm text-gray-500 mb-3">
+                <span>📅 ${leapDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                <span>⏱️ Duration: ${leap.duration}</span>
+            </div>
+        </div>
+        <div class="text-center md:text-right flex-shrink-0">
+<div class="text-3xl font-bold text-${statusColor}-700">
+                ${leap.week}
+            </div>
+            <div class="text-xs text-gray-500">weeks</div>
+        </div>
+    </div>
+    
+    <!-- Details Section -->
+    <div class="border-t border-${statusColor}-200 pt-4">
+        <p class="text-sm text-gray-700 leading-relaxed mb-4">
+            ${leap.details}
+        </p>
+        
+        <!-- Skills/Abilities Section -->
+        <div class="bg-white bg-opacity-50 rounded-lg p-4">
+            <h4 class="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
+                <span>🌟</span>
+                <span>New Skills & Abilities:</span>
+            </h4>
+            <ul class="text-sm text-gray-700 space-y-2">
+                ${skillsHTML}
+            </ul>
+        </div>
+    </div>
+</div>
                 `;
 
                 calendarDiv.appendChild(leapCard);
