@@ -47,15 +47,15 @@ const DEFAULTS = {
 };
 
 const additionalParamsConfig = [
-    { id: 'ava_dab', name: 'Ava DAB', key: 'ava_dab', type: 'text', placeholder: 'AVA_DAB value or reset', example: '?ava_dab=MY_DAB', defaultValue: '3_65_0' },
+    { id: 'ava_dab', name: 'Ava DAB', key: 'ava_dab', type: 'text', placeholder: 'AVA_DAB value or reset', example: '?ava_dab=MY_DAB', defaultValue: '3_68_0' },
     { id: 'ava_header', name: 'Ava Header', key: 'ava_header', type: 'select', options: ['mvmx', 'mvmx-liveops'], example: '?ava_header=AVA_HEADER', defaultValue: '' },
     { id: 'auto_cheat', name: 'Auto Cheat', key: 'auto_cheat', type: 'text', placeholder: 'Cheat ID (e.g. SuperPlayer)', example: '?auto_cheat=SuperPlayer', defaultValue: 'SuperPlayer' },
     { id: 'reset_device', name: 'Reset Device', key: 'reset', type: 'checkbox_only', example: '?reset=device', fixedValue: 'device', defaultValue: false },
+    { id: 'iap_cheat', name: 'IAP Cheat (no need login appstore/google play)', key: 'iap_cheat', type: 'select', options: ['true', 'false'], example: '?iap_cheat=true', defaultValue: 'false' },
     { id: 'user_deviceid', name: 'User DeviceID', key: 'user_deviceid', type: 'text', placeholder: 'UDID', example: '?user_deviceid=UDID', defaultValue: '' },
     { id: 'user_adid', name: 'User AdvertisingID', key: 'user_adid', type: 'text', placeholder: 'ADID', example: '?user_adid=ADID', defaultValue: '' },
     { id: 'env_profile', name: 'Server Environment Profile', key: 'env_profile', type: 'select', options: ['trunk', 'qa1', 'qa3', 'stage', 'prod', 'reset'], example: '?env_profile=qa3', defaultValue: 'qa3' },
     { id: 'backend_pr', name: 'Backend PR (additional)', key: 'backend_pr', type: 'text', placeholder: 'e.g., 1024 or reset', example: '?backend_pr=1024', defaultValue: '' },
-    { id: 'iap_cheat', name: 'IAP Cheat (no AppStore)', key: 'iap_cheat', type: 'select', options: ['true', 'false'], example: '?iap_cheat=true', defaultValue: 'false' },
     { id: 'nlog_level', name: 'NLog Console Log Level', key: 'nlog_level', type: 'select', options: ['debug', 'info', 'warn', 'error', 'fatal', 'off'], example: '?nlog_level=debug', defaultValue: 'info' },
 ];
 
