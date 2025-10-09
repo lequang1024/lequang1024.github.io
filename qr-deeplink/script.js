@@ -705,46 +705,54 @@ function closeFeedbackModalHandler() {
 
 async function submitFeedback(e) {
     e.preventDefault();
-    
+
     const comment = feedbackComment.value.trim();
     if (!comment) {
         showFeedbackStatus('Please enter your feedback before submitting.', 'error');
         return;
     }
-    
-    // Show loading state
-    showFeedbackStatus('Submitting feedback...', 'loading');
-    
-    try {
-        // Submit to Google Forms
-        const formData = new FormData();
-        
-        // Replace these with your actual Google Form field IDs
-        formData.append('entry.2135300506', comment);
-        formData.append('entry.754522375', window.location.href);
-        formData.append('entry.1178768284', environmentSelect.value);
-        formData.append('entry.1348725671', currentDeepLinkUrl || 'Not generated');
-        formData.append('entry.834483916', new Date().toISOString());
-        formData.append('entry.103630633', navigator.userAgent);
 
-        // Replace YOUR_FORM_ID with your actual Google Form ID
-        const response = await fetch('https://docs.google.com/forms/d/e/1FAIpQLSeVIKxTcfaYbY_XurprGSP4fT_Kb5PEDq9nbd68JB2QK_1LgA/formResponse', {
+    // Show loading state
+    showFeedbackStatus('Sending feedback...', 'loading');
+
+    try {
+        // Format message for Telegram with HTML
+        const message = `<b>New Feedback Received</b>\n\n` +
+            `<b>Comment:</b> ${comment.replace(/\n/g, '\n')}\n` +
+            `<b>Page URL:</b> ${window.location.href}\n` +
+            `<b>Environment:</b> ${environmentSelect.value}\n` +
+            `<b>Deep Link URL:</b> ${currentDeepLinkUrl || 'Not generated'}\n` +
+            `<b>Timestamp:</b> ${new Date().toISOString()}\n` +
+            `<b>User Agent:</b> ${navigator.userAgent}`;
+
+        // Send to Google Apps Script (which forwards to Telegram)
+        const response = await fetch('https://script.google.com/macros/s/AKfycbwthn5i91_o-MnsDZgDY54ic9gZPNXLvAUU_TDN008HYyHJiAoX_K-0qC_WGrfvcSwt/exec', {
             method: 'POST',
-            body: formData,
-            mode: 'no-cors' // Required for Google Forms
+            headers: {
+                'Content-Type': 'text/plain'
+            },
+            body: JSON.stringify({
+                message: message
+            })
         });
 
-        // Google Forms always returns success with no-cors mode
-        showFeedbackStatus('Thank you! Your feedback has been submitted successfully.', 'success');
-        
-        // Clear form and close modal after a delay
-        setTimeout(() => {
-            closeFeedbackModalHandler();
-        }, 2000);
-        
+        const result = await response.json();
+
+        if (result.success) {
+            showFeedbackStatus('Thank you! Your feedback has been sent successfully.', 'success');
+
+            // Clear form and close modal after a delay
+            setTimeout(() => {
+                closeFeedbackModalHandler();
+            }, 2000);
+        } else {
+            console.error('Feedback submission failed:', result.error);
+            showFeedbackStatus('Failed to send feedback. Please try again later.', 'error');
+        }
+
     } catch (error) {
-        console.error('Form submission failed:', error);
-        showFeedbackStatus('Failed to submit feedback. Please try again later.', 'error');
+        console.error('Feedback submission failed:', error);
+        showFeedbackStatus('Failed to send feedback. Please try again later.', 'error');
     }
 }
 
