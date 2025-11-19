@@ -7,8 +7,8 @@ const customBackendUrlGroup = document.getElementById('customBackendUrlGroup');
 const additionalParamsContainer = document.getElementById('additionalParamsContainer');
 const resetBtn = document.getElementById('resetBtn');
 const startGameBtn = document.getElementById('startGameBtn');
-const copyShareLinkBtn = document.getElementById('copyShareLinkBtn'); // New Button
 const qrcodeDiv = document.getElementById('qrcode');
+const startGameMainBtn = document.getElementById('startGameMainBtn');
 const generatedUrlP = document.getElementById('generatedUrl');
 const aliveStatusDiv = document.getElementById('aliveStatus');
 const grafanaLinkContainer = document.getElementById('grafanaLinkContainer');
@@ -524,51 +524,7 @@ function generateAndDisplayQrCode() {
     scheduleAliveCheck();
 }
 
-function handleCopyShareLink() {
-    const baseUrl = window.location.href.split('?')[0];
-    const params = new URLSearchParams();
 
-    // Base params
-    params.set('env', environmentSelect.value);
-    if (environmentSelect.value === 'custom') {
-        params.set('customUrl', customBackendUrlInput.value);
-    } else {
-        params.set('pr', prNumberInput.value);
-    }
-
-    // Additional params
-    additionalParamsConfig.forEach(param => {
-        const enableCheckbox = document.getElementById(`${param.id}_enable`);
-        if (enableCheckbox && enableCheckbox.checked) {
-            const value = (param.type !== 'checkbox_only') ? document.getElementById(`${param.id}_value`).value : param.fixedValue;
-            params.set(param.key, value);
-        }
-    });
-
-    const sharableLink = `${baseUrl}?${params.toString()}`;
-
-    // Copy to clipboard
-    const dummy = document.createElement('textarea');
-    document.body.appendChild(dummy);
-    dummy.value = sharableLink;
-    dummy.select();
-    document.execCommand('copy');
-    document.body.removeChild(dummy);
-
-    const originalText = copyShareLinkBtn.textContent;
-    copyShareLinkBtn.textContent = 'Copied!';
-    setTimeout(() => {
-        copyShareLinkBtn.textContent = originalText;
-    }, 2000);
-
-    if (typeof gtag === 'function') {
-        gtag('event', 'copy_share_link_clicked', {
-            'event_category': 'interaction',
-            'event_label': 'Copy Sharable Link Button',
-            'sharable_link': sharableLink
-        });
-    }
-}
 
 // === EVENT LISTENERS ===
 environmentSelect.addEventListener('change', () => {
@@ -654,7 +610,21 @@ resetBtn.addEventListener('click', () => {
     delete resetBtn.dataset.isResetting;
 });
 
-copyShareLinkBtn.addEventListener('click', handleCopyShareLink);
+// Event listener for the main Start Game button
+startGameMainBtn.addEventListener('click', () => {
+    if (currentDeepLinkUrl) {
+        if (typeof gtag === 'function') {
+            gtag('event', 'start_game_clicked', {
+                'event_category': 'engagement',
+                'event_label': 'Start Game Button (Main)',
+                'deep_link_url': currentDeepLinkUrl
+            });
+        }
+        window.location.href = currentDeepLinkUrl;
+    } else {
+        console.warn("Please generate a valid QR code and URL first, or check for errors.");
+    }
+});
 
 prNumberInput.addEventListener('input', () => {
     generateAndDisplayQrCode();
