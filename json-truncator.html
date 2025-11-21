@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Truncator for AI</title>
+    
+    <!-- Tailwind CSS (Utility-first CSS framework) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React and ReactDOM (The core libraries) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel (Compiles JSX in the browser) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Custom Scrollbar Styles -->
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4B5563; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6B7280; 
+        }
+        body {
+            background-color: #111827; /* Matches gray-900 */
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- Icons (Inline SVGs to remove external dependencies) ---
+        const Icon = ({ children, className }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                {children}
+            </svg>
+        );
+
+        const Scissors = ({ className }) => (
+            <Icon className={className}><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" x2="8.12" y1="4" y2="15.88"/><line x1="14.47" x2="20" y1="14.48" y2="20"/><line x1="8.12" x2="12" y1="8.12" y2="12"/></Icon>
+        );
+        const FileJson = ({ className }) => (
+            <Icon className={className}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 12a1 1 0 0 0-1 1v1a1 1 0 0 1-1 1 1 1 0 0 1 1 1v1a1 1 0 0 0 1 1"/></Icon>
+        );
+        const Upload = ({ className }) => (
+            <Icon className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></Icon>
+        );
+        const Copy = ({ className }) => (
+            <Icon className={className}><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></Icon>
+        );
+        const Download = ({ className }) => (
+            <Icon className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></Icon>
+        );
+        const RefreshCw = ({ className }) => (
+            <Icon className={className}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></Icon>
+        );
+        const AlertCircle = ({ className }) => (
+            <Icon className={className}><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></Icon>
+        );
+        const Check = ({ className }) => (
+            <Icon className={className}><polyline points="20 6 9 17 4 12"/></Icon>
+        );
+        const Settings = ({ className }) => (
+            <Icon className={className}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></Icon>
+        );
+        const ArrowRight = ({ className }) => (
+            <Icon className={className}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></Icon>
+        );
+
+        // --- Main App Component ---
+        function App() {
+            const [inputJson, setInputJson] = useState('');
+            const [outputJson, setOutputJson] = useState('');
+            const [arrayLimit, setArrayLimit] = useState(10);
+            const [limitObjectKeys, setLimitObjectKeys] = useState(false);
+            const [objectKeyLimit, setObjectKeyLimit] = useState(10);
+            const [addPlaceholder, setAddPlaceholder] = useState(true);
+            const [stats, setStats] = useState(null);
+            const [error, setError] = useState(null);
+            const [isProcessing, setIsProcessing] = useState(false);
+            const fileInputRef = useRef(null);
+
+            // Handle file upload
+            const handleFileUpload = (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    setInputJson(e.target.result);
+                    setError(null);
+                };
+                reader.onerror = () => setError('Failed to read file');
+                reader.readAsText(file);
+            };
+
+            // Handle recursive truncation
+            const processJson = () => {
+                setIsProcessing(true);
+                setError(null);
+                setStats(null);
+
+                setTimeout(() => {
+                    try {
+                        if (!inputJson.trim()) {
+                            throw new Error("Input is empty");
+                        }
+
+                        const parsed = JSON.parse(inputJson);
+                        let arraysTruncated = 0;
+                        let objectsTruncated = 0;
+                        let itemsRemoved = 0;
+
+                        const truncateRecursive = (data) => {
+                            if (Array.isArray(data)) {
+                                if (data.length > arrayLimit) {
+                                    arraysTruncated++;
+                                    itemsRemoved += (data.length - arrayLimit);
+                                    
+                                    // Slice the array
+                                    const sliced = data.slice(0, arrayLimit).map(truncateRecursive);
+                                    
+                                    // Optional: Add a placeholder string to indicate missing data to the AI
+                                    if (addPlaceholder) {
+                                        sliced.push(`... [${data.length - arrayLimit} items truncated] ...`);
+                                    }
+                                    return sliced;
+                                }
+                                return data.map(truncateRecursive);
+                            } else if (data !== null && typeof data === 'object') {
+                                const keys = Object.keys(data);
+                                
+                                // Logic for truncating object keys if enabled
+                                if (limitObjectKeys && keys.length > objectKeyLimit) {
+                                    objectsTruncated++;
+                                    itemsRemoved += (keys.length - objectKeyLimit);
+                                    
+                                    const newObj = {};
+                                    keys.slice(0, objectKeyLimit).forEach(key => {
+                                        newObj[key] = truncateRecursive(data[key]);
+                                    });
+                                    
+                                    if (addPlaceholder) {
+                                        newObj["_truncation_notice"] = `... [${keys.length - objectKeyLimit} keys truncated] ...`;
+                                    }
+                                    return newObj;
+                                }
+
+                                // Standard recursion for objects
+                                const newObj = {};
+                                keys.forEach(key => {
+                                    newObj[key] = truncateRecursive(data[key]);
+                                });
+                                return newObj;
+                            }
+                            return data;
+                        };
+
+                        const processed = truncateRecursive(parsed);
+                        const resultString = JSON.stringify(processed, null, 2);
+                        
+                        setOutputJson(resultString);
+                        
+                        // Calculate savings
+                        const originalSize = new Blob([inputJson]).size;
+                        const newSize = new Blob([resultString]).size;
+                        
+                        setStats({
+                            originalSize: (originalSize / 1024).toFixed(2) + ' KB',
+                            newSize: (newSize / 1024).toFixed(2) + ' KB',
+                            reduction: ((1 - newSize/originalSize) * 100).toFixed(1) + '%',
+                            arraysTruncated,
+                            objectsTruncated,
+                            itemsRemoved
+                        });
+
+                    } catch (err) {
+                        setError(err.message === "Input is empty" ? "Please paste JSON or upload a file." : "Invalid JSON detected. Please check your syntax.");
+                    } finally {
+                        setIsProcessing(false);
+                    }
+                }, 100);
+            };
+
+            const copyToClipboard = () => {
+                if (!outputJson) return;
+                navigator.clipboard.writeText(outputJson);
+            };
+
+            const downloadJson = () => {
+                if (!outputJson) return;
+                const blob = new Blob([outputJson], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'truncated_config.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            };
+
+            return (
+                <div className="min-h-screen bg-gray-900 text-gray-100 p-4 md:p-8 font-sans">
+                    <div className="max-w-7xl mx-auto">
+                        
+                        {/* Header */}
+                        <header className="mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-gray-800 pb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 bg-blue-600 rounded-xl shadow-lg shadow-blue-900/20">
+                                    <Scissors className="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                                        JSON Truncator
+                                    </h1>
+                                    <p className="text-gray-400 text-sm mt-1">Prepare massive JSON files for AI Context Windows</p>
+                                </div>
+                            </div>
+                            
+                            {stats && (
+                                <div className="flex gap-4 text-sm bg-gray-800/50 p-3 rounded-lg border border-gray-700">
+                                    <div className="flex flex-col">
+                                        <span className="text-gray-500 uppercase text-xs font-bold tracking-wider">Reduction</span>
+                                        <span className="text-green-400 font-mono font-bold">{stats.reduction}</span>
+                                    </div>
+                                    <div className="w-px bg-gray-700"></div>
+                                    <div className="flex flex-col">
+                                        <span className="text-gray-500 uppercase text-xs font-bold tracking-wider">Size</span>
+                                        <span className="text-gray-300 font-mono">{stats.originalSize} → {stats.newSize}</span>
+                                    </div>
+                                    <div className="w-px bg-gray-700 hidden sm:block"></div>
+                                    <div className="hidden sm:flex flex-col">
+                                        <span className="text-gray-500 uppercase text-xs font-bold tracking-wider">Removed</span>
+                                        <span className="text-gray-300 font-mono">{stats.itemsRemoved} items</span>
+                                    </div>
+                                </div>
+                            )}
+                        </header>
+
+                        {/* Main Layout */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)] min-h-[600px]">
+                            
+                            {/* Input Column */}
+                            <div className="flex flex-col gap-4 h-full">
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                        <FileJson className="w-4 h-4" /> Source JSON
+                                    </h2>
+                                    <button 
+                                        onClick={() => fileInputRef.current.click()}
+                                        className="text-xs flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-md transition-colors border border-gray-700"
+                                    >
+                                        <Upload className="w-3 h-3" /> Upload File
+                                    </button>
+                                    <input 
+                                        type="file" 
+                                        ref={fileInputRef}
+                                        onChange={handleFileUpload}
+                                        accept=".json"
+                                        className="hidden"
+                                    />
+                                </div>
+                                <textarea
+                                    className="flex-1 bg-gray-800 border border-gray-700 rounded-xl p-4 font-mono text-sm text-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent placeholder-gray-600"
+                                    placeholder="Paste your JSON here or upload a file..."
+                                    value={inputJson}
+                                    onChange={(e) => setInputJson(e.target.value)}
+                                    spellCheck="false"
+                                />
+                            </div>
+
+                            {/* Controls Column */}
+                            <div className="flex flex-col gap-6 justify-center lg:px-4">
+                                <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-xl">
+                                    <div className="flex items-center gap-2 mb-6 text-blue-400">
+                                        <Settings className="w-5 h-5" />
+                                        <h3 className="font-semibold">Configuration</h3>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        {/* Array Limit */}
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-300 flex justify-between">
+                                                <span>Max Array Items</span>
+                                                <span className="text-blue-400 font-mono">{arrayLimit}</span>
+                                            </label>
+                                            <input
+                                                type="range"
+                                                min="1"
+                                                max="50"
+                                                value={arrayLimit}
+                                                onChange={(e) => setArrayLimit(parseInt(e.target.value))}
+                                                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400"
+                                            />
+                                            <p className="text-xs text-gray-500">Truncates any list longer than {arrayLimit} items.</p>
+                                        </div>
+
+                                        <hr className="border-gray-700" />
+
+                                        {/* Object Limit (Toggle) */}
+                                        <div className="space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-sm font-medium text-gray-300">Limit Object Keys</label>
+                                                <button
+                                                    onClick={() => setLimitObjectKeys(!limitObjectKeys)}
+                                                    className={`w-11 h-6 rounded-full transition-colors relative ${limitObjectKeys ? 'bg-blue-600' : 'bg-gray-600'}`}
+                                                >
+                                                    <span className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${limitObjectKeys ? 'translate-x-5' : 'translate-x-0'}`} />
+                                                </button>
+                                            </div>
+                                            
+                                            {limitObjectKeys && (
+                                                <div className="space-y-2 pt-1 animate-in fade-in slide-in-from-top-2">
+                                                    <div className="flex justify-between text-xs text-gray-400">
+                                                        <span>Limit</span>
+                                                        <span className="font-mono text-blue-400">{objectKeyLimit}</span>
+                                                    </div>
+                                                    <input
+                                                        type="range"
+                                                        min="1"
+                                                        max="50"
+                                                        value={objectKeyLimit}
+                                                        onChange={(e) => setObjectKeyLimit(parseInt(e.target.value))}
+                                                        className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                                                    />
+                                                    <p className="text-xs text-yellow-500/80 flex items-center gap-1">
+                                                        <AlertCircle className="w-3 h-3" />
+                                                        Useful for large map/dictionary structures.
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <hr className="border-gray-700" />
+
+                                        {/* Placeholder Toggle */}
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-sm font-medium text-gray-300">Add "...truncated" marker</label>
+                                            <button
+                                                onClick={() => setAddPlaceholder(!addPlaceholder)}
+                                                className={`w-11 h-6 rounded-full transition-colors relative ${addPlaceholder ? 'bg-blue-600' : 'bg-gray-600'}`}
+                                            >
+                                                <span className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${addPlaceholder ? 'translate-x-5' : 'translate-x-0'}`} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={processJson}
+                                        disabled={isProcessing || !inputJson}
+                                        className="w-full mt-8 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:from-gray-700 disabled:to-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-xl transition-all shadow-lg shadow-blue-900/30 flex items-center justify-center gap-2 active:scale-95"
+                                    >
+                                        {isProcessing ? (
+                                            <RefreshCw className="w-5 h-5 animate-spin" />
+                                        ) : (
+                                            <span className="flex items-center gap-2">
+                                                Process JSON <ArrowRight className="w-5 h-5" />
+                                            </span>
+                                        )}
+                                    </button>
+
+                                    {error && (
+                                        <div className="mt-4 p-3 bg-red-900/30 border border-red-800/50 rounded-lg flex items-start gap-2 text-red-300 text-sm">
+                                            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                                            {error}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Output Column */}
+                            <div className="flex flex-col gap-4 h-full">
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                        <Check className="w-4 h-4" /> Result
+                                    </h2>
+                                    <div className="flex gap-2">
+                                        <button 
+                                            onClick={copyToClipboard}
+                                            disabled={!outputJson}
+                                            className="text-xs flex items-center gap-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-1.5 rounded-md transition-colors border border-gray-700"
+                                        >
+                                            <Copy className="w-3 h-3" /> Copy
+                                        </button>
+                                        <button 
+                                            onClick={downloadJson}
+                                            disabled={!outputJson}
+                                            className="text-xs flex items-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-md transition-colors shadow-sm"
+                                        >
+                                            <Download className="w-3 h-3" /> Download
+                                        </button>
+                                    </div>
+                                </div>
+                                <textarea
+                                    readOnly
+                                    className="flex-1 bg-gray-800/50 border border-gray-700 rounded-xl p-4 font-mono text-sm text-green-400 focus:ring-2 focus:ring-green-500/50 focus:border-transparent outline-none resize-none scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
+                                    placeholder="Processed JSON will appear here..."
+                                    value={outputJson}
+                                />
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Mount the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

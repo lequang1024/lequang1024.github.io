@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glados2 Inspector</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #e2e8f0; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+        
+        const STORAGE_KEY = 'glados_g2_data';
+
+        // --- 1. Helpers ---
+
+        const formatNumber = (num) => {
+            if (num === null || num === undefined) return '0';
+            if (typeof num !== 'number') {
+                 const parsed = parseFloat(num);
+                 if (isNaN(parsed)) return num;
+                 num = parsed;
+            }
+            
+            if (num >= 1000000000) return (num / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
+            if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+            return num.toLocaleString();
+        };
+
+        const formatDateTime = (dateString) => {
+            if (!dateString) return 'N/A';
+            if (dateString.startsWith('2040') || dateString.startsWith('2030')) return '∞ Future';
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleString(undefined, { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: false
+                });
+            } catch (e) { return dateString; }
+        };
+
+        const getAwardTypeInfo = (type, subType) => {
+            const t = parseInt(type);
+            
+            switch (t) {
+                case 0: return { icon: '⚪', label: 'None', color: 'text-slate-400', bg: 'bg-slate-800' };
+                case 100: return { icon: '💵', label: 'Currency', color: 'text-emerald-400', bg: 'bg-emerald-900/30' };
+                case 101: return { icon: '💰', label: 'Chips', color: 'text-yellow-400', bg: 'bg-yellow-900/30' };
+                case 102: return { icon: '💎', label: 'Loyalty', color: 'text-purple-400', bg: 'bg-purple-900/30' };
+                case 103: return { icon: '👑', label: 'VIP Points', color: 'text-amber-500', bg: 'bg-amber-900/30' };
+                case 104: return { icon: '⭐', label: 'XP', color: 'text-blue-400', bg: 'bg-blue-900/30' };
+                case 105: return { icon: '🛑', label: 'Loyalty Limit', color: 'text-red-400', bg: 'bg-red-900/30' };
+                case 200: return { icon: '🔢', label: 'Counter (Sibyl)', color: 'text-cyan-400', bg: 'bg-cyan-900/30' };
+                case 250: return { icon: '🧪', label: 'Consumable', color: 'text-teal-400', bg: 'bg-teal-900/30' };
+                case 290: return { icon: '⚡', label: 'Process Event', color: 'text-slate-300', bg: 'bg-slate-700' };
+                case 5000: return { icon: '⏳', label: 'Counter Duration', color: 'text-orange-300', bg: 'bg-orange-900/30' };
+                case 700: return { icon: '🛡️', label: 'Club Points', color: 'text-indigo-400', bg: 'bg-indigo-900/30' };
+                case 800: return { icon: '🎡', label: 'Container/Wheel', color: 'text-pink-400', bg: 'bg-pink-900/30' };
+                case 900: return { icon: '🎯', label: 'Mission Points', color: 'text-red-500', bg: 'bg-red-900/30' };
+                case 1000: return { icon: '🎰', label: 'Free Spin Token', color: 'text-fuchsia-400', bg: 'bg-fuchsia-900/30' };
+                case 2000: return { icon: '🃏', label: 'Sticker Pack', color: 'text-green-400', bg: 'bg-green-900/30' };
+                case 3000: return { icon: '🔑', label: 'Heist Key', color: 'text-yellow-600', bg: 'bg-yellow-900/20' };
+                case 4000: return { icon: '🚀', label: 'Album Booster', color: 'text-violet-400', bg: 'bg-violet-900/30' };
+                case 6000: return { icon: '🏆', label: 'Leaderboard Pts', color: 'text-orange-500', bg: 'bg-orange-900/30' };
+                case 300: return { icon: '🛒', label: 'Purchase', color: 'text-white', bg: 'bg-slate-600' };
+                case 400: return { icon: '📅', label: 'Inject Season', color: 'text-gray-400', bg: 'bg-gray-800' };
+                case 500: return { icon: '📺', label: 'Video Ad', color: 'text-blue-300', bg: 'bg-blue-800' };
+                case 600: return { icon: '🔓', label: 'Unlock', color: 'text-lime-400', bg: 'bg-lime-900/30' };
+                default: return { icon: '📦', label: `Type ${type}`, color: 'text-slate-400', bg: 'bg-slate-800' };
+            }
+        };
+
+        // --- 2. Parsers ---
+
+        const parseGladosDocument = (json) => {
+            if (!json || !json.P || !json.P.S) return null;
+            
+            const root = json.P.S;
+            const categories = {};
+
+            Object.keys(root).forEach(catKey => {
+                if (root[catKey] && root[catKey].AS) {
+                    categories[catKey] = Object.entries(root[catKey].AS).map(([id, data]) => {
+                        return {
+                            id: id,
+                            raw: data,
+                            awards: data.A || [] 
+                        };
+                    });
+                }
+            });
+
+            return categories;
+        };
+
+        const getStarRating = (packId) => {
+            if (!packId) return 0;
+            // Matches _R1, _R2, ... _R5 at the end of the string
+            const match = packId.match(/_R([1-5])$/);
+            return match ? parseInt(match[1]) : 0;
+        };
+
+        // --- 3. Components ---
+
+        const StarRating = ({ count }) => {
+            if (!count) return null;
+            return (
+                <span className="flex items-center ml-2 bg-black/20 px-1.5 rounded-full border border-white/10" title={`${count} Star Pack`}>
+                    {[...Array(count)].map((_, i) => (
+                        <span key={i} className="text-yellow-400 text-[10px]">★</span>
+                    ))}
+                </span>
+            );
+        };
+
+        const WheelVisualizer = ({ wedgesData }) => {
+            const [hoveredIndex, setHoveredIndex] = useState(null);
+
+            if (!wedgesData) return null;
+
+            const wedges = Object.keys(wedgesData)
+                .sort((a, b) => {
+                    const numA = parseInt(a.replace('Wedge', ''));
+                    const numB = parseInt(b.replace('Wedge', ''));
+                    return numA - numB;
+                })
+                .map(key => ({ id: key, ...wedgesData[key] }));
+
+            const count = wedges.length;
+            const radius = 100;
+            const center = 100;
+            const sliceAngle = 360 / count;
+
+            const getCoordinatesForAngle = (angle) => {
+                const rad = (angle - 90) * (Math.PI / 180);
+                return {
+                    x: center + (radius * Math.cos(rad)),
+                    y: center + (radius * Math.sin(rad))
+                };
+            };
+
+            const getLabelCoordinates = (angle, distance = 0.65) => {
+                const rad = (angle - 90) * (Math.PI / 180);
+                return {
+                    x: center + (radius * distance * Math.cos(rad)),
+                    y: center + (radius * distance * Math.sin(rad))
+                };
+            };
+
+            const colors = [
+                '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', 
+                '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef',
+                '#f43f5e', '#ec4899'
+            ];
+
+            const activeWedge = hoveredIndex !== null ? wedges[hoveredIndex] : null;
+
+            return (
+                <div className="flex flex-col items-center bg-slate-900/80 p-4 rounded-xl border border-slate-700 mt-2">
+                    <div className="relative w-64 h-64">
+                        <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-xl transform -rotate-0 transition-transform duration-700">
+                            {wedges.map((wedge, i) => {
+                                const startAngle = i * sliceAngle;
+                                const endAngle = (i + 1) * sliceAngle;
+                                const start = getCoordinatesForAngle(startAngle);
+                                const end = getCoordinatesForAngle(endAngle);
+                                const largeArcFlag = sliceAngle > 180 ? 1 : 0;
+                                
+                                const pathData = [
+                                    `M ${center} ${center}`,
+                                    `L ${start.x} ${start.y}`,
+                                    `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`,
+                                    `Z`
+                                ].join(' ');
+
+                                const labelPos = getLabelCoordinates(startAngle + sliceAngle / 2);
+                                
+                                let labelText = "?";
+                                if (wedge.Awards && wedge.Awards.length > 0) {
+                                    const aw = wedge.Awards[0];
+                                    if (aw.Subtype === 'GrandWedge') labelText = "GRAND";
+                                    else if (aw.Subtype === 'MajorWedge') labelText = "MAJOR";
+                                    else if (aw.Subtype === 'MinorWedge') labelText = "MINOR";
+                                    else if (aw.Subtype === 'MiniWedge') labelText = "MINI";
+                                    else if (aw.Subtype === 'NearMiss') labelText = "MISS";
+                                    else if (aw.Subtype === 'TriggerJackpot') labelText = "JACKPOT";
+                                    else if (aw.Amount) labelText = formatNumber(aw.Amount);
+                                    else labelText = "ITEM";
+                                }
+
+                                const isHovered = hoveredIndex === i;
+
+                                return (
+                                    <g 
+                                        key={i} 
+                                        onMouseEnter={() => setHoveredIndex(i)}
+                                        onMouseLeave={() => setHoveredIndex(null)}
+                                        className="cursor-pointer transition-opacity duration-200"
+                                        style={{ opacity: hoveredIndex !== null && !isHovered ? 0.4 : 1 }}
+                                    >
+                                        <path 
+                                            d={pathData} 
+                                            fill={colors[i % colors.length]} 
+                                            stroke="#0f172a" 
+                                            strokeWidth="1"
+                                            className="transition-all duration-300"
+                                            transform={isHovered ? `scale(1.05) translate(-2.5 -2.5)` : ''}
+                                            style={{ transformOrigin: 'center' }}
+                                        />
+                                        <text 
+                                            x={labelPos.x} 
+                                            y={labelPos.y} 
+                                            fill="white" 
+                                            fontSize="8" 
+                                            fontWeight="bold" 
+                                            textAnchor="middle" 
+                                            dominantBaseline="middle"
+                                            className="pointer-events-none drop-shadow-md"
+                                            transform={`rotate(${startAngle + sliceAngle/2 + 90}, ${labelPos.x}, ${labelPos.y})`}
+                                        >
+                                            {labelText}
+                                        </text>
+                                    </g>
+                                );
+                            })}
+                            <circle cx="100" cy="100" r="15" fill="#1e293b" stroke="#334155" strokeWidth="2" />
+                            <text x="100" y="100" fill="white" fontSize="6" textAnchor="middle" dominantBaseline="middle">SPIN</text>
+                        </svg>
+                    </div>
+
+                    <div className="mt-4 w-full bg-slate-800 p-3 rounded-lg border border-slate-700 min-h-[80px]">
+                        {activeWedge ? (
+                            <div>
+                                <div className="flex justify-between items-center mb-2 pb-1 border-b border-slate-700">
+                                    <span className="font-bold text-white">{activeWedge.id}</span>
+                                    <span className="text-xs bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded">Weight: {activeWedge.Weight}</span>
+                                </div>
+                                <div className="space-y-1">
+                                    {activeWedge.Awards.map((aw, idx) => (
+                                        <div key={idx} className="text-xs flex justify-between text-slate-300">
+                                            <span>{aw.Subtype || 'Award'}</span>
+                                            <span className="font-mono text-yellow-400">{formatNumber(aw.Amount)}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                {activeWedge.Decoration !== 'None' && (
+                                    <div className="mt-1 text-[10px] text-slate-500 italic">Decoration: {activeWedge.Decoration}</div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="h-full flex items-center justify-center text-xs text-slate-500 italic">
+                                Hover over a wedge to see details
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const MetaDataView = ({ meta }) => {
+            if (!meta || Object.keys(meta).length === 0) return null;
+            return (
+                <div className="mt-1 flex flex-wrap gap-1">
+                    {Object.entries(meta).map(([k, v]) => {
+                        if (k === 'WedgeDetails') return null;
+                        if (typeof v === 'object') return null;
+                        return (
+                            <span key={k} className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400">
+                                <span className="text-slate-500">{k}:</span> <span className="text-slate-300">{String(v)}</span>
+                            </span>
+                        );
+                    })}
+                </div>
+            );
+        };
+
+        const AwardItem = ({ award }) => {
+            const { icon, label, color, bg } = getAwardTypeInfo(award.T);
+            
+            let mainName = label;
+            let starCount = 0;
+
+            if (award.ST) {
+                mainName = award.ST;
+            } else if (award.M && award.M.PackId) {
+                 mainName = `${label}: ${award.M.PackId}`;
+                 starCount = getStarRating(award.M.PackId);
+            }
+
+            const isWheel = (award.T === 800 || award.ST === 'WheelAward') && award.M?.WedgeDetails?.Wedges;
+            
+            return (
+                <div className="flex flex-col gap-2 p-2 rounded bg-slate-900/50 border border-slate-700/50 mb-1 text-xs group hover:bg-slate-900 transition-colors">
+                    <div className="flex items-start gap-2">
+                        <div className={`w-6 h-6 flex items-center justify-center rounded ${bg} ${color} text-sm shrink-0`}>
+                            {icon}
+                        </div>
+                        <div className="flex-grow min-w-0">
+                            <div className="flex justify-between items-center">
+                                <div className="flex items-center overflow-hidden">
+                                    <span className={`font-semibold ${color} truncate mr-1`} title={mainName}>{mainName}</span>
+                                    <StarRating count={starCount} />
+                                </div>
+                                <span className="font-mono font-bold text-white whitespace-nowrap">{formatNumber(award.A)}</span>
+                            </div>
+                            <div className="text-[10px] text-slate-500 flex justify-between mt-0.5">
+                                <span>{label} (T:{award.T})</span>
+                                {award.CD && <span>{formatDateTime(award.CD).split(',')[0]}</span>}
+                            </div>
+                            <MetaDataView meta={award.M} />
+                        </div>
+                    </div>
+                    
+                    {isWheel && (
+                        <div className="w-full border-t border-slate-800 pt-2 mt-1">
+                            <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">Wheel Configuration</div>
+                            <WheelVisualizer wedgesData={award.M.WedgeDetails.Wedges} />
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const AwardGroupCard = ({ item }) => {
+            return (
+                <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 hover:border-blue-500/50 transition-all shadow-sm h-full flex flex-col">
+                    <div className="mb-3 pb-2 border-b border-slate-700/50">
+                        <div className="text-xs font-mono text-blue-300 break-all font-bold mb-1" title={item.id}>
+                            {item.id}
+                        </div>
+                        <div className="flex gap-2 text-[10px] text-slate-500">
+                             <span>{item.awards.length} Option(s)</span>
+                        </div>
+                    </div>
+
+                    <div className="space-y-3 flex-grow overflow-y-auto max-h-[32rem] scrollbar-thin pr-1">
+                        {item.awards.map((group, idx) => (
+                            <div key={idx} className="relative pl-3 border-l-2 border-slate-700">
+                                {group.Id && group.Id !== item.id && (
+                                    <div className="text-[10px] text-slate-400 font-mono mb-1 truncate" title={group.Id}>
+                                        ↳ {group.Id}
+                                    </div>
+                                )}
+                                <div className="space-y-1">
+                                    {group.A && group.A.map((aw, awIdx) => (
+                                        <AwardItem key={awIdx} award={aw} />
+                                    ))}
+                                    {(!group.A || group.A.length === 0) && (
+                                        <div className="text-[10px] text-slate-600 italic">Empty award group</div>
+                                    )}
+                                </div>
+                                {group.CD && (
+                                     <div className="text-[9px] text-slate-600 text-right mt-1">
+                                        Avail: {formatDateTime(group.CD)}
+                                     </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const Section = ({ title, items, isCollapsed, toggle }) => {
+            if (!items || items.length === 0) return null;
+            
+            return (
+                <div className="mb-8 animate-fade-in">
+                    <div 
+                        className="flex items-center gap-3 mb-4 cursor-pointer group select-none bg-slate-800/30 p-2 rounded-lg hover:bg-slate-800/60 transition-colors"
+                        onClick={toggle}
+                    >
+                        <div className="text-lg font-bold text-slate-200 group-hover:text-white">
+                            {title}
+                        </div>
+                        <div className="px-2 py-0.5 bg-blue-900/30 text-blue-400 text-xs rounded-full border border-blue-900/50 font-mono">
+                            {items.length}
+                        </div>
+                        <div className="flex-grow h-px bg-slate-800"></div>
+                        <div className="text-slate-500 text-xs">
+                            {isCollapsed ? 'Show ▼' : 'Hide ▲'}
+                        </div>
+                    </div>
+                    
+                    {!isCollapsed && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            {items.map((item, idx) => (
+                                <AwardGroupCard key={item.id + idx} item={item} />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const RawInput = ({ value, onChange, onClose }) => {
+            return (
+                <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+                    <div className="bg-slate-900 w-full max-w-4xl h-[80vh] rounded-xl border border-slate-700 flex flex-col shadow-2xl">
+                        <div className="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50 rounded-t-xl">
+                            <div>
+                                <h3 className="font-bold text-lg text-white">Paste Glados2 Document</h3>
+                                <p className="text-xs text-slate-400 font-mono mt-1">Format: <span className="text-blue-400">{`{ "_t": "g2", "P": { ... } }`}</span></p>
+                            </div>
+                            <button onClick={onClose} className="text-slate-400 hover:text-white px-3 py-1 rounded hover:bg-slate-700 transition-colors">
+                                Analyze
+                            </button>
+                        </div>
+                        <textarea
+                            className="flex-grow bg-slate-950 text-green-400 font-mono text-xs p-4 focus:outline-none resize-none"
+                            value={value}
+                            onChange={(e) => onChange(e.target.value)}
+                            placeholder='Paste JSON here...'
+                        />
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 4. Main App ---
+
+        const App = () => {
+            const [jsonInput, setJsonInput] = useState("");
+            const [parsedData, setParsedData] = useState(null);
+            const [error, setError] = useState(null);
+            const [showInput, setShowInput] = useState(false);
+            const [searchTerm, setSearchTerm] = useState("");
+            const [collapsedSections, setCollapsedSections] = useState({});
+
+            useEffect(() => {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    setJsonInput(saved);
+                    tryParse(saved, false);
+                } else {
+                    // If no data, prompt user
+                    setShowInput(true);
+                }
+            }, []);
+
+            const tryParse = (txt, save = true) => {
+                try {
+                    const obj = JSON.parse(txt);
+                    if (obj._t === 'g2') {
+                        const data = parseGladosDocument(obj);
+                        setParsedData(data);
+                        setError(null);
+                        if (save) localStorage.setItem(STORAGE_KEY, txt);
+                        setShowInput(false);
+                    } else {
+                        setError("Document type is not 'g2'. Check your JSON.");
+                    }
+                } catch (e) {
+                    setError("Invalid JSON syntax.");
+                }
+            };
+
+            const toggleSection = (key) => {
+                setCollapsedSections(prev => ({...prev, [key]: !prev[key]}));
+            };
+
+            const filteredData = useMemo(() => {
+                if (!parsedData) return {};
+                if (!searchTerm) return parsedData;
+                
+                const lower = searchTerm.toLowerCase();
+                const result = {};
+                
+                Object.keys(parsedData).forEach(cat => {
+                    const matches = parsedData[cat].filter(item => {
+                        // Search in ID
+                        if (item.id.toLowerCase().includes(lower)) return true;
+                        // Search in inner awards
+                        return item.awards.some(grp => {
+                            if (grp.Id && grp.Id.toLowerCase().includes(lower)) return true;
+                            if (grp.A) {
+                                return grp.A.some(a => 
+                                    (a.ST && a.ST.toLowerCase().includes(lower)) ||
+                                    (a.M && JSON.stringify(a.M).toLowerCase().includes(lower))
+                                );
+                            }
+                            return false;
+                        });
+                    });
+                    
+                    if (matches.length > 0) result[cat] = matches;
+                });
+                return result;
+            }, [parsedData, searchTerm]);
+
+            return (
+                <div className="min-h-screen pb-12">
+                    {/* Header */}
+                    <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-30 shadow-lg">
+                        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="text-2xl">🧬</div>
+                                <div>
+                                    <h1 className="font-bold text-white leading-none tracking-tight">Glados Inspector</h1>
+                                    <span className="text-[10px] text-blue-400 font-mono bg-blue-900/20 px-1 rounded">G2 Document</span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <div className="relative hidden md:block">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Search awards, IDs..." 
+                                        className="bg-slate-800 text-sm text-white px-3 py-1.5 pl-9 rounded-lg border border-slate-700 focus:border-blue-500 focus:outline-none w-64 transition-all placeholder-slate-500"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                    <span className="absolute left-2.5 top-2 text-slate-500 text-xs">🔎</span>
+                                </div>
+                                <button 
+                                    onClick={() => setShowInput(true)}
+                                    className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-2 rounded transition-colors shadow-lg shadow-blue-900/20 uppercase tracking-wider"
+                                >
+                                    Load JSON
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Main Content */}
+                    <main className="max-w-7xl mx-auto px-4 py-8">
+                        {error && (
+                            <div className="bg-red-900/30 border border-red-500/50 text-red-200 p-4 rounded-lg mb-6 text-center font-mono text-sm">
+                                {error}
+                            </div>
+                        )}
+
+                        {!parsedData && !error && (
+                            <div className="text-center text-slate-500 mt-20 flex flex-col items-center">
+                                <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center text-3xl mb-4">📂</div>
+                                <p className="text-lg font-medium text-slate-400">No Data Loaded</p>
+                                <p className="text-sm max-w-md mt-2">Paste a G2 (Glados) JSON document to inspect awards, logic, and preview configurations.</p>
+                                <button onClick={() => setShowInput(true)} className="mt-6 text-blue-400 hover:text-white underline underline-offset-4">
+                                    Open Paste Window
+                                </button>
+                            </div>
+                        )}
+
+                        {parsedData && Object.keys(filteredData).length === 0 && (
+                            <div className="text-center text-slate-500 mt-20">
+                                <p>No results matching "{searchTerm}"</p>
+                            </div>
+                        )}
+
+                        {Object.keys(filteredData).map(cat => (
+                            <Section 
+                                key={cat} 
+                                title={cat} 
+                                items={filteredData[cat]} 
+                                isCollapsed={collapsedSections[cat]}
+                                toggle={() => toggleSection(cat)}
+                            />
+                        ))}
+                    </main>
+
+                    {showInput && (
+                        <RawInput 
+                            value={jsonInput} 
+                            onChange={setJsonInput} 
+                            onClose={() => tryParse(jsonInput)} 
+                        />
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
