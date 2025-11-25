@@ -72,17 +72,8 @@ window.Icons = {
 };
 
 // --- Tool Registry ---
-// Add new tools here to register them in the app
-const STATIC_TOOLS = [
-    {
-        id: 'json-truncator',
-        name: 'JSON Truncator',
-        description: 'Truncate large JSON files for AI context windows',
-        icon: 'Scissors',
-        category: 'Data',
-        component: window.JsonTruncator
-    }
-];
+// Tools are auto-generated from JSX files in tools/ directory
+const STATIC_TOOLS = window.JsxTools || [];
 
 // Merge with generated tools if available
 const TOOLS = [...STATIC_TOOLS, ...(window.RepoTools || [])];
@@ -194,7 +185,7 @@ function HomePage({ tools, onSelectTool }) {
 
 // --- Tool Page Wrapper ---
 function ToolPage({ tool, onBack }) {
-    const ToolComponent = tool.component;
+    const ToolComponent = window[tool.component];
     const IconComponent = Icons[tool.icon] || Icons.Wrench;
 
     return (

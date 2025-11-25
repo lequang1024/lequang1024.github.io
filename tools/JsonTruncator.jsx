@@ -1,5 +1,10 @@
 // tools/JsonTruncator.jsx
 
+// @tool name: JSON Truncator
+// @tool description: Truncate large JSON files for AI context windows
+// @tool icon: Scissors
+// @tool category: Data
+
 (function() {
     const { useState, useEffect, useRef } = React;
     
