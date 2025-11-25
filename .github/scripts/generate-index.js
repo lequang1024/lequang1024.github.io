@@ -200,37 +200,25 @@ async function processItems(items, currentPath = '') {
  * @param {number} level - Current indentation level for visual hierarchy.
  * @returns {string} The HTML string representing the tree.
 */
-function renderTreeHtml(items, level = 0) {
-    let html = '<ul class="list-none p-0 m-0">'; // Add base list classes
-
+function flattenTools(items, category = 'Misc') {
+    let tools = [];
     for (const item of items) {
-        if (item.type === 'dir') {
-            const folderName = item.name.charAt(0).toUpperCase() + item.name.slice(1);
-            html += `
-                <li>
-                    <div class="folder-item flex items-center pl-${2 + level * 2}" data-expanded="false">
-                        <span class="folder-toggle-icon text-gray-500">&#9658;</span>
-                        <span class="folder-icon">📁</span>
-                        <span class="folder-name">${folderName}</span>
-                    </div>
-                    <div class="folder-contents hidden">
-                        ${renderTreeHtml(item.children, level + 1)}
-                    </div>
-                </li>
-            `;
-        } else if (item.type === 'file') {
-            html += `
-                <li>
-                    <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="file-item block px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-200">
-                        <h3 class="text-md font-medium">${item.title}</h3>
-                        ${item.description ? `<p class="project-description">${item.description}</p>` : ''}
-                    </a>
-                </li>
-            `;
+        if (item.type === 'file') {
+            tools.push({
+                id: item.name.toLowerCase().replace(/\./g, '-'),
+                name: item.title || item.name,
+                description: item.description || '',
+                url: item.url,
+                icon: 'FileText',
+                category: category
+            });
+        } else if (item.type === 'dir') {
+            // Use directory name as category, capitalised
+            const newCategory = item.name.charAt(0).toUpperCase() + item.name.slice(1);
+            tools = tools.concat(flattenTools(item.children, newCategory));
         }
     }
-    html += '</ul>';
-    return html;
+    return tools;
 }
 
 // --- Main Script Execution ---
@@ -241,18 +229,20 @@ async function generateIndexFile() {
     // This step will now also trigger Google Analytics injection for each HTML file encountered
     const rootItems = await fetchContents(apiUrl);
     const structuredItems = await processItems(rootItems); // This is where the recursive GA injection happens
-
-    /*
-    // Render the HTML tree structure for index.html
-    const treeHtml = renderTreeHtml(structuredItems);
     
-    // ... (Template reading logic removed to prevent overwriting custom index.html) ...
-
-    // Add Google Analytics to the generated index.html itself
-    const indexOutputPath = path.join(__dirname, '..', '..', 'index.html');
-    // await fs.writeFile(indexOutputPath, finalHtml); // Write without GA first to re-read
-    await addGoogleAnalytics(indexOutputPath); // Then add GA to it
-    */
+    // Generate the tools list for the React App
+    const flatTools = flattenTools(structuredItems);
+    const toolsJsContent = `window.RepoTools = ${JSON.stringify(flatTools, null, 4)};`;
+    
+    // Write to tools/repo-tools.js
+    const toolsOutputPath = path.join(__dirname, '..', '..', 'tools', 'repo-tools.js');
+    // Ensure directory exists (it should, but safe to check if we were robust, here we assume tools/ exists)
+    try {
+        await fs.writeFile(toolsOutputPath, toolsJsContent);
+        console.log(`Generated ${toolsOutputPath}`);
+    } catch (err) {
+        console.error("Error writing repo-tools.js:", err);
+    }
     
     // Add Google Analytics to the custom index.html
     const indexOutputPath = path.join(__dirname, '..', '..', 'index.html');

@@ -73,7 +73,7 @@ window.Icons = {
 
 // --- Tool Registry ---
 // Add new tools here to register them in the app
-const TOOLS = [
+const STATIC_TOOLS = [
     {
         id: 'json-truncator',
         name: 'JSON Truncator',
@@ -82,16 +82,10 @@ const TOOLS = [
         category: 'Data',
         component: window.JsonTruncator
     }
-    // Add more tools here:
-    // {
-    //     id: 'tool-id',
-    //     name: 'Tool Name',
-    //     description: 'Tool description',
-    //     icon: 'IconName', // Must exist in Icons object
-    //     category: 'Category',
-    //     component: window.ToolComponent
-    // }
 ];
+
+// Merge with generated tools if available
+const TOOLS = [...STATIC_TOOLS, ...(window.RepoTools || [])];
 
 // Category icons mapping
 const CATEGORY_ICONS = {
@@ -261,6 +255,10 @@ function App() {
     }, []);
 
     const selectTool = (tool) => {
+        if (tool.url) {
+            window.open(tool.url, '_blank');
+            return;
+        }
         setCurrentTool(tool);
         window.location.hash = tool.id;
     };
