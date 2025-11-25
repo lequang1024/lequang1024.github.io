@@ -242,84 +242,21 @@ async function generateIndexFile() {
     const rootItems = await fetchContents(apiUrl);
     const structuredItems = await processItems(rootItems); // This is where the recursive GA injection happens
 
+    /*
     // Render the HTML tree structure for index.html
     const treeHtml = renderTreeHtml(structuredItems);
-
-    // Read the template index.html
-    let indexTemplateContent;
-    const indexTemplatePath = path.join(__dirname, '..', '..', 'index_template.html');
-    try {
-        indexTemplateContent = await fs.readFile(indexTemplatePath, 'utf8');
-    } catch (error) {
-        console.error("Error reading index_template.html:", error);
-        // Fallback to a basic template if file not found
-        indexTemplateContent = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quang Le — Project Tools</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .folder-item { cursor: pointer; user-select: none; padding: 8px 0; border-radius: 8px; margin-bottom: 4px; display: flex; align-items: center; transition: background-color 0.1s ease; }
-        .folder-item:hover { background-color: #f3f4f6; }
-        .folder-toggle-icon { margin-right: 8px; width: 16px; height: 16px; flex-shrink: 0; display: inline-block; transition: transform 0.2s ease; transform-origin: center center; }
-        .folder-item[data-expanded="true"] .folder-toggle-icon { transform: rotate(90deg); }
-        .folder-icon { margin-left: 4px; margin-right: 8px; font-size: 1.2em; line-height: 1; flex-shrink: 0; }
-        .folder-name { font-weight: 600; color: #4f46e5; }
-        .folder-contents { margin-left: 24px; list-style: none; padding: 0; overflow: hidden; transition: max-height 0.3s ease-out, opacity 0.3s ease-out; }
-        .folder-contents.hidden { max-height: 0; opacity: 0; }
-        .folder-contents:not(.hidden) { max-height: 1000px; opacity: 1; }
-        .file-item { padding: 6px 0; border-radius: 8px; margin-bottom: 2px; }
-        .file-item a { display: block; padding: 4px 8px; border-radius: 8px; color: #374151; text-decoration: none; transition: background-color 0.1s ease, color 0.1s ease; }
-        .file-item a:hover { background-color: #e5e7eb; color: #1f2937; }
-        .project-description { font-size: 0.75rem; color: #6b7280; margin-top: 4px; white-space: pre-wrap; max-height: 60px; overflow: hidden; text-overflow: ellipsis; }
-    </style>
-</head>
-<body class="bg-gradient-to-br from-slate-50 to-slate-100 text-gray-800 min-h-screen flex flex-col items-center justify-center p-6">
-    <div class="w-full max-w-4xl">
-        <header class="text-center mb-12">
-            <h1 class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-500">
-                Quang Le's Tools
-            </h1>
-            <p class="mt-3 text-gray-600 text-lg">
-                Simple, useful utilities — hosted on GitHub Pages
-            </p>
-        </header>
-        <main id="project-tree" class="bg-white rounded-2xl p-6 shadow border border-gray-200">
-            </main>
-        <footer class="mt-16 text-center text-sm text-gray-500">
-            &copy; <script>document.write(new Date().getFullYear())</script> Quang Le. Built with ❤️ using GitHub Pages.
-        </footer>
-    </div>
-    <script>
-        // Client-side JavaScript for handling folder expansion/collapse
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.folder-item').forEach(folderDiv => {
-                folderDiv.addEventListener('click', () => {
-                    const folderContentsList = folderDiv.nextElementSibling; // The <ul> immediately after the folderDiv
-                    const isHidden = folderContentsList.classList.contains('hidden');
-                    folderContentsList.classList.toggle('hidden');
-                    folderDiv.setAttribute('data-expanded', isHidden ? 'true' : 'false');
-                });
-            });
-        });
-    </script>
-</body>
-</html>
-        `;
-    }
-
-    // Replace the placeholder with the generated tree HTML
-    let finalHtml = indexTemplateContent.replace('<!-- PROJECT_TREE_PLACEHOLDER -->', treeHtml);
+    
+    // ... (Template reading logic removed to prevent overwriting custom index.html) ...
 
     // Add Google Analytics to the generated index.html itself
     const indexOutputPath = path.join(__dirname, '..', '..', 'index.html');
-    await fs.writeFile(indexOutputPath, finalHtml); // Write without GA first to re-read
+    // await fs.writeFile(indexOutputPath, finalHtml); // Write without GA first to re-read
     await addGoogleAnalytics(indexOutputPath); // Then add GA to it
+    */
+    
+    // Add Google Analytics to the custom index.html
+    const indexOutputPath = path.join(__dirname, '..', '..', 'index.html');
+    await addGoogleAnalytics(indexOutputPath);
 
     console.log('index.html generated and all HTML files processed for Google Analytics successfully!');
 }
