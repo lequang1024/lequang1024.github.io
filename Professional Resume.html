@@ -1,183 +1,494 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LÊ MINH QUANG - Software Developer CV</title>
-    <!-- Tailwind CSS CDN -->
+    <title>LÊ MINH QUANG - Interactive Resume</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Custom font for better readability */
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-    </style>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- GSAP for Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL3LWXVBHR"></script>
+    <!-- Tailwind Configuration for Custom Colors/Fonts -->
     <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-
-        gtag('config', 'G-LL3LWXVBHR');
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        primary: '#2563eb', // Blue 600
+                        dark: '#0f172a',    // Slate 900
+                        card: 'rgba(255, 255, 255, 0.8)',
+                        cardDark: 'rgba(30, 41, 59, 0.8)',
+                    }
+                }
+            }
+        }
     </script>
 
-</head>
-<body class="bg-gray-50 text-gray-800 p-4 sm:p-6 lg:p-8 flex justify-center min-h-screen">
-    <div class="container bg-white shadow-xl rounded-lg p-6 sm:p-8 lg:p-10 max-w-4xl mx-auto my-8">
+    <style>
+        /* Custom Styles & Utilities */
+        body {
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
 
-        <!-- Header Section -->
-        <header class="text-center mb-8 pb-4 border-b-2 border-gray-200">
-            <h1 class="text-4xl sm:text-5xl font-extrabold text-blue-800 mb-2 rounded-md">LÊ MINH QUANG</h1>
-            <p class="text-xl sm:text-2xl font-semibold text-gray-700 mb-4 rounded-md">Software Developer</p>
-            <div class="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-6 text-gray-600 text-sm sm:text-base">
-                <a href="mailto:lequang1024@gmail.com" class="hover:text-blue-600 transition duration-300 rounded-md">lequang1024@gmail.com</a>
-                <span class="hidden sm:inline">|</span>
-                <span class="rounded-md">034 597 3869</span>
-                <span class="hidden sm:inline">|</span>
-                <span class="rounded-md">Hanoi, Vietnam</span>
-                <span class="hidden sm:inline">|</span>
-                <a href="https://linkedin.com/in/quangle102" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 transition duration-300 rounded-md">linkedin.com/in/quangle102</a>
+        /* Glassmorphism Card Effect */
+        .glass-card {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .dark .glass-card {
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Mouse Spotlight Effect */
+        #spotlight {
+            background: radial-gradient(600px circle at var(--x) var(--y), rgba(29, 78, 216, 0.15), transparent 80%);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        /* Typing Cursor */
+        .cursor {
+            display: inline-block;
+            width: 3px;
+            background-color: currentColor;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Timeline Line */
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 19px;
+            top: 10px;
+            bottom: 0;
+            width: 2px;
+            background: #e2e8f0; /* gray-200 */
+        }
+        .dark .timeline-container::before {
+            background: #334155; /* slate-700 */
+        }
+
+        /* Scroll Reveal Utility Class */
+        .reveal-section {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+        
+        .reveal-section.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Print Overrides */
+        @media print {
+            body { background: white !important; color: black !important; }
+            .glass-card { box-shadow: none !important; border: none !important; break-inside: avoid; }
+            #spotlight, #theme-toggle, .no-print { display: none !important; }
+            .reveal-section { opacity: 1 !important; transform: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-slate-900 dark:text-gray-100 min-h-screen relative overflow-x-hidden selection:bg-blue-500 selection:text-white">
+
+    <!-- Mouse Spotlight -->
+    <div id="spotlight" class="hidden md:block"></div>
+
+    <!-- Theme Toggle & Print Button -->
+    <div class="fixed top-4 right-4 z-50 flex gap-2 no-print">
+        <button onclick="window.print()" class="p-3 rounded-full bg-white dark:bg-slate-800 shadow-lg hover:scale-110 transition-transform text-gray-600 dark:text-gray-300" title="Print Resume">
+            <i class="fas fa-print"></i>
+        </button>
+        <button id="theme-toggle" class="p-3 rounded-full bg-white dark:bg-slate-800 shadow-lg hover:scale-110 transition-transform text-yellow-500 dark:text-blue-400" title="Toggle Dark Mode">
+            <i class="fas fa-sun dark:hidden"></i>
+            <i class="fas fa-moon hidden dark:inline"></i>
+        </button>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+
+        <!-- Header -->
+        <header class="text-center mb-12 pt-8 relative header-anim">
+            <div class="inline-block p-1 rounded-full bg-gradient-to-r from-blue-500 to-teal-400 mb-4 animate-gradient">
+                <div class="bg-white dark:bg-slate-900 rounded-full p-4">
+                    <span class="text-4xl">👨‍💻</span>
+                </div>
+            </div>
+            <h1 class="text-5xl sm:text-6xl font-extrabold tracking-tight mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-teal-500 dark:from-blue-400 dark:to-teal-300">
+                LÊ MINH QUANG
+            </h1>
+            
+            <!-- Typing Effect Container -->
+            <div class="h-8 mb-6">
+                <span id="typing-text" class="text-xl sm:text-2xl font-mono font-semibold text-gray-600 dark:text-gray-300"></span><span class="cursor">&nbsp;</span>
+            </div>
+
+            <!-- Contact Links -->
+            <div class="flex flex-wrap justify-center gap-4 text-sm sm:text-base text-gray-600 dark:text-gray-400">
+                <a href="mailto:lequang1024@gmail.com" class="glass-card px-4 py-2 rounded-full hover:bg-blue-50 dark:hover:bg-slate-800 flex items-center gap-2 group">
+                    <i class="fas fa-envelope text-blue-500 group-hover:scale-125 transition-transform"></i>
+                    lequang1024@gmail.com
+                </a>
+                <span class="glass-card px-4 py-2 rounded-full flex items-center gap-2 group cursor-default">
+                    <i class="fas fa-phone text-blue-500 group-hover:rotate-12 transition-transform"></i>
+                    034 597 3869
+                </span>
+                <span class="glass-card px-4 py-2 rounded-full flex items-center gap-2 group cursor-default">
+                    <i class="fas fa-map-marker-alt text-red-500 group-hover:bounce transition-transform"></i>
+                    Hanoi, Vietnam
+                </span>
+                <a href="https://linkedin.com/in/quangle102" target="_blank" class="glass-card px-4 py-2 rounded-full hover:bg-blue-50 dark:hover:bg-slate-800 flex items-center gap-2 group">
+                    <i class="fab fa-linkedin text-blue-600 group-hover:scale-125 transition-transform"></i>
+                    quangle102
+                </a>
             </div>
         </header>
 
-        <!-- Main Content Grid -->
-        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Left Column for smaller sections -->
-            <div class="lg:col-span-1 space-y-8">
-                <!-- Education Section -->
-                <section class="bg-gray-100 p-6 rounded-lg shadow-sm">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b-2 border-gray-300 rounded-md">EDUCATION</h2>
-                    <p class="font-semibold text-gray-700 rounded-md">Bachelor of Information Technology</p>
-                    <p class="text-gray-600 rounded-md">Hanoi University</p>
-                    <p class="text-sm text-gray-500 rounded-md">September 2012 - June 2016</p>
-                    <p class="text-sm text-gray-500 rounded-md">Hanoi, Vietnam</p>
-                </section>
-
-                <!-- Skills Section -->
-                <section class="bg-gray-100 p-6 rounded-lg shadow-sm">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b-2 border-gray-300 rounded-md">SKILLS</h2>
-                    <div class="flex flex-wrap gap-2">
-                        <span class="bg-blue-200 text-blue-800 text-sm font-medium px-3 py-1 rounded-full shadow-sm rounded-md">C#, .NET Core</span>
-                        <span class="bg-blue-200 text-blue-800 text-sm font-medium px-3 py-1 rounded-full shadow-sm rounded-md">Web APIs (RESTful, GraphQL)</span>
-                        <span class="bg-blue-200 text-blue-800 text-sm font-medium px-3 py-1 rounded-full shadow-sm rounded-md">Databases (SQL, NoSQL)</span>
-                        <span class="bg-blue-200 text-blue-800 text-sm font-medium px-3 py-1 rounded-full shadow-sm rounded-md">Cloud services (Azure)</span>
-                        <span class="bg-blue-200 text-blue-800 text-sm font-medium px-3 py-1 rounded-full shadow-sm rounded-md">Azure DevOps</span>
-                        <span class="bg-blue-200 text-blue-800 text-sm font-medium px-3 py-1 rounded-full shadow-sm rounded-md">Multi-tenancy</span>
-                        <span class="bg-blue-200 text-blue-800 text-sm font-medium px-3 py-1 rounded-full shadow-sm rounded-md">JavaScript, HTML, CSS</span>
-                        <span class="bg-blue-200 text-blue-800 text-sm font-medium px-3 py-1 rounded-full shadow-sm rounded-md">Git</span>
-                        <span class="bg-blue-200 text-blue-800 text-sm font-medium px-3 py-1 rounded-full shadow-sm rounded-md">Debugging</span>
-                        <span class="bg-blue-200 text-blue-800 text-sm font-medium px-3 py-1 rounded-full shadow-sm rounded-md">Performance optimization</span>
-                        <span class="bg-blue-200 text-blue-800 text-sm font-medium px-3 py-1 rounded-full shadow-sm rounded-md">SEO optimization</span>
-                        <span class="bg-blue-200 text-blue-800 text-sm font-medium px-3 py-1 rounded-full shadow-sm rounded-md">Agile</span>
+        <!-- Grid Layout -->
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Sidebar (Skills, Edu) -->
+            <div class="lg:col-span-4 space-y-8">
+                
+                <!-- Education -->
+                <section class="glass-card bg-white/60 dark:bg-slate-800/60 rounded-2xl p-6 shadow-sm reveal-section">
+                    <div class="flex items-center gap-3 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                        <i class="fas fa-graduation-cap text-2xl text-blue-500"></i>
+                        <h2 class="text-xl font-bold">EDUCATION</h2>
+                    </div>
+                    <div class="relative pl-4 border-l-2 border-blue-200 dark:border-blue-900">
+                        <h3 class="font-bold text-gray-800 dark:text-white">Bachelor of Information Technology</h3>
+                        <p class="text-blue-600 dark:text-blue-400 font-semibold">Hanoi University</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1"><i class="far fa-calendar-alt mr-1"></i> Sep 2012 - June 2016</p>
                     </div>
                 </section>
 
-                <!-- Languages Section -->
-                <section class="bg-gray-100 p-6 rounded-lg shadow-sm">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b-2 border-gray-300 rounded-md">LANGUAGES</h2>
-                    <ul class="list-disc pl-5 space-y-1 text-gray-700">
-                        <li class="rounded-md">English: Fluent</li>
-                        <li class="rounded-md">Vietnamese: Native</li>
-                    </ul>
+                <!-- Skills -->
+                <section class="glass-card bg-white/60 dark:bg-slate-800/60 rounded-2xl p-6 shadow-sm reveal-section">
+                    <div class="flex items-center gap-3 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                        <i class="fas fa-code text-2xl text-blue-500"></i>
+                        <h2 class="text-xl font-bold">SKILLS</h2>
+                    </div>
+                    <div class="flex flex-wrap gap-2" id="skills-container">
+                        <!-- Skills will be populated via JS for animation staggered effect, or static here with classes -->
+                        <span class="skill-tag bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-md text-sm font-medium hover:scale-105 transition-transform cursor-default border border-blue-200 dark:border-blue-800">C# / .NET Core</span>
+                        <span class="skill-tag bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-md text-sm font-medium hover:scale-105 transition-transform cursor-default border border-blue-200 dark:border-blue-800">Web APIs (REST/GraphQL)</span>
+                        <span class="skill-tag bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 px-3 py-1 rounded-md text-sm font-medium hover:scale-105 transition-transform cursor-default border border-green-200 dark:border-green-800">SQL / NoSQL</span>
+                        <span class="skill-tag bg-sky-100 dark:bg-sky-900/50 text-sky-800 dark:text-sky-200 px-3 py-1 rounded-md text-sm font-medium hover:scale-105 transition-transform cursor-default border border-sky-200 dark:border-sky-800">Azure Cloud</span>
+                        <span class="skill-tag bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-200 px-3 py-1 rounded-md text-sm font-medium hover:scale-105 transition-transform cursor-default border border-purple-200 dark:border-purple-800">Azure DevOps</span>
+                        <span class="skill-tag bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200 px-3 py-1 rounded-md text-sm font-medium hover:scale-105 transition-transform cursor-default border border-orange-200 dark:border-orange-800">JavaScript / React</span>
+                        <span class="skill-tag bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-md text-sm font-medium hover:scale-105 transition-transform cursor-default border border-gray-300 dark:border-gray-600">Git</span>
+                        <span class="skill-tag bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200 px-3 py-1 rounded-md text-sm font-medium hover:scale-105 transition-transform cursor-default border border-red-200 dark:border-red-800">Performance Optimization</span>
+                        <span class="skill-tag bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-200 px-3 py-1 rounded-md text-sm font-medium hover:scale-105 transition-transform cursor-default border border-indigo-200 dark:border-indigo-800">Multi-tenancy</span>
+                        <span class="skill-tag bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200 px-3 py-1 rounded-md text-sm font-medium hover:scale-105 transition-transform cursor-default border border-yellow-200 dark:border-yellow-800">Agile</span>
+                    </div>
                 </section>
 
-                <!-- Hobbies Section -->
-                <section class="bg-gray-100 p-6 rounded-lg shadow-sm">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b-2 border-gray-300 rounded-md">HOBBIES</h2>
-                    <ul class="list-disc pl-5 space-y-1 text-gray-700">
-                        <li class="rounded-md">Playing music (guitar)</li>
-                        <li class="rounded-md">MTB</li>
-                        <li class="rounded-md">Calisthenics</li>
-                    </ul>
+                <!-- Languages -->
+                <section class="glass-card bg-white/60 dark:bg-slate-800/60 rounded-2xl p-6 shadow-sm reveal-section">
+                     <div class="flex items-center gap-3 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                        <i class="fas fa-language text-2xl text-blue-500"></i>
+                        <h2 class="text-xl font-bold">LANGUAGES</h2>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="font-medium">English</span>
+                                <span class="text-sm text-gray-500">Fluent</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: 90%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="font-medium">Vietnamese</span>
+                                <span class="text-sm text-gray-500">Native</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
                 </section>
+
+                 <!-- Hobbies -->
+                 <section class="glass-card bg-white/60 dark:bg-slate-800/60 rounded-2xl p-6 shadow-sm reveal-section">
+                    <div class="flex items-center gap-3 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                       <i class="fas fa-heart text-2xl text-blue-500"></i>
+                       <h2 class="text-xl font-bold">HOBBIES</h2>
+                   </div>
+                   <ul class="space-y-2 text-gray-700 dark:text-gray-300">
+                       <li class="flex items-center gap-2"><i class="fas fa-guitar text-orange-500"></i> Playing music (Guitar)</li>
+                       <li class="flex items-center gap-2"><i class="fas fa-bicycle text-green-500"></i> MTB</li>
+                       <li class="flex items-center gap-2"><i class="fas fa-dumbbell text-gray-500"></i> Calisthenics</li>
+                   </ul>
+               </section>
             </div>
 
-            <!-- Right Column for larger sections -->
-            <div class="lg:col-span-2 space-y-8">
-                <!-- Career Objective Section -->
-                <section class="bg-gray-100 p-6 rounded-lg shadow-sm">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b-2 border-gray-300 rounded-md">CAREER OBJECTIVE</h2>
-                    <p class="text-gray-700 leading-relaxed rounded-md">A passionate software developer with 6 years of experience in information technology, focusing on delivering high-quality and performant code. Experienced in Agile development and adept at working in fast-paced environments.</p>
+            <!-- Right Main Content -->
+            <div class="lg:col-span-8 space-y-8">
+                
+                <!-- Objective -->
+                <section class="glass-card bg-white/60 dark:bg-slate-800/60 rounded-2xl p-6 shadow-sm reveal-section">
+                    <div class="flex items-center gap-3 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                        <i class="fas fa-bullseye text-2xl text-blue-500"></i>
+                        <h2 class="text-xl font-bold">CAREER OBJECTIVE</h2>
+                    </div>
+                    <p class="text-lg text-gray-700 dark:text-gray-300 leading-relaxed italic border-l-4 border-blue-500 pl-4">
+                        "A passionate software developer with 6 years of experience in information technology, focusing on delivering high-quality and performant code. Experienced in Agile development and adept at working in fast-paced environments."
+                    </p>
                 </section>
 
-                <!-- Work Experience Section -->
-                <section class="bg-gray-100 p-6 rounded-lg shadow-sm">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b-2 border-gray-300 rounded-md">WORK EXPERIENCE</h2>
-
-                    <!-- Playstudios -->
-                    <div class="mb-6 last:mb-0 p-4 bg-white rounded-lg shadow-md">
-                        <h3 class="text-xl font-bold text-blue-700 rounded-md">.NET Developer</h3>
-                        <p class="font-semibold text-gray-800 rounded-md">Playstudios</p>
-                        <p class="text-sm text-gray-500 mb-3 rounded-md">2022 - Present | Hanoi, Vietnam</p>
-                        <ul class="list-disc pl-5 space-y-1 text-gray-700">
-                            <li class="rounded-md">Worked and led backend implementation and design for a Revenue boosting Leaderboard feature with robust performance, integrating HTTP API, Redis, and handling high traffic and concurrent players.</li>
-                            <li class="rounded-md">Independently migrated legacy .NET applications to .NET 6, improving performance and leveraging new features.</li>
-                            <li class="rounded-md">Designed and implemented scalable RESTful APIs using .NET WebAPI for seamless communication between game clients and servers.</li>
-                            <li class="rounded-md">Collaborated with cross-functional teams to deliver high-quality gaming experiences and optimize backend performance.</li>
-                            <li class="rounded-md">Implemented robust security measures to protect user data and ensure compliance with industry standards and regulations.</li>
-                            <li class="rounded-md">Streamlined deployment processes and maintained CI/CD pipelines using Azure DevOps for efficient updates and deployments.</li>
-                            <li class="rounded-md">Provided constructive feedback and mentorship to junior developers, fostering a culture of continuous learning and growth.</li>
-                        </ul>
+                <!-- Experience -->
+                <section class="glass-card bg-white/60 dark:bg-slate-800/60 rounded-2xl p-6 shadow-sm reveal-section">
+                    <div class="flex items-center gap-3 mb-8 border-b border-gray-200 dark:border-gray-700 pb-2">
+                        <i class="fas fa-briefcase text-2xl text-blue-500"></i>
+                        <h2 class="text-xl font-bold">WORK EXPERIENCE</h2>
                     </div>
 
-                    <!-- Niteco (Senior) -->
-                    <div class="mb-6 last:mb-0 p-4 bg-white rounded-lg shadow-md">
-                        <h3 class="text-xl font-bold text-blue-700 rounded-md">Senior Software Developer</h3>
-                        <p class="font-semibold text-gray-800 rounded-md">Niteco</p>
-                        <p class="text-sm text-gray-500 mb-3 rounded-md">May 2021 - May 2022 | Hanoi, Vietnam</p>
-                        <ul class="list-disc pl-5 space-y-1 text-gray-700">
-                            <li class="rounded-md">Led expert services team, supporting other teams for difficult software solutions and web performance optimization.</li>
-                            <li class="rounded-md">Audited app performance and implemented fixes, reducing response time and page weight by over 90% in many cases.</li>
-                            <li class="rounded-md">Implemented web application to monitor website benchmarks using Node.js, MongoDB, React.js</li>
-                            <li class="rounded-md">Migrated Niteco.com website from ASP.NET 4.7 to ASP.NET Core 5, resulting in a 200% performance increase.</li>
-                            <li class="rounded-md">Set up pipelines on Azure DevOps for automatic builds and deployments.</li>
-                            <li class="rounded-md">Mentored younger team members, fostering their technical skills and professional development.</li>
-                        </ul>
-                    </div>
+                    <div class="relative timeline-container space-y-10">
+                        
+                        <!-- Playstudios -->
+                        <div class="relative pl-12 group">
+                            <!-- Dot -->
+                            <div class="absolute left-[10px] top-1.5 w-5 h-5 bg-blue-500 rounded-full border-4 border-white dark:border-slate-900 group-hover:scale-125 transition-transform duration-300 shadow-md"></div>
+                            
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
+                                <h3 class="text-xl font-bold text-gray-800 dark:text-white group-hover:text-blue-500 transition-colors">.NET Developer</h3>
+                                <span class="text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 px-3 py-1 rounded-full font-mono">2022 - Present</span>
+                            </div>
+                            <h4 class="text-lg font-semibold text-gray-600 dark:text-gray-300 mb-2">Playstudios <span class="text-xs text-gray-400 font-normal ml-2">| Hanoi, Vietnam</span></h4>
+                            <ul class="list-none space-y-2 text-gray-700 dark:text-gray-400">
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Worked and led backend implementation and design for a Revenue boosting Leaderboard feature with robust performance, integrating HTTP API, Redis, and handling high traffic and concurrent players.</span></li>
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Independently migrated legacy .NET applications to .NET 6, improving performance and leveraging new features.</span></li>
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Designed and implemented scalable RESTful APIs using .NET WebAPI for seamless communication between game clients and servers.</span></li>
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Collaborated with cross-functional teams to deliver high-quality gaming experiences and optimize backend performance.</span></li>
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Implemented robust security measures to protect user data and ensure compliance with industry standards and regulations.</span></li>
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Streamlined deployment processes and maintained CI/CD pipelines using Azure DevOps for efficient updates and deployments.</span></li>
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Provided constructive feedback and mentorship to junior developers, fostering a culture of continuous learning and growth.</span></li>
+                            </ul>
+                        </div>
 
-                    <!-- Bright Software -->
-                    <div class="mb-6 last:mb-0 p-4 bg-white rounded-lg shadow-md">
-                        <h3 class="text-xl font-bold text-blue-700 rounded-md">Full-stack Developer</h3>
-                        <p class="font-semibold text-gray-800 rounded-md">Bright Software</p>
-                        <p class="text-sm text-gray-500 mb-3 rounded-md">May 2020 - April 2021 | Hanoi, Vietnam</p>
-                        <ul class="list-disc pl-5 space-y-1 text-gray-700">
-                            <li class="rounded-md">Developed School Management System and Clinic Patient Management Software using .NET Core WebApi and SPA using React.js.</li>
-                            <li class="rounded-md">Managed deployments and builds on Docker containers hosted on Linux using Nginx reverse proxy.</li>
-                            <li class="rounded-md">Mentored younger team members, guiding them in best practices and fostering their professional growth.</li>
-                            <li class="rounded-md">Collaborated with cross-functional teams to deliver high-quality software solutions.</li>
-                        </ul>
-                    </div>
+                        <!-- Niteco Senior -->
+                        <div class="relative pl-12 group">
+                            <div class="absolute left-[10px] top-1.5 w-5 h-5 bg-gray-400 rounded-full border-4 border-white dark:border-slate-900 group-hover:bg-blue-500 group-hover:scale-125 transition-all duration-300 shadow-md"></div>
+                            
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
+                                <h3 class="text-xl font-bold text-gray-800 dark:text-white group-hover:text-blue-500 transition-colors">Senior Software Developer</h3>
+                                <span class="text-sm bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full font-mono">May 2021 - May 2022</span>
+                            </div>
+                            <h4 class="text-lg font-semibold text-gray-600 dark:text-gray-300 mb-2">Niteco <span class="text-xs text-gray-400 font-normal ml-2">| Hanoi, Vietnam</span></h4>
+                            <ul class="list-none space-y-2 text-gray-700 dark:text-gray-400">
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Led expert services team, supporting other teams for difficult software solutions and web performance optimization.</span></li>
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Audited app performance and implemented fixes, reducing response time and page weight by over 90% in many cases.</span></li>
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Implemented web application to monitor website benchmarks using Node.js, MongoDB, React.js</span></li>
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Migrated Niteco.com website from ASP.NET 4.7 to ASP.NET Core 5, resulting in a 200% performance increase.</span></li>
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Set up pipelines on Azure DevOps for automatic builds and deployments.</span></li>
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Mentored younger team members, fostering their technical skills and professional development.</span></li>
+                            </ul>
+                        </div>
 
-                    <!-- Niteco (Full-stack) -->
-                    <div class="mb-6 last:mb-0 p-4 bg-white rounded-lg shadow-md">
-                        <h3 class="text-xl font-bold text-blue-700 rounded-md">Full-stack Developer</h3>
-                        <p class="font-semibold text-gray-800 rounded-md">Niteco</p>
-                        <p class="text-sm text-gray-500 mb-3 rounded-md">December 2019 - April 2020 | Hanoi, Vietnam</p>
-                        <ul class="list-disc pl-5 space-y-1 text-gray-700">
-                            <li class="rounded-md">Developed CMS and E-commerce websites using Episerver-based backend.</li>
-                            <li class="rounded-md">Handled communication with English and Norwegian customers for requirement breakdown and planning.</li>
-                            <li class="rounded-md">Implemented/integrated Google Analytics to web applications.</li>
-                            <li class="rounded-md">Defined conventions for the team in code and related processes, ensuring consistency and quality.</li>
-                        </ul>
-                    </div>
+                         <!-- Bright Software -->
+                         <div class="relative pl-12 group">
+                            <div class="absolute left-[10px] top-1.5 w-5 h-5 bg-gray-400 rounded-full border-4 border-white dark:border-slate-900 group-hover:bg-blue-500 group-hover:scale-125 transition-all duration-300 shadow-md"></div>
+                            
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
+                                <h3 class="text-xl font-bold text-gray-800 dark:text-white group-hover:text-blue-500 transition-colors">Full-stack Developer</h3>
+                                <span class="text-sm bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full font-mono">May 2020 - Apr 2021</span>
+                            </div>
+                            <h4 class="text-lg font-semibold text-gray-600 dark:text-gray-300 mb-2">Bright Software <span class="text-xs text-gray-400 font-normal ml-2">| Hanoi, Vietnam</span></h4>
+                            <ul class="list-none space-y-2 text-gray-700 dark:text-gray-400">
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Developed School Management System and Clinic Patient Management Software using .NET Core WebApi and SPA using React.js.</span></li>
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Managed deployments and builds on Docker containers hosted on Linux using Nginx reverse proxy.</span></li>
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Mentored younger team members, guiding them in best practices and fostering their professional growth.</span></li>
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Collaborated with cross-functional teams to deliver high-quality software solutions.</span></li>
+                            </ul>
+                        </div>
 
-                    <!-- FPT Software -->
-                    <div class="mb-6 last:mb-0 p-4 bg-white rounded-lg shadow-md">
-                        <h3 class="text-xl font-bold text-blue-700 rounded-md">Full-stack Developer</h3>
-                        <p class="font-semibold text-gray-800 rounded-md">FPT Software</p>
-                        <p class="text-sm text-gray-500 mb-3 rounded-md">April 2016 - November 2019 | Hanoi, Vietnam</p>
-                        <ul class="list-disc pl-5 space-y-1 text-gray-700">
-                            <li class="rounded-md">Full-stack development for GMC Software's Inspire Cloud using proprietary back-end infrastructure (Kestrel, Kafka based, Event sourcing, CQRS architecture).</li>
-                            <li class="rounded-md">Ensured strict code quality and performance requirements, maintaining 100% unit test path coverage.</li>
-                            <li class="rounded-md">Collaborated with developers across different locations to solve problems and ensure project success.</li>
-                            <li class="rounded-md">Actively participated in code reviews and provided constructive feedback to team members.</li>
-                        </ul>
-                    </div>
+                         <!-- Niteco (First Stint) -->
+                         <div class="relative pl-12 group">
+                            <div class="absolute left-[10px] top-1.5 w-5 h-5 bg-gray-400 rounded-full border-4 border-white dark:border-slate-900 group-hover:bg-blue-500 group-hover:scale-125 transition-all duration-300 shadow-md"></div>
+                            
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
+                                <h3 class="text-xl font-bold text-gray-800 dark:text-white group-hover:text-blue-500 transition-colors">Full-stack Developer</h3>
+                                <span class="text-sm bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full font-mono">Dec 2019 - Apr 2020</span>
+                            </div>
+                            <h4 class="text-lg font-semibold text-gray-600 dark:text-gray-300 mb-2">Niteco <span class="text-xs text-gray-400 font-normal ml-2">| Hanoi, Vietnam</span></h4>
+                            <ul class="list-none space-y-2 text-gray-700 dark:text-gray-400">
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Developed CMS and E-commerce websites using Episerver-based backend.</span></li>
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Handled communication with English and Norwegian customers for requirement breakdown and planning.</span></li>
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Implemented/integrated Google Analytics to web applications.</span></li>
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Defined conventions for the team in code and related processes, ensuring consistency and quality.</span></li>
+                            </ul>
+                        </div>
 
+                         <!-- FPT Software -->
+                         <div class="relative pl-12 group">
+                            <div class="absolute left-[10px] top-1.5 w-5 h-5 bg-gray-400 rounded-full border-4 border-white dark:border-slate-900 group-hover:bg-blue-500 group-hover:scale-125 transition-all duration-300 shadow-md"></div>
+                            
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
+                                <h3 class="text-xl font-bold text-gray-800 dark:text-white group-hover:text-blue-500 transition-colors">Full-stack Developer</h3>
+                                <span class="text-sm bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full font-mono">Apr 2016 - Nov 2019</span>
+                            </div>
+                            <h4 class="text-lg font-semibold text-gray-600 dark:text-gray-300 mb-2">FPT Software <span class="text-xs text-gray-400 font-normal ml-2">| Hanoi, Vietnam</span></h4>
+                            <ul class="list-none space-y-2 text-gray-700 dark:text-gray-400">
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Full-stack development for GMC Software's Inspire Cloud using proprietary back-end infrastructure (Kestrel, Kafka based, Event sourcing, CQRS architecture).</span></li>
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Ensured strict code quality and performance requirements, maintaining 100% unit test path coverage.</span></li>
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Collaborated with developers across different locations to solve problems and ensure project success.</span></li>
+                                <li class="flex gap-2 items-start"><i class="fas fa-check mt-1.5 text-xs text-blue-500 shrink-0"></i><span>Actively participated in code reviews and provided constructive feedback to team members.</span></li>
+                            </ul>
+                        </div>
+
+                    </div>
                 </section>
             </div>
         </main>
+        
+        <footer class="text-center mt-20 pb-10 text-gray-500 dark:text-gray-600 text-sm">
+            <p>&copy; 2025 Lê Minh Quang. Built with HTML, Tailwind & GSAP.</p>
+        </footer>
     </div>
+
+    <!-- Interactivity Scripts -->
+    <script>
+        // --- 1. Dark Mode Toggle ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+        
+        // Check local storage or system preference
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            htmlElement.classList.add('dark');
+        } else {
+            htmlElement.classList.remove('dark');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            htmlElement.classList.toggle('dark');
+            if (htmlElement.classList.contains('dark')) {
+                localStorage.theme = 'dark';
+            } else {
+                localStorage.theme = 'light';
+            }
+        });
+
+        // --- 2. Mouse Spotlight Effect ---
+        const spotlight = document.getElementById('spotlight');
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            spotlight.style.setProperty('--x', `${x}px`);
+            spotlight.style.setProperty('--y', `${y}px`);
+        });
+
+        // --- 3. Typing Effect ---
+        const textElement = document.getElementById('typing-text');
+        const phrases = ["Software Developer", ".NET Expert", "Full-stack Engineer", "Problem Solver"];
+        let phraseIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        let typeSpeed = 100;
+
+        function type() {
+            const currentPhrase = phrases[phraseIndex];
+            
+            if (isDeleting) {
+                textElement.textContent = currentPhrase.substring(0, charIndex - 1);
+                charIndex--;
+                typeSpeed = 50;
+            } else {
+                textElement.textContent = currentPhrase.substring(0, charIndex + 1);
+                charIndex++;
+                typeSpeed = 100;
+            }
+
+            if (!isDeleting && charIndex === currentPhrase.length) {
+                isDeleting = true;
+                typeSpeed = 2000; // Pause at end
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                phraseIndex = (phraseIndex + 1) % phrases.length;
+                typeSpeed = 500; // Pause before new word
+            }
+
+            setTimeout(type, typeSpeed);
+        }
+
+        // Start typing after initial load
+        setTimeout(type, 1000);
+
+        // --- 4. Scroll Reveal (Intersection Observer) ---
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    // Stop observing once revealed
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.15,
+            rootMargin: "0px 0px -50px 0px"
+        });
+
+        document.querySelectorAll('.reveal-section').forEach(section => {
+            revealObserver.observe(section);
+        });
+
+        // --- 5. GSAP Intro Animations ---
+        window.onload = () => {
+            // Header animation
+            gsap.from(".header-anim", {
+                duration: 1.5,
+                y: -50,
+                opacity: 0,
+                ease: "power3.out"
+            });
+
+            // Stagger skills
+            gsap.from(".skill-tag", {
+                scrollTrigger: "#skills-container",
+                duration: 0.8,
+                y: 20,
+                opacity: 0,
+                stagger: 0.05,
+                delay: 0.5,
+                ease: "back.out(1.7)"
+            });
+        };
+    </script>
 </body>
 </html>

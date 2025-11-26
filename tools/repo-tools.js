@@ -48,6 +48,22 @@ window.RepoTools = [
         "category": "Playstudios tools"
     },
     {
+        "id": "initialapivisualizer-html",
+        "name": "Playstudios tools: Initialapivisualizer",
+        "description": "Game State Visualizer Pro",
+        "url": "/Playstudios tools/initialapivisualizer.html",
+        "icon": "FileText",
+        "category": "Playstudios tools"
+    },
+    {
+        "id": "log json-html",
+        "name": "Playstudios tools: Log json",
+        "description": "JSON Prettifier & Log Cleaner",
+        "url": "/Playstudios tools/log json.html",
+        "icon": "FileText",
+        "category": "Playstudios tools"
+    },
+    {
         "id": "lokilinkbuilder-html",
         "name": "Playstudios tools: LokiLinkBuilder",
         "description": "Loki Grafana Link Builder",
@@ -98,7 +114,7 @@ window.RepoTools = [
     {
         "id": "professional resume-html",
         "name": "Professional Resume",
-        "description": "LÊ MINH QUANG - Software Developer CV",
+        "description": "LÊ MINH QUANG - Interactive Resume",
         "url": "/Professional Resume.html",
         "icon": "FileText",
         "category": "Misc"

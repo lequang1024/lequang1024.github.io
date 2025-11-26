@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Prettifier & Log Cleaner</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e1e1e; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #424242; 
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4f4f4f; 
+        }
+
+        body {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+        }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'vscode-bg': '#1e1e1e',
+                        'vscode-sidebar': '#252526',
+                        'vscode-input': '#3c3c3c',
+                        'vscode-accent': '#007acc',
+                        'vscode-text': '#d4d4d4',
+                        'vscode-text-muted': '#a0a0a0',
+                        'vscode-border': '#454545',
+                        'vscode-button': '#0e639c',
+                        'vscode-button-hover': '#1177bb',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL3LWXVBHR"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-LL3LWXVBHR');
+    </script>
+
+</head>
+<body class="h-screen overflow-hidden flex flex-col">
+
+    <div id="root" class="h-full w-full"></div>
+
+    <script type="text/babel">
+        const { useState, useRef } = React;
+
+        // --- Icons ---
+        const IconWrapper = ({ children, className }) => (
+            <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="24" height="24" viewBox="0 0 24 24" 
+                fill="none" stroke="currentColor" strokeWidth="2" 
+                strokeLinecap="round" strokeLinejoin="round" 
+                className={className}
+            >
+                {children}
+            </svg>
+        );
+
+        const FileJson = (props) => <IconWrapper {...props}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M10 12a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1"/><path d="M14 18a1 1 0 0 0 1-1v-1a1 1 0 0 0-1-1"/><path d="M10 12h4"/></IconWrapper>;
+        const Upload = (props) => <IconWrapper {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></IconWrapper>;
+        const Copy = (props) => <IconWrapper {...props}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></IconWrapper>;
+        const Download = (props) => <IconWrapper {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></IconWrapper>;
+        const RefreshCw = (props) => <IconWrapper {...props}><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></IconWrapper>;
+        const AlertCircle = (props) => <IconWrapper {...props}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></IconWrapper>;
+        const Check = (props) => <IconWrapper {...props}><polyline points="20 6 9 17 4 12"/></IconWrapper>;
+        const Trash2 = (props) => <IconWrapper {...props}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></IconWrapper>;
+
+        function JsonPrettifier() {
+            const [inputJson, setInputJson] = useState('');
+            const [outputJsons, setOutputJsons] = useState([]);
+            const [indentation, setIndentation] = useState(2);
+            const [extractFromLogs, setExtractFromLogs] = useState(true);
+            const [stats, setStats] = useState(null);
+            const [error, setError] = useState(null);
+            const [isProcessing, setIsProcessing] = useState(false);
+            const fileInputRef = useRef(null);
+
+            // Intelligent Extractor: Handles nested braces and ignores braces inside strings
+            const extractJsonFromText = (text) => {
+                const matches = [];
+                let braceCount = 0;
+                let startIndex = -1;
+                let inString = false;
+                let escaped = false;
+
+                for (let i = 0; i < text.length; i++) {
+                    const char = text[i];
+
+                    // Handle escaping in strings
+                    if (inString && char === '\\') {
+                        escaped = !escaped;
+                        continue;
+                    }
+
+                    // Handle quotes
+                    if (char === '"' && !escaped) {
+                        inString = !inString;
+                    }
+                    
+                    if (escaped) escaped = false;
+
+                    if (inString) continue;
+
+                    if (char === '{') {
+                        if (braceCount === 0) startIndex = i;
+                        braceCount++;
+                    } else if (char === '}') {
+                        braceCount--;
+                        if (braceCount === 0 && startIndex !== -1) {
+                            matches.push(text.substring(startIndex, i + 1));
+                            startIndex = -1;
+                        }
+                    }
+                }
+
+                return matches.length > 0 ? matches : [text];
+            };
+
+            const handleFileUpload = (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    setInputJson(e.target.result);
+                    setError(null);
+                };
+                reader.onerror = () => setError('Failed to read file');
+                reader.readAsText(file);
+            };
+
+            const formatJson = () => {
+                setIsProcessing(true);
+                setError(null);
+                setStats(null);
+                setOutputJsons([]);
+
+                setTimeout(() => {
+                    try {
+                        if (!inputJson.trim()) {
+                            throw new Error("Input is empty");
+                        }
+
+                        let rawStrings = [inputJson];
+
+                        if (extractFromLogs) {
+                            rawStrings = extractJsonFromText(inputJson);
+                        }
+
+                        const formattedResults = [];
+                        let totalOriginalSize = 0;
+                        let totalFormattedSize = 0;
+
+                        for (let i = 0; i < rawStrings.length; i++) {
+                            let currentString = rawStrings[i];
+                            
+                            try {
+                                if (extractFromLogs) {
+                                    // Aggressively remove all newlines to fix fragmented logs
+                                    currentString = currentString.replace(/[\r\n]+/g, '');
+                                }
+
+                                const parsed = JSON.parse(currentString);
+                                const formatted = JSON.stringify(parsed, null, indentation);
+
+                                formattedResults.push({
+                                    id: i + 1,
+                                    original: currentString,
+                                    formatted: formatted,
+                                    error: null
+                                });
+
+                                totalOriginalSize += new Blob([rawStrings[i]]).size;
+                                totalFormattedSize += new Blob([formatted]).size;
+                            } catch (parseErr) {
+                                formattedResults.push({
+                                    id: i + 1,
+                                    original: rawStrings[i],
+                                    formatted: null,
+                                    error: `Invalid JSON: ${parseErr.message}`
+                                });
+                            }
+                        }
+                        
+                        setOutputJsons(formattedResults);
+
+                        const originalSize = new Blob([inputJson]).size;
+                        const formattedSize = totalFormattedSize;
+
+                        setStats({
+                            originalSize: (originalSize / 1024).toFixed(2) + ' KB',
+                            formattedSize: (formattedSize / 1024).toFixed(2) + ' KB',
+                            change: formattedSize > originalSize ? 
+                                '+' + ((formattedSize/originalSize - 1) * 100).toFixed(1) + '%' : 
+                                ((1 - formattedSize/originalSize) * 100).toFixed(1) + '% smaller',
+                            extracted: extractFromLogs && rawStrings.length > 1,
+                            count: formattedResults.filter(r => !r.error).length
+                        });
+
+                    } catch (err) {
+                        setError(err.message === "Input is empty" ? "Please paste JSON or upload a file." : "Invalid JSON detected.");
+                    } finally {
+                        setIsProcessing(false);
+                    }
+                }, 100);
+            };
+
+            const copyToClipboard = (json) => {
+                if (!json) return;
+                navigator.clipboard.writeText(json);
+            };
+
+            const downloadJson = (json, index = 0) => {
+                if (!json) return;
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `formatted${index > 0 ? `-${index}` : ''}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            };
+
+            const clearAll = () => {
+                setInputJson('');
+                setOutputJsons([]);
+                setStats(null);
+                setError(null);
+            }
+
+            return (
+                <div className="h-full flex flex-col p-6 font-sans">
+                    {/* Header */}
+                    <div className="mb-8 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-vscode-button rounded-lg shadow-lg">
+                                <FileJson className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                                <h1 className="text-xl font-bold text-white tracking-tight">JSON Prettifier</h1>
+                                <p className="text-xs text-vscode-text-muted">Log Extractor & Validator</p>
+                            </div>
+                        </div>
+                        
+                        {/* Stats Pill */}
+                        {stats && (
+                            <div className="hidden md:flex gap-4 text-sm bg-vscode-sidebar px-4 py-2 rounded-lg border border-vscode-border shadow-sm animate-fade-in">
+                                {stats.extracted && (
+                                    <>
+                                        <div className="flex flex-col items-end">
+                                            <span className="text-vscode-text-muted text-[10px] uppercase font-bold tracking-wider">Objects</span>
+                                            <span className="text-green-400 font-mono font-bold leading-none">{stats.count}</span>
+                                        </div>
+                                        <div className="w-px bg-vscode-border mx-1"></div>
+                                    </>
+                                )}
+                                <div className="flex flex-col items-end">
+                                    <span className="text-vscode-text-muted text-[10px] uppercase font-bold tracking-wider">Reduction</span>
+                                    <span className={`font-mono font-bold leading-none ${stats.change.includes('+') ? 'text-orange-400' : 'text-green-400'}`}>
+                                        {stats.change}
+                                    </span>
+                                </div>
+                                <div className="w-px bg-vscode-border mx-1"></div>
+                                <div className="flex flex-col items-end">
+                                    <span className="text-vscode-text-muted text-[10px] uppercase font-bold tracking-wider">Size</span>
+                                    <span className="text-vscode-text font-mono leading-none">{stats.originalSize} → {stats.formattedSize}</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Main Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
+
+                        {/* Input Section */}
+                        <div className="flex flex-col gap-4 h-full min-h-[300px]">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-sm font-semibold text-vscode-text-muted uppercase tracking-wider flex items-center gap-2">
+                                    Input Log / JSON
+                                </h2>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={clearAll}
+                                        className="text-xs flex items-center gap-2 bg-vscode-input hover:bg-red-900/30 text-vscode-text px-3 py-1.5 rounded-md transition-all hover:text-red-200"
+                                    >
+                                        <Trash2 className="w-3 h-3" /> Clear
+                                    </button>
+                                    <button
+                                        onClick={() => fileInputRef.current.click()}
+                                        className="text-xs flex items-center gap-2 bg-vscode-button hover:bg-vscode-button-hover text-white px-3 py-1.5 rounded-md transition-colors shadow-md"
+                                    >
+                                        <Upload className="w-3 h-3" /> Upload
+                                    </button>
+                                </div>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={handleFileUpload}
+                                    accept=".json,.txt,.log"
+                                    className="hidden"
+                                />
+                            </div>
+                            <textarea
+                                className="flex-1 bg-vscode-input border border-vscode-border rounded-xl p-4 font-mono text-xs text-vscode-text focus:ring-2 focus:ring-vscode-accent focus:border-transparent outline-none resize-none scrollbar-thin scrollbar-thumb-vscode-border scrollbar-track-transparent placeholder-vscode-text-muted/50 leading-relaxed shadow-inner"
+                                placeholder="Paste your broken log file or raw JSON here..."
+                                value={inputJson}
+                                onChange={(e) => setInputJson(e.target.value)}
+                                spellCheck="false"
+                            />
+                        </div>
+
+                        {/* Controls Section */}
+                        <div className="flex flex-col gap-6 justify-center lg:px-4 order-last lg:order-none">
+                            <div className="bg-vscode-sidebar rounded-2xl p-6 border border-vscode-border shadow-xl">
+                                <div className="space-y-6">
+                                    {/* Toggle */}
+                                    <div className="flex items-center justify-between group cursor-pointer" onClick={() => setExtractFromLogs(!extractFromLogs)} title="Fixes newlines inside JSON strings and extracts multiple objects">
+                                        <label className="text-sm font-medium text-vscode-text cursor-pointer select-none">Smart Extraction</label>
+                                        <div className={`w-11 h-6 rounded-full transition-colors relative ${extractFromLogs ? 'bg-vscode-accent' : 'bg-vscode-input'}`}>
+                                            <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform shadow-md ${extractFromLogs ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                                        </div>
+                                    </div>
+                                    <p className="text-[10px] text-vscode-text-muted -mt-4">
+                                        Attempts to find JSON objects in text and repairs broken newlines within strings.
+                                    </p>
+
+                                    <div className="h-px bg-vscode-border"></div>
+
+                                    {/* Slider */}
+                                    <div className="space-y-3">
+                                        <label className="text-sm font-medium text-vscode-text flex justify-between">
+                                            <span>Indentation</span>
+                                            <span className="text-vscode-accent font-mono text-xs bg-vscode-accent/10 px-2 py-0.5 rounded">{indentation} spaces</span>
+                                        </label>
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="8"
+                                            value={indentation}
+                                            onChange={(e) => setIndentation(parseInt(e.target.value))}
+                                            className="w-full h-1 bg-vscode-input rounded-lg appearance-none cursor-pointer accent-vscode-accent"
+                                        />
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={formatJson}
+                                    disabled={isProcessing || !inputJson}
+                                    className="w-full mt-8 bg-vscode-button hover:bg-vscode-button-hover disabled:bg-vscode-input disabled:text-vscode-text-muted disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-xl transition-all shadow-lg shadow-vscode-accent/10 flex items-center justify-center gap-2 active:scale-95"
+                                >
+                                    {isProcessing ? (
+                                        <RefreshCw className="w-5 h-5 animate-spin" />
+                                    ) : (
+                                        <span className="flex items-center gap-2">
+                                            Process <Check className="w-5 h-5" />
+                                        </span>
+                                    )}
+                                </button>
+
+                                {error && (
+                                    <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start gap-3 text-red-200 text-xs animate-pulse">
+                                        <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-red-400" />
+                                        {error}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Output Section */}
+                        <div className="flex flex-col gap-4 h-full min-h-[300px]">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-sm font-semibold text-vscode-text-muted uppercase tracking-wider flex items-center gap-2">
+                                    Output {outputJsons.length > 0 && <span className="text-vscode-accent">({outputJsons.length})</span>}
+                                </h2>
+                            </div>
+
+                            {outputJsons.length === 0 ? (
+                                <div className="flex-1 bg-vscode-input/30 border border-vscode-border border-dashed rounded-xl p-4 font-mono text-sm text-vscode-text-muted flex flex-col gap-3 items-center justify-center">
+                                    <div className="w-12 h-12 bg-vscode-input rounded-full flex items-center justify-center text-vscode-text-muted/50">
+                                        <FileJson className="w-6 h-6" />
+                                    </div>
+                                    <span>Formatted results will appear here</span>
+                                </div>
+                            ) : (
+                                <div className="flex-1 space-y-4 overflow-y-auto scrollbar-thin scrollbar-thumb-vscode-border scrollbar-track-transparent pr-2">
+                                    {outputJsons.map((jsonResult) => (
+                                        <div key={jsonResult.id} className={`bg-vscode-sidebar border ${jsonResult.error ? 'border-red-500/30' : 'border-vscode-border'} rounded-lg p-4 transition-all hover:border-vscode-accent/50 group`}>
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div className="flex items-center gap-2">
+                                                    <div className={`w-2 h-2 rounded-full ${jsonResult.error ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                                                    <h3 className={`text-xs font-bold tracking-wide uppercase ${jsonResult.error ? 'text-red-400' : 'text-vscode-text'}`}>
+                                                        {jsonResult.error ? 'Parse Error' : `Object #${jsonResult.id}`}
+                                                    </h3>
+                                                </div>
+                                                <div className="flex gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        onClick={() => copyToClipboard(jsonResult.formatted)}
+                                                        disabled={!jsonResult.formatted}
+                                                        className="p-1.5 bg-vscode-input hover:bg-vscode-button hover:text-white text-vscode-text rounded transition-colors"
+                                                        title="Copy"
+                                                    >
+                                                        <Copy className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => downloadJson(jsonResult.formatted, jsonResult.id)}
+                                                        disabled={!jsonResult.formatted}
+                                                        className="p-1.5 bg-vscode-input hover:bg-vscode-button hover:text-white text-vscode-text rounded transition-colors"
+                                                        title="Download"
+                                                    >
+                                                        <Download className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {jsonResult.error ? (
+                                                <div className="space-y-2">
+                                                    <div className="text-red-400 text-xs font-mono bg-red-500/10 p-2 rounded border border-red-500/20 break-all">
+                                                        {jsonResult.error}
+                                                    </div>
+                                                    <div className="text-[10px] text-vscode-text-muted uppercase tracking-wider mt-2">Raw Snippet</div>
+                                                    <pre className="text-xs text-vscode-text-muted bg-black/20 p-2 rounded break-all whitespace-pre-wrap max-h-32 overflow-hidden border border-vscode-border">
+                                                        {jsonResult.original.substring(0, 200)}...
+                                                    </pre>
+                                                </div>
+                                            ) : (
+                                                <div className="relative">
+                                                    <textarea
+                                                        readOnly
+                                                        className="w-full bg-vscode-input border border-vscode-border rounded p-3 font-mono text-xs text-green-400 focus:ring-1 focus:ring-vscode-accent focus:border-transparent outline-none resize-none scrollbar-thin"
+                                                        rows="12"
+                                                        value={jsonResult.formatted}
+                                                        onClick={(e) => e.target.select()}
+                                                    />
+                                                    <div className="absolute bottom-2 right-2 text-[10px] text-vscode-text-muted bg-vscode-input/80 px-2 py-0.5 rounded pointer-events-none">
+                                                        {(new Blob([jsonResult.formatted]).size / 1024).toFixed(2)} KB
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<JsonPrettifier />);
+    </script>
+</body>
+</html>
