@@ -24,7 +24,9 @@ let currentAliveCheckToken = null;
 const environmentDomains = {
     trunk: "backend.jarvistrunk.net",
     trunkliveops: "backend-liveops.jarvistrunk.net",
-    qa3: "backend.liveops.jarvisqa.net"
+    qa3: "backend.liveops.jarvisqa.net",
+    qa1: "backend.qa1.jarvisqa.net",
+    qa2: "backend.qa2.jarvisqa.net"
 };
 
 const grafanaDataSources = {
@@ -39,6 +41,8 @@ const LS_KEYS = {
     CUSTOM_BACKEND_URL: LS_BASE_KEY + 'customBackendUrl',
     ADDITIONAL_PARAMS: LS_BASE_KEY + 'additionalParams'
 };
+
+const ENVIRONMENTS_WITHOUT_PR = ['trunkliveops', 'qa1', 'qa2'];
 
 const DEFAULTS = {
     ENVIRONMENT: 'trunk',
@@ -183,8 +187,8 @@ function updateInputVisibility(selectedEnv) {
         customBackendUrlGroup.classList.remove('hidden-field');
         customBackendUrlInput.disabled = false;
         grafanaLinkContainer.classList.add('hidden-field');
-    } else if (selectedEnv === "trunkliveops") {
-        prNumberGroup.classList.remove('hidden-field');
+    } else if (ENVIRONMENTS_WITHOUT_PR.includes(selectedEnv)) {
+        prNumberGroup.classList.add('hidden-field');
         prNumberInput.disabled = true;
         customBackendUrlGroup.classList.add('hidden-field');
         customBackendUrlInput.disabled = true;
@@ -285,7 +289,7 @@ async function performAliveCheck(checkToken) {
 
     if (selectedEnvironment === "custom") {
         hostToCheck = customBackendUrlInput.value.trim();
-    } else if (selectedEnvironment === "trunkliveops") {
+    } else if (ENVIRONMENTS_WITHOUT_PR.includes(selectedEnvironment)) {
         hostToCheck = environmentDomains[selectedEnvironment];
     } else {
         const baseDomain = environmentDomains[selectedEnvironment];
@@ -444,7 +448,7 @@ function generateAndDisplayQrCode() {
     // Backend Host Logic
     if (selectedEnvironment === "custom") {
         backendHost = customBackendUrlInput.value.trim();
-    } else if (selectedEnvironment === "trunkliveops") {
+    } else if (ENVIRONMENTS_WITHOUT_PR.includes(selectedEnvironment)) {
         backendHost = environmentDomains[selectedEnvironment];
     } else {
         const baseDomain = environmentDomains[selectedEnvironment];
