@@ -1,14 +1,5 @@
 window.RepoTools = [
     {
-        "id": "playstudios-tools-lunch-registration-stuff-appscript-lunch-registration-gas-index",
-        "name": "Appscript: Lunch registration gas index",
-        "description": "Lunch Registration Tool",
-        "url": "/Playstudios%20tools/lunch%20registration%20stuff/appscript/lunch-registration-gas-index.html",
-        "thumbnailUrl": "https://tse2.mm.bing.net/th?q=Lunch%20Registration%20Tool&w=640&h=360&c=7&rs=1&p=0",
-        "icon": "FileText",
-        "category": "Appscript"
-    },
-    {
         "id": "playstudios-tools-econ-g-tier",
         "name": "Econ: G tier",
         "description": "Text Data Extractor and Averager",
