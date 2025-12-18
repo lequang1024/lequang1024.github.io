@@ -36,6 +36,8 @@ jobs:
 
       # Step 4: Run the Node.js script to generate index.html AND add GA to other HTML files
       - name: Run index generator script and inject analytics
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node .github/scripts/generate-index.js
 
       # Step 5: Commit and push the changes (the newly generated index.html and any modified HTML files)

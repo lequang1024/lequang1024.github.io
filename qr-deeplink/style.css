@@ -27,6 +27,18 @@ body {
 .param-group label.block {
     font-weight: 500; /* Tailwind font-medium */
 }
+
+/* Additional params: allow clicking anywhere in the group to toggle its checkbox */
+.param-group--toggle {
+    cursor: pointer;
+}
+.param-group--toggle input,
+.param-group--toggle select,
+.param-group--toggle textarea,
+.param-group--toggle button,
+.param-group--toggle a {
+    cursor: auto;
+}
 /* Ensure select dropdowns are visible in dark mode if user has it enabled */
 select {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");

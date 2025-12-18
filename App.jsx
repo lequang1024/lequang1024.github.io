@@ -88,9 +88,29 @@ const CATEGORY_ICONS = {
     'Utility': 'Wrench'
 };
 
+function hashStringToUint32(str) {
+    // FNV-1a 32-bit
+    let hash = 2166136261;
+    for (let i = 0; i < str.length; i++) {
+        hash ^= str.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+}
+
+function defaultThumbnailUrl(tool) {
+    const title = (tool?.description || tool?.name || '').trim();
+    if (!title) return '';
+
+    // Unofficial Bing thumbnail endpoint (query -> icon-ish thumbnail)
+    // Query pattern: "<title> icon"
+    return `https://tse2.mm.bing.net/th?q=${encodeURIComponent(`${title} icon`)}&w=96&h=96&c=7&rs=1&p=0`;
+}
+
 // --- Tool Card Component ---
 function ToolCard({ tool, onClick }) {
     const IconComponent = Icons[tool.icon] || Icons.Wrench;
+    const iconImageUrl = defaultThumbnailUrl(tool);
 
     return (
         <button
@@ -98,8 +118,24 @@ function ToolCard({ tool, onClick }) {
             className="group bg-vscode-sidebar hover:bg-vscode-hover border border-vscode-border hover:border-vscode-accent rounded-lg p-6 text-left transition-all duration-200 hover:shadow-lg hover:shadow-vscode-accent/10"
         >
             <div className="flex items-start gap-4">
-                <div className="p-3 bg-vscode-button/30 group-hover:bg-vscode-button rounded-lg transition-colors">
+                <div className="w-12 h-12 flex-shrink-0 bg-vscode-button/30 group-hover:bg-vscode-button rounded-lg transition-colors overflow-hidden relative flex items-center justify-center">
+                    {/* SVG fallback (always present behind the image) */}
                     <IconComponent className="w-6 h-6 text-vscode-accent group-hover:text-white" />
+
+                    {/* Image icon overlay */}
+                    {iconImageUrl && (
+                        <img
+                            src={iconImageUrl}
+                            alt={`${tool.name} icon`}
+                            className="absolute inset-0 w-full h-full object-cover"
+                            loading="lazy"
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                                // If Bing thumbnail is unavailable, hide image and show SVG fallback
+                                e.currentTarget.style.display = 'none';
+                            }}
+                        />
+                    )}
                 </div>
                 <div className="flex-1">
                     <h3 className="font-semibold text-vscode-text group-hover:text-white mb-1">

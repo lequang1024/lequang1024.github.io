@@ -51,7 +51,7 @@ const DEFAULTS = {
 };
 
 const additionalParamsConfig = [
-    { id: 'ava_dab', name: 'Ava DAB', key: 'ava_dab', type: 'text', placeholder: 'AVA_DAB value or reset', example: '?ava_dab=MY_DAB', defaultValue: '3_68_0' },
+    { id: 'ava_dab', name: 'Ava DAB', key: 'ava_dab', type: 'text', placeholder: 'AVA_DAB value or reset', example: '?ava_dab=MY_DAB', defaultValue: '3_71_0' },
     { id: 'ava_header', name: 'Ava Header', key: 'ava_header', type: 'select', options: ['mvmx', 'mvmx-liveops'], example: '?ava_header=AVA_HEADER', defaultValue: '' },
     { id: 'auto_cheat', name: 'Auto Cheat', key: 'auto_cheat', type: 'text', placeholder: 'Cheat ID (e.g. SuperPlayer)', example: '?auto_cheat=SuperPlayer', defaultValue: 'SuperPlayer' },
     { id: 'reset_device', name: 'Reset Device', key: 'reset', type: 'checkbox_only', example: '?reset=device', fixedValue: 'device', defaultValue: false },
@@ -89,7 +89,7 @@ function renderAdditionalParams(urlParams = {}) {
         }
 
         const wrapper = document.createElement('div');
-        wrapper.className = 'param-group';
+        wrapper.className = 'param-group param-group--toggle';
 
         let inputHtml = '';
         if (param.type === 'text') {
@@ -104,7 +104,7 @@ function renderAdditionalParams(urlParams = {}) {
                 <label for="${param.id}_enable" class="block text-sm font-medium text-gray-900">${param.name}</label>
                 <input type="checkbox" id="${param.id}_enable" ${initialEnabledState ? 'checked' : ''} class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
             </div>
-            ${inputHtml} 
+            ${inputHtml}
             ${param.example ? `<p class="mt-1 text-xs text-gray-500">${param.example}</p>` : ''}
         `;
         additionalParamsContainer.appendChild(wrapper);
@@ -115,6 +115,30 @@ function renderAdditionalParams(urlParams = {}) {
                 document.getElementById(`${param.id}_value`).disabled = !e.target.checked;
             }
             generateAndDisplayQrCode();
+        });
+
+        // Expand click area to the full param-group (but don't interfere with editing inputs)
+        wrapper.addEventListener('click', (e) => {
+            const target = e.target;
+            if (!(target instanceof Element)) return;
+
+            // Avoid double-toggling when clicking the checkbox or its label
+            if (target.closest(`#${param.id}_enable`) || target.closest(`label[for="${param.id}_enable"]`)) {
+                return;
+            }
+
+            // Don't toggle when interacting with enabled form controls/links/buttons.
+            // But DO toggle if the control is disabled (so user can click it to enable the param).
+            const interactive = target.closest('input, select, textarea, button, a');
+            if (interactive) {
+                const tag = interactive.tagName.toLowerCase();
+                const isFormControl = tag === 'input' || tag === 'select' || tag === 'textarea';
+                if (!isFormControl) return;
+                if (!interactive.disabled) return;
+            }
+
+            enableCheckbox.checked = !enableCheckbox.checked;
+            enableCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
         });
 
         if (param.type !== 'checkbox_only') {
