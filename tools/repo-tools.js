@@ -18,15 +18,6 @@ window.RepoTools = [
         "category": "Econ"
     },
     {
-        "id": "professional-resume",
-        "name": "Professional Resume",
-        "description": "LÊ MINH QUANG - Interactive Resume",
-        "url": "/Professional%20Resume.html",
-        "thumbnailUrl": "https://tse2.mm.bing.net/th?q=L%C3%8A%20MINH%20QUANG%20-%20Interactive%20Resume&w=640&h=360&c=7&rs=1&p=0",
-        "icon": "FileText",
-        "category": "Misc"
-    },
-    {
         "id": "qr-deeplink",
         "name": "Qr deeplink",
         "description": "Deep Link QR Code Generator 1.0",
