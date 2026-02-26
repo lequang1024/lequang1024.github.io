@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cây Gia Đình - Huyền Minh</title>
+<script src="https://unpkg.com/@viz-js/viz@3.2.4/lib/viz-standalone.js"></script>
+<script src="https://unpkg.com/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0 }
+  body { background: #f8fafc; height: 100vh; width: 100vw; font-family: sans-serif; overflow: hidden }
+
+  header { position: fixed; top: 32px; left: 32px; z-index: 60 }
+  h1 { font-size: 1.75rem; font-weight: 800; color: #0f172a }
+  h1 span { color: #3b82f6 }
+
+  #wrap { width: 100%; height: 100vh; overflow: hidden; cursor: grab; user-select: none }
+  #wrap:active { cursor: grabbing }
+  #diagram { transform-origin: 0 0; display: inline-block }
+  #diagram svg { display: block }
+
+  /* Override Graphviz SVG styles */
+  #diagram svg .node ellipse,
+  #diagram svg .node polygon,
+  #diagram svg .node rect {
+    fill: #fff !important;
+    stroke: #cbd5e1 !important;
+    stroke-width: 2 !important;
+  }
+  #diagram svg .node text { font-family: sans-serif !important; font-size: 13px !important; fill: #1e293b !important }
+  #diagram svg .edge path { stroke: #94a3b8 !important; stroke-width: 1.5 !important }
+  #diagram svg .edge polygon { fill: #94a3b8 !important; stroke: #94a3b8 !important }
+
+  #ctrl { position: fixed; bottom: 24px; right: 24px; display: flex; gap: 8px; z-index: 100 }
+  .cb {
+    width: 40px; height: 40px; background: #fff; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07); border: 1px solid #e2e8f0;
+    cursor: pointer; font-size: 1rem; transition: background .2s
+  }
+  .cb:hover { background: #f1f5f9 }
+
+  #legend {
+    position: fixed; bottom: 24px; left: 32px; background: #fff;
+    border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px;
+    font-size: 12px; color: #475569; z-index: 100; display: flex; gap: 16px; align-items: center
+  }
+  .leg { display: flex; align-items: center; gap: 6px }
+  .leg-dot { width: 12px; height: 12px; border-radius: 2px; border: 2px solid }
+
+  #loading {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: #f8fafc; z-index: 200; font-size: 1.1rem; color: #64748b; gap: 12px
+  }
+  .spinner {
+    width: 24px; height: 24px; border: 3px solid #e2e8f0;
+    border-top-color: #3b82f6; border-radius: 50%; animation: spin .7s linear infinite
+  }
+  @keyframes spin { to { transform: rotate(360deg) } }
+
+  #pw-overlay {
+    position: fixed; inset: 0; background: #f8fafc;
+    display: flex; align-items: center; justify-content: center; z-index: 300
+  }
+  #pw-box {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+    padding: 32px 36px; display: flex; flex-direction: column; gap: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08); min-width: 280px; text-align: center
+  }
+  #pw-box h2 { font-size: 1.1rem; font-weight: 700; color: #0f172a }
+  #pw-input {
+    padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px;
+    font-size: 1rem; outline: none; text-align: center; letter-spacing: 4px
+  }
+  #pw-input:focus { border-color: #3b82f6 }
+  #pw-btn {
+    padding: 10px; background: #3b82f6; color: #fff; border: none;
+    border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer
+  }
+  #pw-btn:hover { background: #2563eb }
+  #pw-err { color: #ef4444; font-size: 0.85rem; min-height: 1.2em }
+</style>
+</head>
+<body>
+
+<div id="pw-overlay">
+  <div id="pw-box">
+    <h2>Cây Gia Đình 🔒</h2>
+    <input id="pw-input" type="password" placeholder="Mật khẩu" autofocus />
+    <button id="pw-btn" onclick="checkPw()">Mở</button>
+    <div id="pw-err"></div>
+  </div>
+</div>
+
+<div id="loading" style="display:none"><div class="spinner"></div> Đang vẽ cây gia đình…</div>
+
+<header>
+  <h1>Cây Gia Đình <span>Huyền Minh</span></h1>
+  <p style="color:#64748b;font-style:italic;margin-top:4px">Pinch để zoom · Cuộn 2 ngón để di chuyển · Kéo để pan</p>
+</header>
+
+<div id="wrap"><div id="diagram"></div></div>
+
+<div id="ctrl">
+  <button class="cb" onclick="zoomBy(1.25)">+</button>
+  <button class="cb" onclick="zoomBy(0.8)">−</button>
+  <button class="cb" onclick="fit()">⟳</button>
+</div>
+
+<div id="legend">
+  <div class="leg"><div class="leg-dot" style="background:#dbeafe;border-color:#3b82f6"></div> Tôi</div>
+  <div class="leg"><div class="leg-dot" style="background:#fef3c7;border-color:#f59e0b"></div> Vợ</div>
+  <div class="leg"><div class="leg-dot" style="background:#dcfce7;border-color:#22c55e"></div> Huyền Minh</div>
+  <div class="leg"><div class="leg-dot" style="background:#f1f5f9;border-color:#94a3b8"></div> Thành viên khác</div>
+</div>
+
+<script>
+const PW = '4564';
+function checkPw() {
+  const val = document.getElementById('pw-input').value;
+  if (val === PW) {
+    document.getElementById('pw-overlay').style.display = 'none';
+    document.getElementById('loading').style.display = 'flex';
+    sessionStorage.setItem('fam_auth', '1');
+    renderTree();
+  } else {
+    document.getElementById('pw-err').textContent = 'Sai mật khẩu';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+  }
+}
+document.getElementById('pw-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') checkPw();
+});
+if (sessionStorage.getItem('fam_auth') === '1') {
+  document.getElementById('pw-overlay').style.display = 'none';
+  document.getElementById('loading').style.display = 'flex';
+}
+</script>
+
+<script>
+const dot = `
+digraph FamilyTree {
+  graph [rankdir=TB splines=ortho nodesep=0.4 ranksep=0.8 bgcolor="#f8fafc"]
+  node  [shape=box style="rounded,filled" fillcolor=white fontname="sans-serif" fontsize=12 width=1.6 height=0.7 margin="0.15,0.1"]
+  edge  [color="#94a3b8" arrowsize=0.7]
+
+  // ── Nodes ────────────────────────────────────────────────────────────────
+
+  // Gen 0 — Cụ
+  mao_dad  [label="Ông Mão\\nCụ nội"]
+  mao_mom  [label="Bà Mão\\nCụ nội"]
+
+  // Gen 1 — Ông bà
+  thu      [label="Ông Thứ\\nÔng nội"]
+  tinh     [label="Bà Tính\\nBà nội"]
+  hanh     [label="Ông Hanh\\nÔng ngoại"]
+  tuyet    [label="Bà Tuyết\\nBà ngoại"]
+  nguyen   [label="Ông Nguyên\\nBác"]
+  vuong    [label="Bà Vượng\\nBác dâu"]
+  tan      [label="Ông Tân\\nBác"]
+  loan     [label="Bà Loan\\nCô"]
+  trung    [label="Bà Trung\\nCô"]
+  sinh     [label="Ông Sinh\\nBác"]
+  long_    [label="Ông Long\\nChú út"]
+  dien     [label="Ông Điển\\nChú"]
+  van      [label="Bà Vàn\\nĐã mất 2026"]
+
+  // Gen 2 — Bố mẹ / cô chú
+  ngoan_mom [label="Mẹ Tâm\\n1953"]
+  ngoan_dad [label="Bố Dung\\nĐã mất"]
+  chau     [label="Bố Châu\\n1959"]
+  ha       [label="Mẹ Hà\\n1969"]
+  ha_bac   [label="Bác Hà\\nCon ông Thứ"]
+  tuong    [label="Bác Tường\\nBác rể"]
+  kien     [label="Bác Kiên\\nCon bác Nguyên"]
+  thuy     [label="Cô Thủy\\nCon bà Trung"]
+  ly       [label="Cô Ly\\nCon ông Long"]
+  ly_husband [label="Chồng cô Ly"]
+  minh_chu [label="Chú Minh\\nCon ông Điển"]
+  quang    [label="Anh Quang\\n1982"]
+  thai     [label="Chị Thái\\nVợ anh Quang"]
+  mai      [label="Chị Mai\\n1983"]
+  thang    [label="Anh Thắng\\nChồng chị Mai"]
+
+  // Gen 3 — Tôi & Ngoan + anh chị em họ
+  me       [label="Tôi\\n1994"    fillcolor="#dbeafe" color="#3b82f6" penwidth=2 fontcolor="#1d4ed8"]
+  ngoan    [label="Ngoan\\n1987"  fillcolor="#fef3c7" color="#f59e0b" penwidth=2]
+  dung     [label="Anh Dũng\\nCon bác Hà"]
+  dung_wife [label="Vợ Anh Dũng"]
+  ly_baby  [label="Con cô Ly"]
+
+  // Gen 4 — Con cái
+  baby     [label="🌸 Huyền Minh\\n2025" fillcolor="#dcfce7" color="#22c55e" penwidth=3 fontcolor="#15803d" fontsize=13]
+  dung_baby [label="Con Anh Dũng"]
+  minh_anh [label="Minh Anh\\nCon anh Quang"]
+  huyen_q  [label="Huyền\\nCon anh Quang"]
+  thuan    [label="Thuận\\nCon anh Quang"]
+  loc      [label="Lộc\\nCon anh Quang"]
+  huong    [label="Hương\\nCon chị Mai"]
+  thanh    [label="Thành\\nCon chị Mai"]
+  tien     [label="Tiến\\nCon chị Mai"]
+
+  // ── Rank constraints (force same generation = same row) ───────────────────
+  { rank=same; mao_dad; mao_mom }
+  { rank=same; thu; tinh; hanh; tuyet; nguyen; vuong; tan; loan; trung; sinh; long_; dien; van }
+  { rank=same; chau; ha; ha_bac; tuong; kien; thuy; ly; ly_husband; minh_chu; ngoan_mom; ngoan_dad }
+  { rank=same; me; ngoan; dung; dung_wife; ly_baby; quang; thai; mai; thang }
+  { rank=same; baby; dung_baby; minh_anh; huyen_q; thuan; loc; huong; thanh; tien }
+
+  // ── Spouse edges (dashed, no arrow) ──────────────────────────────────────
+  edge [style=dashed color="#f59e0b" arrowhead=none]
+  mao_dad   -> mao_mom
+  thu       -> tinh
+  hanh      -> tuyet
+  nguyen    -> vuong
+  ngoan_mom -> ngoan_dad
+  ha_bac    -> tuong
+  chau      -> ha
+  ly        -> ly_husband
+  me        -> ngoan
+  dung      -> dung_wife
+  quang     -> thai
+  mai       -> thang
+
+  // ── Parent → child edges ──────────────────────────────────────────────────
+  edge [style=solid color="#94a3b8" arrowhead=normal]
+
+  // Cụ Mão → con
+  mao_dad -> nguyen
+  mao_dad -> hanh
+  mao_dad -> tan
+  mao_dad -> loan
+  mao_dad -> trung
+  mao_dad -> sinh
+  mao_dad -> long_
+  mao_dad -> dien
+
+  // Ông Thứ → con
+  thu -> chau
+  thu -> ha_bac
+
+  // Ông Hanh → Mẹ Hà
+  hanh -> ha
+
+  // Bác Nguyên → Bác Kiên
+  nguyen -> kien
+
+  // Bà Trung → Cô Thủy
+  trung -> thuy
+
+  // Ông Long → Cô Ly
+  long_ -> ly
+
+  // Ông Điển → Chú Minh
+  dien -> minh_chu
+
+  // Bà Vàn → Mẹ Tâm
+  van -> ngoan_mom
+
+  // Mẹ Tâm → con
+  ngoan_mom -> ngoan
+  ngoan_mom -> quang
+  ngoan_mom -> mai
+
+  // Bác Hà → Anh Dũng
+  ha_bac -> dung
+
+  // Bố Châu + Mẹ Hà → Tôi
+  chau -> me
+  ha   -> me
+
+  // Cô Ly → con
+  ly -> ly_baby
+
+  // Tôi + Ngoan → Huyền Minh
+  me    -> baby
+  ngoan -> baby
+
+  // Anh Dũng → con
+  dung -> dung_baby
+
+  // Anh Quang → 4 con gái
+  quang -> minh_anh
+  quang -> huyen_q
+  quang -> thuan
+  quang -> loc
+
+  // Chị Mai → 3 con
+  mai -> huong
+  mai -> thanh
+  mai -> tien
+}
+`;
+
+const wrap = document.getElementById('wrap');
+const diag = document.getElementById('diagram');
+let pz, natW, natH;
+
+function fit() {
+  if (!pz || !natW) return;
+  const ww = wrap.clientWidth, wh = wrap.clientHeight;
+  const s = Math.min(ww / natW, wh / natH) * 0.92;
+  pz.zoom(s, { animate: false });
+  pz.pan((ww - natW * s) / 2, (wh - natH * s) / 2, { animate: false });
+}
+function zoomBy(f) {
+  if (pz) pz.zoom(Math.min(Math.max(0.15, pz.getScale() * f), 2));
+}
+
+let pinchTimeout = null;
+wrap.addEventListener('wheel', e => {
+  e.preventDefault();
+  if (!pz) return;
+  if (e.ctrlKey) {
+    clearTimeout(pinchTimeout);
+    pinchTimeout = setTimeout(() => { pinchTimeout = null; }, 100);
+    pz.zoomWithWheel(e);
+  } else if (!pinchTimeout) {
+    const { x, y } = pz.getPan();
+    pz.pan(x - e.deltaX, y - e.deltaY, { animate: false });
+  }
+}, { passive: false });
+
+function renderTree() {
+  Viz.instance().then(viz => {
+    const svg = viz.renderSVGElement(dot);
+    const vb = svg.viewBox.baseVal;
+    natW = vb.width * (96 / 72);
+    natH = vb.height * (96 / 72);
+    svg.removeAttribute('width');
+    svg.removeAttribute('height');
+    svg.style.width = natW + 'px';
+    svg.style.height = natH + 'px';
+    diag.appendChild(svg);
+    document.getElementById('loading').style.display = 'none';
+    pz = Panzoom(diag, { maxScale: 2, minScale: 0.15, cursor: 'grab' });
+    requestAnimationFrame(() => requestAnimationFrame(fit));
+  }).catch(err => {
+    document.getElementById('loading').textContent = '❌ Lỗi render: ' + err.message;
+    console.error(err);
+  });
+}
+
+if (sessionStorage.getItem('fam_auth') === '1') renderTree();
+</script>
+</body>
+</html>
