@@ -14,6 +14,11 @@ const aliveStatusDiv = document.getElementById('aliveStatus');
 const grafanaLinkContainer = document.getElementById('grafanaLinkContainer');
 const grafanaLink = document.getElementById('grafanaLink');
 const copyUrlBtn = document.getElementById('copyUrlBtn');
+const shareConfigBtn = document.getElementById('shareConfigBtn');
+const shareConfigModal = document.getElementById('shareConfigModal');
+const shareConfigBackdrop = document.getElementById('shareConfigBackdrop');
+const shareConfigCloseBtn = document.getElementById('shareConfigCloseBtn');
+const shareConfigQrcodeDiv = document.getElementById('shareConfigQrcode');
 
 
 let qrCodeInstance = null;
@@ -554,7 +559,63 @@ function generateAndDisplayQrCode() {
 
 
 
+function buildShareUrl() {
+    const params = new URLSearchParams();
+
+    params.set('env', environmentSelect.value);
+
+    if (environmentSelect.value === 'custom') {
+        const customUrl = customBackendUrlInput.value.trim();
+        if (customUrl) params.set('customUrl', customUrl);
+    } else if (!ENVIRONMENTS_WITHOUT_PR.includes(environmentSelect.value)) {
+        if (prNumberInput.value.trim()) params.set('pr', prNumberInput.value.trim());
+    }
+
+    additionalParamsConfig.forEach(param => {
+        const enableCheckbox = document.getElementById(`${param.id}_enable`);
+        if (enableCheckbox && enableCheckbox.checked) {
+            if (param.type === 'checkbox_only') {
+                params.set(param.key, param.fixedValue);
+            } else {
+                const valueInput = document.getElementById(`${param.id}_value`);
+                if (valueInput) params.set(param.key, valueInput.value.trim());
+            }
+        }
+    });
+
+    return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+}
+
+function handleModalEscape(e) {
+    if (e.key === 'Escape') closeShareModal();
+}
+
+function openShareModal() {
+    const shareUrl = buildShareUrl();
+    shareConfigQrcodeDiv.innerHTML = '';
+    new QRCode(shareConfigQrcodeDiv, {
+        text: shareUrl,
+        width: 224,
+        height: 224,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+    });
+    shareConfigModal.classList.remove('hidden');
+    document.addEventListener('keydown', handleModalEscape);
+}
+
+function closeShareModal() {
+    shareConfigModal.classList.add('hidden');
+    shareConfigQrcodeDiv.innerHTML = '';
+    document.removeEventListener('keydown', handleModalEscape);
+}
+
 // === EVENT LISTENERS ===
+shareConfigBtn.addEventListener('click', openShareModal);
+shareConfigCloseBtn.addEventListener('click', closeShareModal);
+shareConfigBackdrop.addEventListener('click', closeShareModal);
+
 environmentSelect.addEventListener('change', () => {
     const selectedEnv = environmentSelect.value;
     updateInputVisibility(selectedEnv);

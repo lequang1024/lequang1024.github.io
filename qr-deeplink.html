@@ -96,6 +96,9 @@
                     <button id="resetBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 text-sm rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition duration-150 ease-in-out w-full sm:w-auto">
                         Reset All Settings
                     </button>
+                    <button id="shareConfigBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 text-sm rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition duration-150 ease-in-out w-full sm:w-auto">
+                        Share Config QR
+                    </button>
                 </div>
             </div>
         </div>
@@ -108,6 +111,16 @@
         </button>
         <div class="button-tooltip">
             (To start game with this button, open this website in your mobile device's browser)
+        </div>
+    </div>
+
+    <!-- Share Config QR Modal -->
+    <div id="shareConfigModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div id="shareConfigBackdrop" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
+        <div class="relative bg-white rounded-xl shadow-2xl p-6 flex flex-col items-center gap-4 z-10">
+            <button id="shareConfigCloseBtn" class="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl font-bold leading-none">&times;</button>
+            <h2 class="text-lg font-semibold text-gray-800">Scan to open this config on your device</h2>
+            <div id="shareConfigQrcode" class="w-56 h-56 flex items-center justify-center"></div>
         </div>
     </div>
 
