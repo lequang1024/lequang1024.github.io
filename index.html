@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quangle Tools — Style Reference: Dries Bos</title>
+    <title>Quangle Tools — Style Reference: 099</title>
 
-    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <!-- Google Fonts: Space Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -20,20 +20,21 @@
     <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Custom Tailwind config for Dries Bos theme -->
+    <!-- Custom Tailwind config for 099 theme -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        parchment: '#e8e7e3',
-                        ink: '#050200',
-                        ash: '#747472',
-                        black: '#000000',
+                        midnight: '#000000',
+                        ghost: '#ffffff',
+                        steel: '#1d1d1d',
+                        muted: '#383838',
+                        dim: '#888888',
                     },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
+                        sans: ['Space Mono', 'monospace'],
+                        mono: ['Space Mono', 'monospace'],
                     }
                 }
             }
@@ -45,18 +46,19 @@
             height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #e8e7e3;
+            background: #000000;
         }
         ::-webkit-scrollbar-thumb {
-            background: #747472;
-            border-radius: 0px;
+            background: #383838;
+            border-radius: 10px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #050200;
+            background: #888888;
         }
         body {
-            background-color: #e8e7e3;
-            color: #050200;
+            background-color: #000000;
+            color: #ffffff;
+            font-feature-settings: "zero";
         }
     </style>
 
@@ -71,7 +73,7 @@
 
     
 </head>
-<body class="text-ink bg-parchment font-sans text-[20px] leading-[1.45] font-normal">
+<body class="text-ghost bg-midnight font-mono text-[16px] leading-[1.2] font-normal tracking-[0.24px]">
     <div id="root"></div>
 
     <!-- Load generated tools -->

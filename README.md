@@ -16,6 +16,10 @@ I'm Quang Le, a software developer passionate about creating useful tools and in
 ### 🔗 QR Deep Link Generator
 A sophisticated tool for generating and testing deep links with real-time QR code generation.
 
+**Versions:**
+- **Standard (1.0)**: Original theme (`qr-deeplink.html`).
+- **Dries Bos (2.0)**: Minimalist, light-parchment wireframe redesign (`qr-deeplink-2.html`).
+
 **Features:**
 - Dynamic URL generation with live preview
 - Environment switching (Trunk, QA3, Custom)
@@ -57,6 +61,7 @@ Utilities designed to help parents track and calculate baby development events.
 │   ├── script.js                      # Core QR generator functionality
 │   └── style.css                      # Styling for QR generator
 ├── 🔗 qr-deeplink.html               # Main QR generator tool
+├── 🔗 qr-deeplink-2.html             # QR Deep Link Generator 2.0 (Dries Bos theme)
 ├── 📋 qr-deeplink-readme.html         # QR tool documentation
 ├── 🎨 grafana-icon.svg                # Icon asset
 └── 🏠 index.html                      # Main tools dashboard page

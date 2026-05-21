@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL3LWXVBHR"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-LL3LWXVBHR');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Link QR Code Generator 2.0 — 099 Style</title>
+
+    <!-- Google Fonts: Space Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!-- Custom Tailwind config for 099 theme -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        midnight: '#000000',
+                        ghost: '#ffffff',
+                        steel: '#1d1d1d',
+                        muted: '#383838',
+                        dim: '#888888',
+                    },
+                    fontFamily: {
+                        sans: ['Space Mono', 'monospace'],
+                        mono: ['Space Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #383838;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #888888;
+        }
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-feature-settings: "zero";
+        }
+        .hidden-field {
+            display: none !important;
+        }
+        .input-error {
+            border-color: #ffffff !important;
+            box-shadow: 0 0 0 1px #ffffff !important;
+        }
+        .error-message {
+            color: #ffffff;
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        /* Custom styles for select tag arrow to keep it clean */
+        select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 1rem center;
+            background-repeat: no-repeat;
+            background-size: 1.25em 1.25em;
+            padding-right: 2.5rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans text-[16px] leading-[1.2] font-normal px-4 md:px-8 py-[79px] antialiased tracking-[0.24px]">
+
+    <div class="max-w-[1600px] mx-auto flex flex-col gap-[48px]">
+        
+        <!-- Navigation & Header -->
+        <header class="flex flex-col gap-[16px] border-b border-muted pb-[26.5px]">
+            <div class="flex items-center justify-between">
+                <a href="/index.html" class="font-mono text-[14px] text-dim hover:text-ghost transition-colors">[ ← BACK TO ARCHIVE ]</a>
+                <span class="font-mono text-[14px] text-dim">VERSION 2.1 // STYLE 099</span>
+            </div>
+            
+            <div class="bg-steel border border-muted p-[26.5px] rounded-[10px] mt-4">
+                <h1 class="font-mono text-[24px] uppercase tracking-wider mb-2 font-bold text-ghost">Deep Link QR Code Generator</h1>
+                <p class="text-dim text-[16px] leading-[1.4]">A digital workbench utility to construct, check, and generate QR codes for application deep linking.</p>
+            </div>
+        </header>
+
+        <!-- Two Column Layout -->
+        <div class="flex flex-col lg:flex-row gap-[48px] items-start">
+            
+            <!-- Left Column - Configurations -->
+            <div class="w-full lg:w-2/3 flex flex-col gap-[48px]">
+                
+                <!-- Base Configuration -->
+                <div class="bg-steel border border-muted p-[26.5px] rounded-[10px] flex flex-col gap-6">
+                    <div class="flex">
+                        <span class="border border-muted bg-midnight px-[16px] py-[8px] font-mono text-[14px] leading-[1.00] uppercase rounded-[10px] text-dim">[ BASE CONFIGURATION ]</span>
+                    </div>
+                    
+                    <div class="flex flex-col gap-6 mt-2">
+                        <!-- Environment select -->
+                        <div class="flex flex-col gap-2">
+                            <label for="environment" class="font-mono text-[14px] text-dim uppercase tracking-wider font-bold">Environment Target</label>
+                            <select id="environment" class="w-full bg-midnight text-ghost border border-muted focus:border-dim px-4 py-3 rounded-[10px] outline-none font-mono text-[16px]">
+                                <option value="trunk">Trunk (backend.jarvistrunk.net)</option>
+                                <option value="trunkliveops">Trunk Liveops (backend-liveops.jarvistrunk.net)</option>
+                                <option value="qa3">QA3 (backend.liveops.jarvisqa.net)</option>
+                                <option value="qa1">QA1 (backend.qa1.jarvisqa.net)</option>
+                                <option value="qa2">QA2 (backend.qa2.jarvisqa.net)</option>
+                                <option value="custom">Custom Backend URL</option>
+                            </select>
+                        </div>
+
+                        <!-- PR Number -->
+                        <div id="prNumberGroup" class="flex flex-col gap-2">
+                            <label for="prNumber" class="font-mono text-[14px] text-dim uppercase tracking-wider font-bold">PR Number</label>
+                            <input type="number" id="prNumber" placeholder="E.G. 1234 (OPTIONAL)" class="w-full bg-midnight text-ghost placeholder-dim border border-muted focus:border-dim px-4 py-3 rounded-[10px] outline-none font-mono text-[16px] uppercase">
+                            <p class="text-[12px] text-dim mt-1">If provided, 'pr-' is prepended to form part of the backend_host.</p>
+                            
+                            <div id="grafanaLinkContainer" class="hidden-field mt-2">
+                                <a href="#" id="grafanaLink" target="_blank" class="inline-flex items-center gap-2 font-mono text-[14px] text-ghost hover:text-dim underline">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+                                    [ VIEW GRAFANA LOGS ]
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Custom Backend URL -->
+                        <div id="customBackendUrlGroup" class="flex flex-col gap-2 hidden-field">
+                            <label for="customBackendUrl" class="font-mono text-[14px] text-dim uppercase tracking-wider font-bold">Custom Backend Host</label>
+                            <input type="text" id="customBackendUrl" placeholder="E.G. MY-BACKEND.NGROK.APP" class="w-full bg-midnight text-ghost placeholder-dim border border-muted focus:border-dim px-4 py-3 rounded-[10px] outline-none font-mono text-[16px] uppercase">
+                            <p class="text-[12px] text-dim mt-1">Enter the full custom backend host.</p>
+                        </div>
+
+                        <!-- Alive check status -->
+                        <div id="aliveStatus" class="font-mono text-[15px] text-dim uppercase"></div>
+                    </div>
+                </div>
+
+                <!-- Additional Query Parameters -->
+                <div class="bg-steel border border-muted p-[26.5px] rounded-[10px] flex flex-col gap-6">
+                    <div class="flex">
+                        <span class="border border-muted bg-midnight px-[16px] py-[8px] font-mono text-[14px] leading-[1.00] uppercase rounded-[10px] text-dim">[ ADDITIONAL QUERY PARAMETERS ]</span>
+                    </div>
+
+                    <div id="additionalParamsContainer" class="flex flex-col">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column - QR & Generator Result -->
+            <div class="w-full lg:w-1/3 lg:sticky lg:top-[79px] flex flex-col gap-6">
+                
+                <!-- QR Section -->
+                <div class="bg-steel border border-muted p-[26.5px] rounded-[10px] flex flex-col gap-4">
+                    <span class="font-mono text-[14px] text-dim uppercase tracking-wider font-bold">[ 01. SCAN DEEP LINK ]</span>
+                    <div id="qrcode" class="border border-muted p-4 bg-white aspect-square w-full max-w-[280px] mx-auto flex items-center justify-center rounded-[10px]">
+                        <!-- QR Code will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Deep Link URL -->
+                <div class="bg-steel border border-muted p-[26.5px] rounded-[10px] flex flex-col gap-4">
+                    <span class="font-mono text-[14px] text-dim uppercase tracking-wider font-bold">[ 02. GENERATED URL ]</span>
+                    <div class="border border-muted p-4 bg-midnight min-h-[100px] flex flex-col justify-between gap-4 rounded-[10px]">
+                        <p id="generatedUrl" class="font-mono text-[14px] leading-[1.4] break-all text-ghost flex-grow"></p>
+                        <div class="flex justify-end">
+                            <button id="copyUrlBtn" class="bg-ghost text-midnight font-mono text-[14px] px-4 py-2 rounded-[10px] hover:bg-dim hover:text-ghost transition-colors font-bold cursor-pointer border-none">
+                                COPY
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button id="startGameMainBtn" class="bg-ghost text-midnight font-mono text-[16px] py-4 rounded-[10px] hover:bg-dim hover:text-ghost transition-colors font-bold cursor-pointer border-none">
+                        START GAME
+                    </button>
+                    <button id="shareConfigBtn" class="bg-transparent text-ghost border border-muted hover:border-dim font-mono text-[16px] py-4 rounded-[10px] transition-colors cursor-pointer">
+                        SHARE CONFIG
+                    </button>
+                    <button id="resetBtn" class="bg-transparent text-ghost border border-muted hover:border-dim font-mono text-[16px] py-4 rounded-[10px] transition-colors cursor-pointer col-span-2">
+                        RESET SETTINGS
+                    </button>
+                </div>
+
+            </div>
+            
+        </div>
+
+        <!-- Footer -->
+        <footer class="border-t border-muted pt-8 text-center font-mono text-[14px] text-dim">
+            <p>© lequang1024 — client-side deep linking. workbench v2.1</p>
+        </footer>
+
+    </div>
+
+    <!-- Floating Start Game Action -->
+    <div id="startGameFixedContainer" class="fixed bottom-6 right-6 z-[1000] flex items-center justify-center">
+        <button id="startGameBtn" class="bg-ghost text-midnight font-mono text-[16px] py-4 px-6 hover:bg-dim hover:text-ghost rounded-[10px] transition-colors shadow-none font-bold border-none cursor-pointer">
+            START GAME
+        </button>
+        <div class="button-tooltip hidden absolute bottom-[calc(100%+10px)] right-0 w-[240px] text-center bg-steel text-ghost border border-muted p-3 font-mono text-[12px] rounded-[10px]">
+            (To start game with this button, open this website in your mobile device's browser)
+        </div>
+    </div>
+
+    <!-- Modal for config sharing -->
+    <div id="shareConfigModal" class="fixed inset-0 z-50 flex items-center justify-center hidden-field">
+        <div id="shareConfigBackdrop" class="absolute inset-0 bg-midnight/70 backdrop-blur-md"></div>
+        <div class="relative bg-steel border border-muted p-8 flex flex-col items-center gap-6 max-w-sm w-full mx-4 rounded-[10px] z-10">
+            <button id="shareConfigCloseBtn" class="absolute top-3 right-3 text-ghost hover:text-dim font-mono text-[20px] leading-none bg-transparent border-none cursor-pointer">&times;</button>
+            <h2 class="font-mono text-[14px] text-ghost uppercase tracking-wider text-center font-bold">Scan to open config</h2>
+            <div id="shareConfigQrcode" class="border border-muted bg-white p-4 w-56 h-56 flex items-center justify-center rounded-[10px]"></div>
+        </div>
+    </div>
+
+    <!-- JS Logic -->
+    <script>
+        // DOM Elements
+        const environmentSelect = document.getElementById('environment');
+        const prNumberInput = document.getElementById('prNumber');
+        const prNumberGroup = document.getElementById('prNumberGroup');
+        const customBackendUrlInput = document.getElementById('customBackendUrl');
+        const customBackendUrlGroup = document.getElementById('customBackendUrlGroup');
+        const additionalParamsContainer = document.getElementById('additionalParamsContainer');
+        const resetBtn = document.getElementById('resetBtn');
+        const startGameBtn = document.getElementById('startGameBtn');
+        const qrcodeDiv = document.getElementById('qrcode');
+        const startGameMainBtn = document.getElementById('startGameMainBtn');
+        const generatedUrlP = document.getElementById('generatedUrl');
+        const aliveStatusDiv = document.getElementById('aliveStatus');
+        const grafanaLinkContainer = document.getElementById('grafanaLinkContainer');
+        const grafanaLink = document.getElementById('grafanaLink');
+        const copyUrlBtn = document.getElementById('copyUrlBtn');
+        const shareConfigBtn = document.getElementById('shareConfigBtn');
+        const shareConfigModal = document.getElementById('shareConfigModal');
+        const shareConfigBackdrop = document.getElementById('shareConfigBackdrop');
+        const shareConfigCloseBtn = document.getElementById('shareConfigCloseBtn');
+        const shareConfigQrcodeDiv = document.getElementById('shareConfigQrcode');
+
+        let qrCodeInstance = null;
+        let currentDeepLinkUrl = '';
+        let aliveCheckTimeout = null;
+        let currentAliveCheckToken = null;
+
+        const environmentDomains = {
+            trunk: "backend.jarvistrunk.net",
+            trunkliveops: "backend-liveops.jarvistrunk.net",
+            qa3: "backend.liveops.jarvisqa.net",
+            qa1: "backend.qa1.jarvisqa.net",
+            qa2: "backend.qa2.jarvisqa.net"
+        };
+
+        const grafanaDataSources = {
+            trunk: "P31FC4C0F93B441EF",
+            qa3: "P5A8999BC3E4BD4C5"
+        };
+
+        const LS_BASE_KEY = 'qrGenAdv_';
+        const LS_KEYS = {
+            ENVIRONMENT: LS_BASE_KEY + 'environment',
+            PR_NUMBER: LS_BASE_KEY + 'prNumber',
+            CUSTOM_BACKEND_URL: LS_BASE_KEY + 'customBackendUrl',
+            ADDITIONAL_PARAMS: LS_BASE_KEY + 'additionalParams'
+        };
+
+        const ENVIRONMENTS_WITHOUT_PR = ['trunkliveops', 'qa1', 'qa2'];
+
+        const DEFAULTS = {
+            ENVIRONMENT: 'trunk',
+            PR_NUMBER: '',
+            CUSTOM_BACKEND_URL: ''
+        };
+
+        const additionalParamsConfig = [
+            { id: 'ava_dab', name: 'Ava DAB', key: 'ava_dab', type: 'text', placeholder: 'AVA_DAB value or reset', example: '?ava_dab=MY_DAB', defaultValue: '3_71_0' },
+            { id: 'ava_header', name: 'Ava Header', key: 'ava_header', type: 'select', options: ['mvmx', 'mvmx-liveops'], example: '?ava_header=AVA_HEADER', defaultValue: '' },
+            { id: 'auto_cheat', name: 'Auto Cheat', key: 'auto_cheat', type: 'text', placeholder: 'Cheat ID (e.g. SuperPlayer)', example: '?auto_cheat=SuperPlayer', defaultValue: 'SuperPlayer' },
+            { id: 'reset_device', name: 'Reset Device', key: 'reset', type: 'checkbox_only', example: '?reset=device', fixedValue: 'device', defaultValue: false },
+            { id: 'iap_cheat', name: 'IAP Cheat (no need login appstore/google play)', key: 'iap_cheat', type: 'checkbox_only', example: '?iap_cheat=true', fixedValue: 'true', defaultValue: false },
+            { id: 'user_deviceid', name: 'User DeviceID', key: 'user_deviceid', type: 'text', placeholder: 'UDID', example: '?user_deviceid=UDID', defaultValue: '' },
+            { id: 'user_adid', name: 'User AdvertisingID', key: 'user_adid', type: 'text', placeholder: 'ADID', example: '?user_adid=ADID', defaultValue: '' },
+            { id: 'env_profile', name: 'Server Environment Profile', key: 'env_profile', type: 'select', options: ['trunk', 'qa1', 'qa3', 'stage', 'prod', 'reset'], example: '?env_profile=qa3', defaultValue: 'qa3' },
+            { id: 'backend_pr', name: 'Backend PR (additional)', key: 'backend_pr', type: 'text', placeholder: 'e.g., 1024 or reset', example: '?backend_pr=1024', defaultValue: '' },
+            { id: 'nlog_level', name: 'NLog Console Log Level', key: 'nlog_level', type: 'select', options: ['debug', 'info', 'warn', 'error', 'fatal', 'off'], example: '?nlog_level=debug', defaultValue: 'info' },
+        ];
+
+        function renderAdditionalParams(urlParams = {}) {
+            additionalParamsContainer.innerHTML = '';
+            const savedParamsState = JSON.parse(localStorage.getItem(LS_KEYS.ADDITIONAL_PARAMS) || '{}');
+
+            additionalParamsConfig.forEach((param, index) => {
+                let isDefaultEnabled = (param.id === 'ava_dab' || (param.type === 'checkbox_only' && param.defaultValue === true));
+                let initialValue = param.defaultValue;
+                let initialEnabledState = isDefaultEnabled;
+
+                // URL params take highest priority
+                if (urlParams.hasOwnProperty(param.key)) {
+                    initialEnabledState = true;
+                    initialValue = urlParams[param.key];
+                } else {
+                    const savedParam = savedParamsState[param.id];
+                    if (savedParam) {
+                        initialEnabledState = savedParam.enabled;
+                        if (param.type !== 'checkbox_only') {
+                            initialValue = savedParam.value;
+                        }
+                    }
+                }
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'border-t border-muted/50 py-4 flex flex-col gap-3 hover:bg-muted/10 transition-colors duration-150 cursor-pointer select-none';
+
+                let inputHtml = '';
+                if (param.type === 'text') {
+                    inputHtml = `<input type="text" id="${param.id}_value" value="${initialValue}" placeholder="${param.placeholder || ''}" class="w-full bg-midnight text-ghost placeholder-dim border border-muted focus:border-dim px-3 py-2 rounded-[10px] outline-none font-mono text-[14px] disabled:opacity-30 disabled:border-muted/20 uppercase" ${!initialEnabledState ? 'disabled' : ''}>`;
+                } else if (param.type === 'select') {
+                    const optionsHtml = param.options.map(opt => `<option value="${opt}" ${opt === initialValue ? 'selected' : ''}>${opt}</option>`).join('');
+                    inputHtml = `<select id="${param.id}_value" class="w-full bg-midnight text-ghost border border-muted focus:border-dim px-3 py-2 rounded-[10px] outline-none font-mono text-[14px] disabled:opacity-30 disabled:border-muted/20" ${!initialEnabledState ? 'disabled' : ''}>${optionsHtml}</select>`;
+                }
+
+                const idxStr = String(index + 1).padStart(2, '0');
+
+                wrapper.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <label for="${param.id}_enable" class="font-mono text-[15px] leading-[1.2] text-ghost cursor-pointer flex items-center gap-3 font-bold">
+                            <span class="text-dim">[${idxStr}]</span>
+                            ${param.name}
+                        </label>
+                        <input type="checkbox" id="${param.id}_enable" ${initialEnabledState ? 'checked' : ''} class="h-5 w-5 bg-midnight border border-muted text-ghost accent-ghost rounded-[4px] focus:ring-0 cursor-pointer">
+                    </div>
+                    ${inputHtml}
+                    ${param.example ? `<p class="font-mono text-[11px] text-dim uppercase tracking-wider">${param.example}</p>` : ''}
+                `;
+                additionalParamsContainer.appendChild(wrapper);
+
+                const enableCheckbox = document.getElementById(`${param.id}_enable`);
+                enableCheckbox.addEventListener('change', (e) => {
+                    if (param.type !== 'checkbox_only') {
+                        document.getElementById(`${param.id}_value`).disabled = !e.target.checked;
+                    }
+                    generateAndDisplayQrCode();
+                });
+
+                // Toggle logic by clicking wrapper
+                wrapper.addEventListener('click', (e) => {
+                    const target = e.target;
+                    if (!(target instanceof Element)) return;
+
+                    if (target.closest(`#${param.id}_enable`) || target.closest(`label[for="${param.id}_enable"]`)) {
+                        return;
+                    }
+
+                    const interactive = target.closest('input, select, textarea, button, a');
+                    if (interactive) {
+                        const tag = interactive.tagName.toLowerCase();
+                        const isFormControl = tag === 'input' || tag === 'select' || tag === 'textarea';
+                        if (!isFormControl) return;
+                        if (!interactive.disabled) return;
+                    }
+
+                    enableCheckbox.checked = !enableCheckbox.checked;
+                    enableCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+
+                if (param.type !== 'checkbox_only') {
+                    const valueElement = document.getElementById(`${param.id}_value`);
+                    valueElement.addEventListener('input', () => {
+                        generateAndDisplayQrCode();
+                        scheduleAliveCheck();
+                    });
+                    if (param.type === 'select') {
+                        valueElement.addEventListener('change', () => {
+                            generateAndDisplayQrCode();
+                            scheduleAliveCheck();
+                        });
+                    }
+                }
+            });
+        }
+
+        function saveInputsToLocalStorage() {
+            localStorage.setItem(LS_KEYS.ENVIRONMENT, environmentSelect.value);
+            localStorage.setItem(LS_KEYS.PR_NUMBER, prNumberInput.value);
+            localStorage.setItem(LS_KEYS.CUSTOM_BACKEND_URL, customBackendUrlInput.value);
+
+            const additionalParamsState = {};
+            additionalParamsConfig.forEach(param => {
+                const enableCheckbox = document.getElementById(`${param.id}_enable`);
+                additionalParamsState[param.id] = {
+                    enabled: enableCheckbox.checked,
+                    value: (param.type !== 'checkbox_only' && enableCheckbox.checked) ? document.getElementById(`${param.id}_value`).value : (param.fixedValue || param.defaultValue || '')
+                };
+            });
+            localStorage.setItem(LS_KEYS.ADDITIONAL_PARAMS, JSON.stringify(additionalParamsState));
+        }
+
+        function loadInputsFromLocalStorage() {
+            environmentSelect.value = localStorage.getItem(LS_KEYS.ENVIRONMENT) || DEFAULTS.ENVIRONMENT;
+            prNumberInput.value = localStorage.getItem(LS_KEYS.PR_NUMBER) || DEFAULTS.PR_NUMBER;
+            customBackendUrlInput.value = localStorage.getItem(LS_KEYS.CUSTOM_BACKEND_URL) || DEFAULTS.CUSTOM_BACKEND_URL;
+        }
+
+        function applyUrlParameters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.toString() === '') {
+                return false;
+            }
+
+            environmentSelect.value = urlParams.get('env') || DEFAULTS.ENVIRONMENT;
+            prNumberInput.value = urlParams.get('pr') || DEFAULTS.PR_NUMBER;
+            customBackendUrlInput.value = urlParams.get('customUrl') || DEFAULTS.CUSTOM_BACKEND_URL;
+
+            const additionalUrlParams = {};
+            additionalParamsConfig.forEach(param => {
+                if (urlParams.has(param.key)) {
+                    additionalUrlParams[param.key] = urlParams.get(param.key);
+                }
+            });
+
+            renderAdditionalParams(additionalUrlParams);
+            return true;
+        }
+
+        function updateInputVisibility(selectedEnv) {
+            if (selectedEnv === "custom") {
+                prNumberGroup.classList.add('hidden-field');
+                prNumberInput.disabled = true;
+                customBackendUrlGroup.classList.remove('hidden-field');
+                customBackendUrlInput.disabled = false;
+                grafanaLinkContainer.classList.add('hidden-field');
+            } else if (ENVIRONMENTS_WITHOUT_PR.includes(selectedEnv)) {
+                prNumberGroup.classList.add('hidden-field');
+                prNumberInput.disabled = true;
+                customBackendUrlGroup.classList.add('hidden-field');
+                customBackendUrlInput.disabled = true;
+            } else {
+                prNumberGroup.classList.remove('hidden-field');
+                prNumberInput.disabled = false;
+                customBackendUrlGroup.classList.add('hidden-field');
+                customBackendUrlInput.disabled = true;
+            }
+        }
+
+        function resetToDefaultSettings() {
+            localStorage.removeItem(LS_KEYS.ENVIRONMENT);
+            localStorage.removeItem(LS_KEYS.PR_NUMBER);
+            localStorage.removeItem(LS_KEYS.CUSTOM_BACKEND_URL);
+            localStorage.removeItem(LS_KEYS.ADDITIONAL_PARAMS);
+
+            window.history.replaceState({}, document.title, window.location.pathname);
+
+            environmentSelect.value = DEFAULTS.ENVIRONMENT;
+            prNumberInput.value = DEFAULTS.PR_NUMBER;
+            customBackendUrlInput.value = DEFAULTS.CUSTOM_BACKEND_URL;
+
+            prNumberInput.classList.remove('input-error');
+            customBackendUrlInput.classList.remove('input-error');
+            aliveStatusDiv.textContent = '';
+            grafanaLinkContainer.classList.add('hidden-field');
+
+            updateInputVisibility(DEFAULTS.ENVIRONMENT);
+            renderAdditionalParams();
+            generateAndDisplayQrCode();
+        }
+
+        function validateInputs() {
+            prNumberInput.classList.remove('input-error');
+            customBackendUrlInput.classList.remove('input-error');
+            additionalParamsConfig.forEach(param => {
+                if (param.type === 'text') {
+                    const inputElement = document.getElementById(`${param.id}_value`);
+                    if (inputElement) inputElement.classList.remove('input-error');
+                }
+            });
+            generatedUrlP.classList.remove('error-message');
+            generatedUrlP.innerHTML = '';
+
+            const prNumberValue = prNumberInput.value;
+            const selectedEnv = environmentSelect.value;
+
+            if (selectedEnv === "custom") {
+                const customUrl = customBackendUrlInput.value.trim();
+                if (!customUrl) {
+                    generatedUrlP.textContent = "Error: Custom Backend URL cannot be empty.";
+                    generatedUrlP.classList.add('error-message');
+                    customBackendUrlInput.classList.add('input-error');
+                    qrcodeDiv.innerHTML = '';
+                    return false;
+                }
+                if (customUrl.indexOf(' ') !== -1) {
+                    generatedUrlP.textContent = "Error: Custom Backend URL cannot contain spaces.";
+                    generatedUrlP.classList.add('error-message');
+                    customBackendUrlInput.classList.add('input-error');
+                    qrcodeDiv.innerHTML = '';
+                    return false;
+                }
+            } else if (selectedEnv !== "trunkliveops" && prNumberValue.indexOf(' ') !== -1) {
+                generatedUrlP.textContent = "Error: PR Number cannot contain spaces.";
+                generatedUrlP.classList.add('error-message');
+                prNumberInput.classList.add('input-error');
+                qrcodeDiv.innerHTML = '';
+                return false;
+            }
+
+            for (const param of additionalParamsConfig) {
+                if (param.type === 'text') {
+                    const enableCheckbox = document.getElementById(`${param.id}_enable`);
+                    const valueInput = document.getElementById(`${param.id}_value`);
+                    if (enableCheckbox && valueInput && enableCheckbox.checked) {
+                        const value = valueInput.value;
+                        if (value.indexOf(' ') !== -1) {
+                            generatedUrlP.textContent = `Error: '${param.name}' cannot contain spaces.`;
+                            generatedUrlP.classList.add('error-message');
+                            valueInput.classList.add('input-error');
+                            qrcodeDiv.innerHTML = '';
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        async function performAliveCheck(checkToken) {
+            const selectedEnvironment = environmentSelect.value;
+            const prNumberRaw = prNumberInput.value;
+            let hostToCheck;
+
+            if (selectedEnvironment === "custom") {
+                hostToCheck = customBackendUrlInput.value.trim();
+            } else if (ENVIRONMENTS_WITHOUT_PR.includes(selectedEnvironment)) {
+                hostToCheck = environmentDomains[selectedEnvironment];
+            } else {
+                const baseDomain = environmentDomains[selectedEnvironment];
+                if (prNumberRaw.trim()) {
+                    hostToCheck = `pr-${prNumberRaw.trim()}.${baseDomain}`;
+                } else {
+                    hostToCheck = baseDomain;
+                }
+            }
+
+            if (!hostToCheck) {
+                if (checkToken === currentAliveCheckToken) {
+                    aliveStatusDiv.textContent = '';
+                }
+                return;
+            }
+
+            let checkUrl = hostToCheck;
+            if (!checkUrl.startsWith('http://') && !checkUrl.startsWith('https://')) {
+                checkUrl = 'https://' + checkUrl;
+            }
+            checkUrl += '/api/live';
+
+            if (checkToken === currentAliveCheckToken) {
+                aliveStatusDiv.textContent = 'Status: Checking...';
+                aliveStatusDiv.className = 'font-mono text-[15px] text-dim uppercase';
+            }
+
+            try {
+                let fetchOptions = {};
+                if (selectedEnvironment === "custom") {
+                    fetchOptions.method = 'GET';
+                } else {
+                    fetchOptions.method = 'HEAD';
+                    fetchOptions.mode = 'no-cors';
+                }
+
+                const response = await fetch(checkUrl, fetchOptions);
+
+                if (checkToken === currentAliveCheckToken) {
+                    let statusMessage = '';
+                    let statusClass = 'font-mono text-[15px] uppercase ';
+
+                    if (selectedEnvironment === "custom") {
+                        if (response.status === 200) {
+                            statusMessage = 'Status: Alive 😻 (HTTP 200)';
+                            statusClass += 'text-ghost font-bold';
+                        } else {
+                            statusMessage = `Status: Dead 💀 (HTTP ${response.status})`;
+                            statusClass += 'text-dim line-through';
+                        }
+                    } else {
+                        statusMessage = 'Status: Alive 😻';
+                        statusClass += 'text-ghost font-bold';
+                    }
+
+                    aliveStatusDiv.textContent = statusMessage;
+                    aliveStatusDiv.className = statusClass;
+                }
+            } catch (error) {
+                console.error('Alive check failed (Network Error):', error);
+                if (checkToken === currentAliveCheckToken) {
+                    aliveStatusDiv.textContent = 'Status: Dead 💀 (Network Error)';
+                    aliveStatusDiv.className = 'font-mono text-[15px] text-dim uppercase line-through';
+                }
+            }
+        }
+
+        function scheduleAliveCheck() {
+            clearTimeout(aliveCheckTimeout);
+            currentAliveCheckToken = Symbol();
+            const tokenForThisCheck = currentAliveCheckToken;
+
+            aliveStatusDiv.textContent = 'Status: Checking...';
+            aliveStatusDiv.className = 'font-mono text-[15px] text-dim uppercase';
+
+            aliveCheckTimeout = setTimeout(() => {
+                performAliveCheck(tokenForThisCheck);
+            }, 1000);
+        }
+
+        function generateAndDisplayQrCode() {
+            if (!validateInputs()) {
+                currentDeepLinkUrl = '';
+                aliveStatusDiv.textContent = '';
+                grafanaLinkContainer.classList.add('hidden-field');
+                copyUrlBtn.disabled = true;
+                return;
+            }
+
+            const selectedEnvironment = environmentSelect.value;
+            const prNumberRaw = prNumberInput.value;
+
+            let backendHost;
+            const prNumTrimmed = prNumberRaw.trim();
+            let showGrafanaLink = false;
+            let grafanaAppName = "";
+            let grafanaDatasourceUid = "";
+
+            if (selectedEnvironment === "trunk") {
+                grafanaDatasourceUid = grafanaDataSources.trunk;
+                grafanaAppName = prNumTrimmed ? `tnk-ea-backend-pr-${prNumTrimmed}` : "tnk-ea-backend";
+                showGrafanaLink = true;
+            } else if (selectedEnvironment === "qa3") {
+                grafanaDatasourceUid = grafanaDataSources.qa3;
+                grafanaAppName = prNumTrimmed ? `qa3-ea-backend-pr-${prNumTrimmed}` : "qa3-ea-backend";
+                showGrafanaLink = true;
+            } else if (selectedEnvironment === "trunkliveops") {
+                grafanaDatasourceUid = grafanaDataSources.trunk;
+                grafanaAppName = "tnk-ea-backend-liveops";
+                showGrafanaLink = true;
+            }
+
+            if (showGrafanaLink && grafanaAppName && grafanaDatasourceUid) {
+                const expr = `{app=\"${grafanaAppName}\"} |= \`\``;
+                const panesObj = {
+                    "c13": {
+                        "datasource": grafanaDatasourceUid,
+                        "queries": [{ "refId": "A", "editorMode": "builder", "expr": expr, "queryType": "range", "datasource": { "type": "loki", "uid": grafanaDatasourceUid } }],
+                        "range": { "from": "now-6h", "to": "now" }
+                    }
+                };
+                const encodedPanes = encodeURIComponent(JSON.stringify(panesObj));
+                grafanaLink.href = `https://grafana.jarvis.tools/explore?schemaVersion=1&panes=${encodedPanes}&orgId=1`;
+                grafanaLinkContainer.classList.remove('hidden-field');
+            } else {
+                grafanaLinkContainer.classList.add('hidden-field');
+            }
+
+            if (selectedEnvironment === "custom") {
+                backendHost = customBackendUrlInput.value.trim();
+            } else if (ENVIRONMENTS_WITHOUT_PR.includes(selectedEnvironment)) {
+                backendHost = environmentDomains[selectedEnvironment];
+            } else {
+                const baseDomain = environmentDomains[selectedEnvironment];
+                if (prNumberRaw.trim()) {
+                    backendHost = `pr-${prNumberRaw.trim()}.${baseDomain}`;
+                } else {
+                    backendHost = baseDomain;
+                }
+            }
+
+            let backendHostQueryParam = `backend_host=${encodeURIComponent(backendHost)}`;
+            let queryParams = [backendHostQueryParam];
+
+            additionalParamsConfig.forEach(param => {
+                const enableCheckbox = document.getElementById(`${param.id}_enable`);
+                if (enableCheckbox && enableCheckbox.checked) {
+                    let value;
+                    if (param.type === 'checkbox_only') {
+                        value = param.fixedValue;
+                    } else {
+                        const valueInput = document.getElementById(`${param.id}_value`);
+                        value = valueInput ? valueInput.value.trim() : '';
+                    }
+                    if (value !== '' || param.type === 'checkbox_only' || param.key === 'ava_dab' || param.key === 'ava_header') {
+                        queryParams.push(`${encodeURIComponent(param.key)}=${encodeURIComponent(value)}`);
+                    }
+                }
+            });
+
+            currentDeepLinkUrl = `myvegas-slots://slots/cheat?${queryParams.join('&')}`;
+
+            generatedUrlP.innerHTML = '';
+            const linkElement = document.createElement('a');
+            linkElement.href = currentDeepLinkUrl;
+            linkElement.textContent = currentDeepLinkUrl;
+            linkElement.target = "_blank";
+            linkElement.className = "hover:text-dim underline transition-colors";
+            generatedUrlP.appendChild(linkElement);
+            generatedUrlP.classList.remove('error-message');
+
+            qrcodeDiv.innerHTML = '';
+
+            try {
+                qrCodeInstance = new QRCode(qrcodeDiv, {
+                    text: currentDeepLinkUrl,
+                    width: qrcodeDiv.offsetWidth > 40 ? qrcodeDiv.offsetWidth - 20 : 240,
+                    height: qrcodeDiv.offsetHeight > 40 ? qrcodeDiv.offsetHeight - 20 : 240,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+
+                if (!resetBtn.dataset.isResetting) {
+                    saveInputsToLocalStorage();
+                }
+                copyUrlBtn.disabled = false;
+
+            } catch (e) {
+                console.error("QR Code generation error:", e);
+                qrcodeDiv.innerHTML = '<p class="error-message text-center">Error generating QR code.</p>';
+                generatedUrlP.innerHTML = '';
+                const errorText = document.createTextNode('Error details in console.');
+                generatedUrlP.appendChild(errorText);
+                generatedUrlP.classList.add('error-message');
+                currentDeepLinkUrl = '';
+                copyUrlBtn.disabled = true;
+            }
+            scheduleAliveCheck();
+        }
+
+        function buildShareUrl() {
+            const params = new URLSearchParams();
+            params.set('env', environmentSelect.value);
+
+            if (environmentSelect.value === 'custom') {
+                const customUrl = customBackendUrlInput.value.trim();
+                if (customUrl) params.set('customUrl', customUrl);
+            } else if (!ENVIRONMENTS_WITHOUT_PR.includes(environmentSelect.value)) {
+                if (prNumberInput.value.trim()) params.set('pr', prNumberInput.value.trim());
+            }
+
+            additionalParamsConfig.forEach(param => {
+                const enableCheckbox = document.getElementById(`${param.id}_enable`);
+                if (enableCheckbox && enableCheckbox.checked) {
+                    if (param.type === 'checkbox_only') {
+                        params.set(param.key, param.fixedValue);
+                    } else {
+                        const valueInput = document.getElementById(`${param.id}_value`);
+                        if (valueInput) params.set(param.key, valueInput.value.trim());
+                    }
+                }
+            });
+
+            return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+        }
+
+        function handleModalEscape(e) {
+            if (e.key === 'Escape') closeShareModal();
+        }
+
+        function openShareModal() {
+            const shareUrl = buildShareUrl();
+            shareConfigQrcodeDiv.innerHTML = '';
+            new QRCode(shareConfigQrcodeDiv, {
+                text: shareUrl,
+                width: 192,
+                height: 192,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            shareConfigModal.classList.remove('hidden-field');
+            document.addEventListener('keydown', handleModalEscape);
+        }
+
+        function closeShareModal() {
+            shareConfigModal.classList.add('hidden-field');
+            shareConfigQrcodeDiv.innerHTML = '';
+            document.removeEventListener('keydown', handleModalEscape);
+        }
+
+        shareConfigBtn.addEventListener('click', openShareModal);
+        shareConfigCloseBtn.addEventListener('click', closeShareModal);
+        shareConfigBackdrop.addEventListener('click', closeShareModal);
+
+        environmentSelect.addEventListener('change', () => {
+            updateInputVisibility(environmentSelect.value);
+            generateAndDisplayQrCode();
+        });
+
+        startGameBtn.addEventListener('click', () => {
+            if (currentDeepLinkUrl) {
+                window.location.href = currentDeepLinkUrl;
+            }
+        });
+
+        // Hover tooltip display for fixed startGameBtn
+        const tooltip = document.querySelector('.button-tooltip');
+        startGameBtn.addEventListener('mouseenter', () => {
+            // Only show on desktop if fine pointer matches
+            if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+                tooltip.classList.remove('hidden');
+            }
+        });
+        startGameBtn.addEventListener('mouseleave', () => {
+            tooltip.classList.add('hidden');
+        });
+
+        copyUrlBtn.addEventListener('click', () => {
+            if (currentDeepLinkUrl) {
+                const originalButtonText = copyUrlBtn.textContent;
+                const originalBg = copyUrlBtn.className;
+                const textArea = document.createElement('textarea');
+                textArea.value = currentDeepLinkUrl;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-9999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    copyUrlBtn.textContent = 'COPIED';
+                    copyUrlBtn.disabled = true;
+                    setTimeout(() => {
+                        copyUrlBtn.textContent = originalButtonText;
+                        copyUrlBtn.disabled = false;
+                    }, 2000);
+                } catch (err) {
+                    console.error('Failed to copy: ', err);
+                }
+                document.body.removeChild(textArea);
+            }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            resetBtn.dataset.isResetting = true;
+            resetToDefaultSettings();
+            delete resetBtn.dataset.isResetting;
+        });
+
+        startGameMainBtn.addEventListener('click', () => {
+            if (currentDeepLinkUrl) {
+                window.location.href = currentDeepLinkUrl;
+            }
+        });
+
+        prNumberInput.addEventListener('input', () => {
+            generateAndDisplayQrCode();
+        });
+        customBackendUrlInput.addEventListener('input', () => {
+            generateAndDisplayQrCode();
+        });
+
+        window.addEventListener('load', () => {
+            const urlParamsApplied = applyUrlParameters();
+            if (!urlParamsApplied) {
+                loadInputsFromLocalStorage();
+                renderAdditionalParams();
+            }
+
+            updateInputVisibility(environmentSelect.value);
+            generateAndDisplayQrCode();
+
+            if (urlParamsApplied) {
+                saveInputsToLocalStorage();
+            }
+
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(generateAndDisplayQrCode, 250);
+            });
+        });
+    </script>
+</body>
+</html>

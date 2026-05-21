@@ -9,6 +9,15 @@ window.RepoTools = [
         "category": "Misc"
     },
     {
+        "id": "qr-deeplink-2",
+        "name": "Qr deeplink 2",
+        "description": "Deep Link QR Code Generator 2.0 — 099 Style",
+        "url": "/qr-deeplink-2.html",
+        "thumbnailUrl": "https://tse2.mm.bing.net/th?q=Deep%20Link%20QR%20Code%20Generator%202.0%20%E2%80%94%20099%20Style&w=640&h=360&c=7&rs=1&p=0",
+        "icon": "FileText",
+        "category": "Misc"
+    },
+    {
         "id": "qr-deeplink-readme",
         "name": "Qr deeplink readme",
         "description": "README - Deep Link QR Code Generator",

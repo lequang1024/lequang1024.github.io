@@ -1,5 +1,5 @@
-// Quangle Tools - Main Application (Dries Bos - Wireframe on Parchment Style)
-// A collection of browser-based developer tools
+// Quangle Tools - Main Application (099 Style Reference - Terminal/Digital Workbench)
+// A collection of browser-based developer tools using Space Mono typography, dark mode, and 10px rounded corners.
 
 const { useState, useEffect } = React;
 
@@ -31,34 +31,38 @@ const Icons = {
 const STATIC_TOOLS = window.JsxTools || [];
 const TOOLS = [...STATIC_TOOLS, ...(window.RepoTools || [])];
 
-// --- Tool Row Component (Naked Table Row Button) ---
-function ToolRow({ tool, index, onClick }) {
+// --- Tool Card Component (099 Elevated Card) ---
+function ToolCard({ tool, index, onClick }) {
     const displayIndex = String(index + 1).padStart(2, '0');
     
     return (
         <button
             onClick={onClick}
-            className="group flex flex-col md:flex-row md:items-center justify-between text-left w-full gap-4 p-[25px] border-t border-ink hover:border-ash bg-transparent rounded-none transition-colors duration-200"
+            className="group cursor-pointer bg-steel hover:bg-muted/40 border border-muted hover:border-dim text-left w-full p-[26.5px] rounded-[10px] transition-all duration-200 flex flex-col justify-between gap-[16px] min-h-[180px] focus:outline-none focus:border-ghost"
         >
-            <div className="flex items-baseline gap-4 md:w-1/3">
-                <span className="font-mono text-[20px] leading-[1.00] text-ash group-hover:text-ink">
+            <div className="flex items-center justify-between w-full">
+                <span className="text-dim group-hover:text-ghost font-mono text-[14px]">
                     [{displayIndex}]
                 </span>
-                <span className="font-sans text-[20px] leading-[1.45] text-ink font-medium">
-                    {tool.name}
-                </span>
-            </div>
-            
-            <div className="flex-1 font-sans text-[20px] leading-[1.45] text-ash group-hover:text-ink md:mx-4">
-                {tool.description}
-            </div>
-            
-            <div className="flex items-center gap-6 justify-between md:justify-end md:w-1/4">
                 {/* Subtle Pill Tag */}
-                <span className="bg-parchment text-ink border border-ink/20 px-[15px] pt-[10px] pb-[9px] rounded-[1000px] font-mono text-[14px] leading-[1.00] uppercase tracking-wider">
+                <span className="bg-midnight text-ghost border border-muted group-hover:border-dim px-[12px] py-[6px] rounded-[10px] font-mono text-[12px] uppercase tracking-wider">
                     {tool.category}
                 </span>
-                <Icons.ArrowRight className="w-5 h-5 text-ash group-hover:text-ink group-hover:translate-x-1 transition-all" />
+            </div>
+            
+            <div className="flex flex-col gap-2 flex-grow">
+                <h3 className="font-mono text-[18px] text-ghost font-bold group-hover:text-ghost">
+                    {tool.name}
+                </h3>
+                <p className="font-mono text-[14px] text-dim group-hover:text-ghost/85 leading-[1.4]">
+                    {tool.description}
+                </p>
+            </div>
+            
+            <div className="flex justify-end items-center w-full mt-2 border-t border-muted/50 pt-3 group-hover:border-muted">
+                <span className="font-mono text-[14px] text-ghost group-hover:translate-x-1 transition-transform flex items-center gap-2">
+                    OPEN WORKBENCH <Icons.ArrowRight className="w-4 h-4 text-ghost" />
+                </span>
             </div>
         </button>
     );
@@ -82,81 +86,61 @@ function HomePage({ tools, onSelectTool }) {
     });
 
     return (
-        <div className="min-h-screen bg-parchment text-ink px-4 md:px-8 py-[79px] font-sans antialiased text-[20px] leading-[1.45]">
-            <div className="max-w-[1150px] mx-auto flex flex-col gap-[79px]">
+        <div className="min-h-screen bg-midnight text-ghost px-4 md:px-8 py-[79px] font-mono antialiased text-[16px] leading-[1.2] tracking-[0.24px]">
+            <div className="max-w-[1600px] mx-auto flex flex-col gap-[48px]">
                 
                 {/* Hero Section */}
-                <header className="text-center flex flex-col gap-6">
-                    {/* Wireframe window-frame graphic in Ink Jot line art */}
-                    <svg viewBox="0 0 800 240" className="w-full max-w-2xl mx-auto text-ink stroke-current fill-none stroke-[1] mb-2" xmlns="http://www.w3.org/2000/svg">
-                        {/* Outer frame */}
-                        <rect x="5" y="5" width="790" height="230" />
-                        {/* Title bar */}
-                        <line x1="5" y1="45" x2="795" y2="45" />
-                        {/* Window controls */}
-                        <rect x="20" y="18" width="10" height="10" />
-                        <rect x="38" y="18" width="10" height="10" />
-                        <rect x="56" y="18" width="10" height="10" />
-                        <text x="400" y="27" className="font-mono text-[13px] fill-current text-center" textAnchor="middle" stroke="none">lequang1024.github.io // DIGITAL ARCHIVE</text>
-                        
-                        {/* Architect grid lines */}
-                        <line x1="160" y1="45" x2="160" y2="235" strokeDasharray="3 3" className="text-ash" />
-                        <line x1="320" y1="45" x2="320" y2="235" strokeDasharray="3 3" className="text-ash" />
-                        <line x1="480" y1="45" x2="480" y2="235" strokeDasharray="3 3" className="text-ash" />
-                        <line x1="640" y1="45" x2="640" y2="235" strokeDasharray="3 3" className="text-ash" />
-                        
-                        <line x1="5" y1="100" x2="795" y2="100" strokeDasharray="3 3" className="text-ash" />
-                        <line x1="5" y1="160" x2="795" y2="160" strokeDasharray="3 3" className="text-ash" />
-                        
-                        {/* Geometric layout details */}
-                        <circle cx="400" cy="140" r="45" strokeDasharray="4 4" className="text-ash" />
-                        <polygon points="400,85 445,140 400,195 355,140" />
-                        <line x1="340" y1="140" x2="460" y2="140" />
-                        <line x1="400" y1="80" x2="400" y2="200" />
-                        
-                        <text x="400" y="145" className="font-mono text-[14px] fill-current" textAnchor="middle" stroke="none">Q_T_L</text>
-                    </svg>
-
-                    <div className="max-w-md mx-auto">
-                        <h1 className="font-mono text-[24px] uppercase tracking-wider mb-2 font-normal">
-                            Quangle Tools
+                <header className="flex flex-col gap-[16px] border-b border-muted pb-[26.5px]">
+                    <div className="flex items-center justify-between">
+                        <span className="text-dim font-mono text-[14px]">SYSTEM: LEQUANG1024 // ACTIVE</span>
+                        <span className="text-dim font-mono text-[14px]">WORKBENCH V2.1 // 099 Theme</span>
+                    </div>
+                    
+                    {/* Dark Terminal Frame line art header */}
+                    <div className="bg-steel border border-muted p-[26.5px] rounded-[10px] flex flex-col gap-3">
+                        <div className="flex items-center gap-2 border-b border-muted pb-3">
+                            <span className="w-3 h-3 rounded-full bg-dim"></span>
+                            <span className="w-3 h-3 rounded-full bg-dim/50"></span>
+                            <span className="w-3 h-3 rounded-full bg-dim/20"></span>
+                            <span className="text-dim font-mono text-[12px] ml-2">sandbox://terminal-hero</span>
+                        </div>
+                        <h1 className="text-[28px] font-bold text-ghost uppercase tracking-wider font-mono">
+                            DIGITAL_ARCHIVE_
                         </h1>
-                        <p className="text-ash text-[20px] leading-[1.45]">
-                            A collection of browser-based utilities built with strict structure and minimalist aesthetics.
+                        <p className="text-dim text-[16px] max-w-3xl leading-[1.4] font-mono">
+                            A command-line inspired interface containing specialized client-side developer utilities and interactive modules.
                         </p>
                     </div>
                 </header>
 
                 {/* Search & Category Filter Section */}
-                <div className="flex flex-col gap-8">
-                    {/* Underlined Input Field */}
+                <div className="flex flex-col gap-[16px] bg-steel p-[26.5px] rounded-[10px] border border-muted">
                     <div className="flex flex-col gap-2">
-                        <span className="font-mono text-[16px] text-ash uppercase tracking-wider">Search Archive</span>
-                        <div className="flex items-center gap-3 border-b-2 border-ink py-2">
+                        <label className="text-[14px] text-dim uppercase tracking-wider font-bold">Search Archive</label>
+                        <div className="flex items-center gap-3 bg-midnight border border-muted focus-within:border-dim px-4 py-3 rounded-[10px] transition-colors">
                             <input
                                 type="text"
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
-                                placeholder="TYPE KEYWORD TO FILTER..."
-                                className="bg-transparent text-ink placeholder-ash outline-none w-full font-mono text-[20px] leading-[1.00] uppercase rounded-none"
+                                placeholder="ENTER KEYWORD TO FILTER WORKBENCH..."
+                                className="bg-transparent text-ghost placeholder-dim outline-none w-full font-mono text-[16px] leading-[1.00] uppercase"
                             />
-                            <Icons.Search className="w-6 h-6 text-ink" />
+                            <Icons.Search className="w-5 h-5 text-dim" />
                         </div>
                     </div>
 
-                    {/* Filter categories as Subtle Pill Tags */}
-                    <div className="flex flex-wrap gap-2 items-center">
-                        <span className="font-mono text-[16px] text-ash uppercase mr-2">Filter //</span>
+                    <div className="flex flex-wrap gap-2 items-center mt-2">
+                        <span className="text-[14px] text-dim uppercase mr-2 font-bold">Filter //</span>
                         {categories.map(cat => {
                             const isSelected = cat === selectedCategory;
                             return (
                                 <button
                                     key={cat}
                                     onClick={() => setSelectedCategory(cat)}
-                                    className={`font-mono text-[14px] leading-[1.00] px-[15px] pt-[10px] pb-[9px] rounded-[1000px] border transition-colors duration-150 ${
+                                    className={`font-mono text-[14px] leading-[1.00] px-[16px] py-[8px] rounded-[10px] transition-all duration-150 ${
                                         isSelected 
-                                            ? 'bg-ink text-parchment border-ink' 
-                                            : 'bg-transparent text-ash border-ash hover:text-ink hover:border-ink'
+                                            ? 'bg-ghost text-midnight font-bold border border-ghost' 
+                                            : 'bg-transparent text-ghost border border-muted hover:border-dim'
                                     }`}
                                 >
                                     {cat}
@@ -166,46 +150,35 @@ function HomePage({ tools, onSelectTool }) {
                     </div>
                 </div>
 
-                {/* Tools Table / List */}
-                <div className="flex flex-col">
-                    {/* Outlined Category Tags as Headers */}
-                    <div className="hidden md:flex justify-between items-center mb-6 font-mono text-[18px]">
-                        <div className="border border-ink px-[15px] py-[10px] w-1/3 rounded-none">
-                            [ 01. NAME ]
-                        </div>
-                        <div className="border border-ink px-[15px] py-[10px] flex-1 mx-4 rounded-none">
-                            [ 02. FUNCTION / DESCRIPTION ]
-                        </div>
-                        <div className="border border-ink px-[15px] py-[10px] text-right rounded-none">
-                            [ 03. CATEGORY ]
-                        </div>
+                {/* Tools Grid */}
+                <div className="flex flex-col gap-[16px]">
+                    <div className="flex justify-between items-center text-dim font-bold text-[14px] px-2">
+                        <span>[ SELECT COMPONENT ]</span>
+                        <span>COUNT: {filteredTools.length}</span>
                     </div>
 
-                    {/* Naked Table Rows list */}
-                    <div className="flex flex-col">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[16px]">
                         {filteredTools.map((tool, idx) => (
-                            <ToolRow
+                            <ToolCard
                                 key={tool.id}
                                 tool={tool}
                                 index={idx}
                                 onClick={() => onSelectTool(tool)}
                             />
                         ))}
-
-                        {filteredTools.length === 0 && (
-                            <div className="p-[25px] border-t border-ink text-center text-ash font-mono text-[20px]">
-                                NO UTILITIES FOUND IN ARCHIVE //
-                            </div>
-                        )}
-
-                        {/* Table bottom line closure */}
-                        <div className="border-t border-ink w-full"></div>
                     </div>
+
+                    {filteredTools.length === 0 && (
+                        <div className="p-[48px] bg-steel rounded-[10px] border border-muted text-center text-dim font-mono text-[16px]">
+                            SYSTEM ERROR: NO UTILITIES MATCHING REQUESTED PATTERN //
+                        </div>
+                    )}
                 </div>
 
                 {/* Footer */}
-                <footer className="mt-[79px] border-t border-ink/20 pt-8 text-center font-mono text-[16px] text-ash">
-                    <p>© lequang1024 — all tools run client-side. v2.0</p>
+                <footer className="mt-[48px] border-t border-muted pt-8 text-center text-dim font-mono text-[14px] flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <p>© lequang1024 — all tools run client-side in sandbox</p>
+                    <p>STATUS: OK // TERM_SEC_099</p>
                 </footer>
 
             </div>
@@ -214,30 +187,32 @@ function HomePage({ tools, onSelectTool }) {
 }
 
 // --- Tool Page Wrapper ---
+// Currently, standard tools that are React components load inside this layout.
+// External pages like qr-deeplink-2.html are redirected to directly and have their own HTML structure.
 function ToolPage({ tool, onBack }) {
     const ToolComponent = window[tool.component];
     const IconComponent = Icons[tool.icon] || Icons.Wrench;
 
     return (
-        <div className="min-h-screen bg-parchment text-ink px-4 md:px-8 py-[79px] font-sans antialiased text-[20px] leading-[1.45]">
-            <div className="max-w-[1150px] mx-auto flex flex-col gap-6">
-                <header className="flex items-center justify-between border-b border-ink pb-6 mb-6">
+        <div className="min-h-screen bg-midnight text-ghost px-4 md:px-8 py-[79px] font-mono antialiased text-[16px] leading-[1.2] tracking-[0.24px]">
+            <div className="max-w-[1600px] mx-auto flex flex-col gap-6">
+                <header className="flex items-center justify-between border-b border-muted pb-6 mb-6">
                     <button
                         onClick={onBack}
-                        className="group flex items-center gap-2 font-mono text-[18px] text-ash hover:text-ink transition-colors rounded-none bg-transparent border-none"
+                        className="group flex items-center gap-2 font-mono text-[14px] text-dim hover:text-ghost transition-colors rounded-[10px] bg-transparent border-none p-0 cursor-pointer"
                     >
-                        <Icons.ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                        <Icons.ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                         [ BACK TO ARCHIVE ]
                     </button>
-                    <span className="font-mono text-[18px] uppercase tracking-wider text-ash">
+                    <span className="font-mono text-[14px] uppercase tracking-wider text-dim">
                         {tool.category} // {tool.name}
                     </span>
                 </header>
 
-                <main className="bg-transparent border border-ink p-[25px] rounded-none">
+                <main className="bg-steel border border-muted p-[26.5px] rounded-[10px]">
                     {ToolComponent ? <ToolComponent /> : (
-                        <div className="text-center font-mono py-12 text-ash">
-                            UTILITY COMPONENT NOT LOADED IN SCOPE //
+                        <div className="text-center font-mono py-12 text-dim">
+                            SYSTEM EXCEPTION: COMPONENT NOT LOADED IN SCOPE //
                         </div>
                     )}
                 </main>
@@ -268,7 +243,7 @@ function App() {
 
     const selectTool = (tool) => {
         if (tool.url) {
-            window.open(tool.url, '_blank');
+            window.open(tool.url, '_self'); // Open in the same frame for a smoother experience
             return;
         }
         setCurrentTool(tool);
