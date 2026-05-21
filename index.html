@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quangle Tools - Browser Tools Collection</title>
+    <title>Quangle Tools — Style Reference: Dries Bos</title>
+
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono&display=swap" rel="stylesheet">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,28 +20,20 @@
     <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Custom Tailwind config for VS Code theme -->
+    <!-- Custom Tailwind config for Dries Bos theme -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        vscode: { 
-                            bg: '#1e1e1e',
-                            sidebar: '#252526',
-                            panel: '#2d2d2d',
-                            hover: '#2a2d2e',
-                            active: '#37373d',
-                            border: '#3c3c3c',
-                            text: '#d4d4d4',
-                            'text-muted': '#808080',
-                            'text-dim': '#6a6a6a',
-                            accent: '#007acc',
-                            'accent-hover': '#1a85c4',
-                            input: '#3c3c3c',
-                            button: '#0e639c',
-                            'button-hover': '#1177bb',
-                        }
+                        parchment: '#e8e7e3',
+                        ink: '#050200',
+                        ash: '#747472',
+                        black: '#000000',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
                     }
                 }
             }
@@ -48,17 +45,18 @@
             height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #1e1e1e;
+            background: #e8e7e3;
         }
         ::-webkit-scrollbar-thumb {
-            background: #424242;
-            border-radius: 4px;
+            background: #747472;
+            border-radius: 0px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #4f4f4f;
+            background: #050200;
         }
         body {
-            background-color: #1e1e1e;
+            background-color: #e8e7e3;
+            color: #050200;
         }
     </style>
 
@@ -73,7 +71,7 @@
 
     
 </head>
-<body class="text-vscode-text">
+<body class="text-ink bg-parchment font-sans text-[20px] leading-[1.45] font-normal">
     <div id="root"></div>
 
     <!-- Load generated tools -->

@@ -1,154 +1,64 @@
-// Quangle Tools - Main Application
+// Quangle Tools - Main Application (Dries Bos - Wireframe on Parchment Style)
 // A collection of browser-based developer tools
 
 const { useState, useEffect } = React;
 
 // --- Shared Icons Component ---
-const Icon = ({ children, className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        {children}
-    </svg>
-);
-
-// Icon library - shared across all tools
-window.Icons = {
-    Scissors: ({ className }) => (
-        <Icon className={className}><circle cx="6" cy="6" r="3" /><circle cx="6" cy="18" r="3" /><line x1="20" x2="8.12" y1="4" y2="15.88" /><line x1="14.47" x2="20" y1="14.48" y2="20" /><line x1="8.12" x2="12" y1="8.12" y2="12" /></Icon>
-    ),
-    FileJson: ({ className }) => (
-        <Icon className={className}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /><path d="M10 12a1 1 0 0 0-1 1v1a1 1 0 0 1-1 1 1 1 0 0 1 1 1v1a1 1 0 0 0 1 1" /></Icon>
-    ),
-    Upload: ({ className }) => (
-        <Icon className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" x2="12" y1="3" y2="15" /></Icon>
-    ),
-    Copy: ({ className }) => (
-        <Icon className={className}><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></Icon>
-    ),
-    Download: ({ className }) => (
-        <Icon className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></Icon>
-    ),
-    RefreshCw: ({ className }) => (
-        <Icon className={className}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M3 21v-5h5" /></Icon>
-    ),
-    AlertCircle: ({ className }) => (
-        <Icon className={className}><circle cx="12" cy="12" r="10" /><line x1="12" x2="12" y1="8" y2="12" /><line x1="12" x2="12.01" y1="16" y2="16" /></Icon>
-    ),
-    Check: ({ className }) => (
-        <Icon className={className}><polyline points="20 6 9 17 4 12" /></Icon>
-    ),
-    Settings: ({ className }) => (
-        <Icon className={className}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></Icon>
+const Icons = {
+    Search: ({ className }) => (
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <circle cx="11" cy="11" r="8" /><line x1="21" x2="16.65" y1="21" y2="16.65" />
+        </svg>
     ),
     ArrowRight: ({ className }) => (
-        <Icon className={className}><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></Icon>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <line x1="5" x2="19" y1="12" y2="12" /><polyline points="12 5 19 12 12 19" />
+        </svg>
     ),
     ArrowLeft: ({ className }) => (
-        <Icon className={className}><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></Icon>
-    ),
-    Home: ({ className }) => (
-        <Icon className={className}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></Icon>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <line x1="19" x2="5" y1="12" y2="12" /><polyline points="12 19 5 12 12 5" />
+        </svg>
     ),
     Wrench: ({ className }) => (
-        <Icon className={className}><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></Icon>
-    ),
-    Plus: ({ className }) => (
-        <Icon className={className}><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></Icon>
-    ),
-    Code: ({ className }) => (
-        <Icon className={className}><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></Icon>
-    ),
-    Database: ({ className }) => (
-        <Icon className={className}><ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M3 5v14a9 3 0 0 0 18 0V5" /><path d="M3 12a9 3 0 0 0 18 0" /></Icon>
-    ),
-    FileText: ({ className }) => (
-        <Icon className={className}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /><path d="M10 9H8" /><path d="M16 13H8" /><path d="M16 17H8" /></Icon>
-    ),
-    Image: ({ className }) => (
-        <Icon className={className}><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></Icon>
-    ),
-    Palette: ({ className }) => (
-        <Icon className={className}><circle cx="13.5" cy="6.5" r=".5" /><circle cx="17.5" cy="10.5" r=".5" /><circle cx="8.5" cy="7.5" r=".5" /><circle cx="6.5" cy="12.5" r=".5" /><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.555C21.965 6.012 17.461 2 12 2z" /></Icon>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+        </svg>
     )
 };
 
 // --- Tool Registry ---
-// Tools are auto-generated from JSX files in tools/ directory
 const STATIC_TOOLS = window.JsxTools || [];
-
-// Merge with generated tools if available
 const TOOLS = [...STATIC_TOOLS, ...(window.RepoTools || [])];
 
-// Category icons mapping
-const CATEGORY_ICONS = {
-    'Data': 'Database',
-    'Text': 'FileText',
-    'Code': 'Code',
-    'Image': 'Image',
-    'Design': 'Palette',
-    'Utility': 'Wrench'
-};
-
-function hashStringToUint32(str) {
-    // FNV-1a 32-bit
-    let hash = 2166136261;
-    for (let i = 0; i < str.length; i++) {
-        hash ^= str.charCodeAt(i);
-        hash = Math.imul(hash, 16777619);
-    }
-    return hash >>> 0;
-}
-
-function defaultThumbnailUrl(tool) {
-    const title = (tool?.description || tool?.name || '').trim();
-    if (!title) return '';
-
-    // Unofficial Bing thumbnail endpoint (query -> icon-ish thumbnail)
-    // Query pattern: "<title> icon"
-    return `https://tse2.mm.bing.net/th?q=${encodeURIComponent(`${title} icon`)}&w=96&h=96&c=7&rs=1&p=0`;
-}
-
-// --- Tool Card Component ---
-function ToolCard({ tool, onClick }) {
-    const IconComponent = Icons[tool.icon] || Icons.Wrench;
-    const iconImageUrl = defaultThumbnailUrl(tool);
-
+// --- Tool Row Component (Naked Table Row Button) ---
+function ToolRow({ tool, index, onClick }) {
+    const displayIndex = String(index + 1).padStart(2, '0');
+    
     return (
         <button
             onClick={onClick}
-            className="group bg-vscode-sidebar hover:bg-vscode-hover border border-vscode-border hover:border-vscode-accent rounded-lg p-6 text-left transition-all duration-200 hover:shadow-lg hover:shadow-vscode-accent/10"
+            className="group flex flex-col md:flex-row md:items-center justify-between text-left w-full gap-4 p-[25px] border-t border-ink hover:border-ash bg-transparent rounded-none transition-colors duration-200"
         >
-            <div className="flex items-start gap-4">
-                <div className="w-12 h-12 flex-shrink-0 bg-vscode-button/30 group-hover:bg-vscode-button rounded-lg transition-colors overflow-hidden relative flex items-center justify-center">
-                    {/* SVG fallback (always present behind the image) */}
-                    <IconComponent className="w-6 h-6 text-vscode-accent group-hover:text-white" />
-
-                    {/* Image icon overlay */}
-                    {iconImageUrl && (
-                        <img
-                            src={iconImageUrl}
-                            alt={`${tool.name} icon`}
-                            className="absolute inset-0 w-full h-full object-cover"
-                            loading="lazy"
-                            referrerPolicy="no-referrer"
-                            onError={(e) => {
-                                // If Bing thumbnail is unavailable, hide image and show SVG fallback
-                                e.currentTarget.style.display = 'none';
-                            }}
-                        />
-                    )}
-                </div>
-                <div className="flex-1">
-                    <h3 className="font-semibold text-vscode-text group-hover:text-white mb-1">
-                        {tool.name}
-                    </h3>
-                    <p className="text-sm text-vscode-text-muted group-hover:text-vscode-text">
-                        {tool.description}
-                    </p>
-                    <span className="inline-block mt-3 text-xs px-2 py-1 bg-vscode-active rounded text-vscode-text-muted">
-                        {tool.category}
-                    </span>
-                </div>
-                <Icons.ArrowRight className="w-5 h-5 text-vscode-text-dim group-hover:text-vscode-accent transition-colors" />
+            <div className="flex items-baseline gap-4 md:w-1/3">
+                <span className="font-mono text-[20px] leading-[1.00] text-ash group-hover:text-ink">
+                    [{displayIndex}]
+                </span>
+                <span className="font-sans text-[20px] leading-[1.45] text-ink font-medium">
+                    {tool.name}
+                </span>
+            </div>
+            
+            <div className="flex-1 font-sans text-[20px] leading-[1.45] text-ash group-hover:text-ink md:mx-4">
+                {tool.description}
+            </div>
+            
+            <div className="flex items-center gap-6 justify-between md:justify-end md:w-1/4">
+                {/* Subtle Pill Tag */}
+                <span className="bg-parchment text-ink border border-ink/20 px-[15px] pt-[10px] pb-[9px] rounded-[1000px] font-mono text-[14px] leading-[1.00] uppercase tracking-wider">
+                    {tool.category}
+                </span>
+                <Icons.ArrowRight className="w-5 h-5 text-ash group-hover:text-ink group-hover:translate-x-1 transition-all" />
             </div>
         </button>
     );
@@ -156,64 +66,148 @@ function ToolCard({ tool, onClick }) {
 
 // --- Home Page Component ---
 function HomePage({ tools, onSelectTool }) {
-    const categories = [...new Set(tools.map(t => t.category))];
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('ALL');
+
+    const categories = ['ALL', ...new Set(tools.map(t => t.category.toUpperCase()))];
+
+    const filteredTools = tools.filter(tool => {
+        const matchesSearch = 
+            tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            tool.description.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesCategory = 
+            selectedCategory === 'ALL' || 
+            tool.category.toUpperCase() === selectedCategory;
+        return matchesSearch && matchesCategory;
+    });
 
     return (
-        <div className="min-h-screen bg-vscode-bg text-vscode-text p-4 md:p-8">
-            <div className="max-w-5xl mx-auto">
-                {/* Header */}
-                <header className="mb-12 text-center">
-                    <div className="flex items-center justify-center gap-3 mb-4">
-                        <div className="p-4 bg-vscode-button rounded-lg shadow-lg shadow-vscode-accent/20">
-                            <Icons.Wrench className="w-8 h-8 text-white" />
-                        </div>
+        <div className="min-h-screen bg-parchment text-ink px-4 md:px-8 py-[79px] font-sans antialiased text-[20px] leading-[1.45]">
+            <div className="max-w-[1150px] mx-auto flex flex-col gap-[79px]">
+                
+                {/* Hero Section */}
+                <header className="text-center flex flex-col gap-6">
+                    {/* Wireframe window-frame graphic in Ink Jot line art */}
+                    <svg viewBox="0 0 800 240" className="w-full max-w-2xl mx-auto text-ink stroke-current fill-none stroke-[1] mb-2" xmlns="http://www.w3.org/2000/svg">
+                        {/* Outer frame */}
+                        <rect x="5" y="5" width="790" height="230" />
+                        {/* Title bar */}
+                        <line x1="5" y1="45" x2="795" y2="45" />
+                        {/* Window controls */}
+                        <rect x="20" y="18" width="10" height="10" />
+                        <rect x="38" y="18" width="10" height="10" />
+                        <rect x="56" y="18" width="10" height="10" />
+                        <text x="400" y="27" className="font-mono text-[13px] fill-current text-center" textAnchor="middle" stroke="none">lequang1024.github.io // DIGITAL ARCHIVE</text>
+                        
+                        {/* Architect grid lines */}
+                        <line x1="160" y1="45" x2="160" y2="235" strokeDasharray="3 3" className="text-ash" />
+                        <line x1="320" y1="45" x2="320" y2="235" strokeDasharray="3 3" className="text-ash" />
+                        <line x1="480" y1="45" x2="480" y2="235" strokeDasharray="3 3" className="text-ash" />
+                        <line x1="640" y1="45" x2="640" y2="235" strokeDasharray="3 3" className="text-ash" />
+                        
+                        <line x1="5" y1="100" x2="795" y2="100" strokeDasharray="3 3" className="text-ash" />
+                        <line x1="5" y1="160" x2="795" y2="160" strokeDasharray="3 3" className="text-ash" />
+                        
+                        {/* Geometric layout details */}
+                        <circle cx="400" cy="140" r="45" strokeDasharray="4 4" className="text-ash" />
+                        <polygon points="400,85 445,140 400,195 355,140" />
+                        <line x1="340" y1="140" x2="460" y2="140" />
+                        <line x1="400" y1="80" x2="400" y2="200" />
+                        
+                        <text x="400" y="145" className="font-mono text-[14px] fill-current" textAnchor="middle" stroke="none">Q_T_L</text>
+                    </svg>
+
+                    <div className="max-w-md mx-auto">
+                        <h1 className="font-mono text-[24px] uppercase tracking-wider mb-2 font-normal">
+                            Quangle Tools
+                        </h1>
+                        <p className="text-ash text-[20px] leading-[1.45]">
+                            A collection of browser-based utilities built with strict structure and minimalist aesthetics.
+                        </p>
                     </div>
-                    <h1 className="text-4xl font-bold text-vscode-text mb-3">
-                        Quangle Tools
-                    </h1>
-                    <p className="text-vscode-text-muted text-lg max-w-md mx-auto">
-                        A collection of browser-based developer tools. No installation required.
-                    </p>
                 </header>
 
-                {/* Tools Grid */}
-                <div className="space-y-8">
-                    {categories.map(category => (
-                        <div key={category}>
-                            <div className="flex items-center gap-2 mb-4">
-                                {Icons[CATEGORY_ICONS[category]] && React.createElement(Icons[CATEGORY_ICONS[category]], { className: "w-4 h-4 text-vscode-text-muted" })}
-                                <h2 className="text-sm font-semibold text-vscode-text-muted uppercase tracking-wider">
-                                    {category}
-                                </h2>
-                            </div>
-                            <div className="grid gap-4 md:grid-cols-2">
-                                {tools
-                                    .filter(t => t.category === category)
-                                    .map(tool => (
-                                        <ToolCard
-                                            key={tool.id}
-                                            tool={tool}
-                                            onClick={() => onSelectTool(tool)}
-                                        />
-                                    ))}
-                            </div>
+                {/* Search & Category Filter Section */}
+                <div className="flex flex-col gap-8">
+                    {/* Underlined Input Field */}
+                    <div className="flex flex-col gap-2">
+                        <span className="font-mono text-[16px] text-ash uppercase tracking-wider">Search Archive</span>
+                        <div className="flex items-center gap-3 border-b-2 border-ink py-2">
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                placeholder="TYPE KEYWORD TO FILTER..."
+                                className="bg-transparent text-ink placeholder-ash outline-none w-full font-mono text-[20px] leading-[1.00] uppercase rounded-none"
+                            />
+                            <Icons.Search className="w-6 h-6 text-ink" />
                         </div>
-                    ))}
+                    </div>
+
+                    {/* Filter categories as Subtle Pill Tags */}
+                    <div className="flex flex-wrap gap-2 items-center">
+                        <span className="font-mono text-[16px] text-ash uppercase mr-2">Filter //</span>
+                        {categories.map(cat => {
+                            const isSelected = cat === selectedCategory;
+                            return (
+                                <button
+                                    key={cat}
+                                    onClick={() => setSelectedCategory(cat)}
+                                    className={`font-mono text-[14px] leading-[1.00] px-[15px] pt-[10px] pb-[9px] rounded-[1000px] border transition-colors duration-150 ${
+                                        isSelected 
+                                            ? 'bg-ink text-parchment border-ink' 
+                                            : 'bg-transparent text-ash border-ash hover:text-ink hover:border-ink'
+                                    }`}
+                                >
+                                    {cat}
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
 
-                {/* Empty State */}
-                {tools.length === 0 && (
-                    <div className="text-center py-16">
-                        <Icons.Plus className="w-12 h-12 text-vscode-text-dim mx-auto mb-4" />
-                        <h3 className="text-lg font-medium text-vscode-text-muted mb-2">No tools yet</h3>
-                        <p className="text-vscode-text-dim">Tools will appear here once added.</p>
+                {/* Tools Table / List */}
+                <div className="flex flex-col">
+                    {/* Outlined Category Tags as Headers */}
+                    <div className="hidden md:flex justify-between items-center mb-6 font-mono text-[18px]">
+                        <div className="border border-ink px-[15px] py-[10px] w-1/3 rounded-none">
+                            [ 01. NAME ]
+                        </div>
+                        <div className="border border-ink px-[15px] py-[10px] flex-1 mx-4 rounded-none">
+                            [ 02. FUNCTION / DESCRIPTION ]
+                        </div>
+                        <div className="border border-ink px-[15px] py-[10px] text-right rounded-none">
+                            [ 03. CATEGORY ]
+                        </div>
                     </div>
-                )}
+
+                    {/* Naked Table Rows list */}
+                    <div className="flex flex-col">
+                        {filteredTools.map((tool, idx) => (
+                            <ToolRow
+                                key={tool.id}
+                                tool={tool}
+                                index={idx}
+                                onClick={() => onSelectTool(tool)}
+                            />
+                        ))}
+
+                        {filteredTools.length === 0 && (
+                            <div className="p-[25px] border-t border-ink text-center text-ash font-mono text-[20px]">
+                                NO UTILITIES FOUND IN ARCHIVE //
+                            </div>
+                        )}
+
+                        {/* Table bottom line closure */}
+                        <div className="border-t border-ink w-full"></div>
+                    </div>
+                </div>
 
                 {/* Footer */}
-                <footer className="mt-16 pt-8 border-t border-vscode-border text-center text-sm text-vscode-text-muted">
-                    <p>All tools run entirely in your browser. No data is sent to any server.</p>
+                <footer className="mt-[79px] border-t border-ink/20 pt-8 text-center font-mono text-[16px] text-ash">
+                    <p>© lequang1024 — all tools run client-side. v2.0</p>
                 </footer>
+
             </div>
         </div>
     );
@@ -225,33 +219,27 @@ function ToolPage({ tool, onBack }) {
     const IconComponent = Icons[tool.icon] || Icons.Wrench;
 
     return (
-        <div className="min-h-screen bg-vscode-bg text-vscode-text p-4 md:p-8 flex flex-col">
-            <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col">
-                {/* Header */}
-                <header className="mb-6 flex items-center gap-4 border-b border-vscode-border pb-6">
+        <div className="min-h-screen bg-parchment text-ink px-4 md:px-8 py-[79px] font-sans antialiased text-[20px] leading-[1.45]">
+            <div className="max-w-[1150px] mx-auto flex flex-col gap-6">
+                <header className="flex items-center justify-between border-b border-ink pb-6 mb-6">
                     <button
                         onClick={onBack}
-                        className="p-2 hover:bg-vscode-hover rounded-lg transition-colors"
-                        title="Back to tools"
+                        className="group flex items-center gap-2 font-mono text-[18px] text-ash hover:text-ink transition-colors rounded-none bg-transparent border-none"
                     >
-                        <Icons.ArrowLeft className="w-5 h-5 text-vscode-text-muted" />
+                        <Icons.ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                        [ BACK TO ARCHIVE ]
                     </button>
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 bg-vscode-button rounded-lg shadow-lg shadow-vscode-accent/10">
-                            <IconComponent className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                            <h1 className="text-2xl font-bold text-vscode-text">
-                                {tool.name}
-                            </h1>
-                            <p className="text-vscode-text-muted text-sm mt-1">{tool.description}</p>
-                        </div>
-                    </div>
+                    <span className="font-mono text-[18px] uppercase tracking-wider text-ash">
+                        {tool.category} // {tool.name}
+                    </span>
                 </header>
 
-                {/* Tool Content */}
-                <main className="flex-1 min-h-0">
-                    <ToolComponent />
+                <main className="bg-transparent border border-ink p-[25px] rounded-none">
+                    {ToolComponent ? <ToolComponent /> : (
+                        <div className="text-center font-mono py-12 text-ash">
+                            UTILITY COMPONENT NOT LOADED IN SCOPE //
+                        </div>
+                    )}
                 </main>
             </div>
         </div>
@@ -262,7 +250,6 @@ function ToolPage({ tool, onBack }) {
 function App() {
     const [currentTool, setCurrentTool] = useState(null);
 
-    // Handle browser back button
     useEffect(() => {
         const handlePopState = () => {
             const hash = window.location.hash.slice(1);
@@ -274,9 +261,7 @@ function App() {
             }
         };
 
-        // Set initial state from URL
         handlePopState();
-
         window.addEventListener('popstate', handlePopState);
         return () => window.removeEventListener('popstate', handlePopState);
     }, []);
