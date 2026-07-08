@@ -323,7 +323,7 @@ async function performAliveCheck(checkToken) {
     } else {
         const baseDomain = environmentDomains[selectedEnvironment];
         if (prNumberRaw.trim()) {
-            hostToCheck = `pr-${prNumberRaw.trim()}.${baseDomain}`;
+            hostToCheck = `pr-${prNumberRaw.trim()}.preview.${baseDomain}`;
         } else {
             hostToCheck = baseDomain;
         }
@@ -482,7 +482,7 @@ function generateAndDisplayQrCode() {
     } else {
         const baseDomain = environmentDomains[selectedEnvironment];
         if (prNumberRaw.trim()) {
-            backendHost = `pr-${prNumberRaw.trim()}.${baseDomain}`;
+            backendHost = `pr-${prNumberRaw.trim()}.preview.${baseDomain}`;
         } else {
             backendHost = baseDomain;
         }
