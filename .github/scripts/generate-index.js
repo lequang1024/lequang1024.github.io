@@ -30,6 +30,13 @@ const googleAnalyticsScript = `
 
 const googleAnalyticsId = 'G-LL3LWXVBHR';
 
+// Self-hosted Umami analytics (https://umami.leminhquang.com)
+const umamiWebsiteId = '32a4cdf4-505a-4bba-9c3c-99d46cc1bfb6';
+const umamiScript = `
+    <!-- Umami analytics (self-hosted) -->
+    <script defer src="https://umami.leminhquang.com/script.js" data-website-id="${umamiWebsiteId}"></script>
+`;
+
 const SKIP_FILES = new Set([
     'index.html',
     'index_template.html',
@@ -120,6 +127,31 @@ async function addGoogleAnalytics(absFilePath) {
     }
 }
 
+async function addUmami(absFilePath) {
+    try {
+        let content = await fs.readFile(absFilePath, 'utf8');
+
+        // Check if the Umami script already exists (idempotent by website id)
+        if (content.includes(`data-website-id="${umamiWebsiteId}"`)) {
+            return false;
+        }
+
+        // Inject script before closing </head> tag
+        const headEndTag = '</head>';
+        if (content.includes(headEndTag)) {
+            content = content.replace(headEndTag, `${umamiScript}\n${headEndTag}`);
+            await fs.writeFile(absFilePath, content);
+            return true;
+        }
+
+        console.warn(`Could not find </head> tag in ${absFilePath}. Skipping Umami.`);
+        return false;
+    } catch (error) {
+        console.error(`Error adding Umami to ${absFilePath}:`, error);
+        return false;
+    }
+}
+
 async function findHtmlFiles(relativeDir = '') {
     const absDir = path.join(repoRoot, relativeDir);
 
@@ -191,8 +223,9 @@ async function generateIndexFile() {
     for (const fullPath of htmlFiles) {
         const details = await getProjectDetails(fullPath);
 
-        // Inject GA into the actual HTML file
+        // Inject analytics into the actual HTML file
         await addGoogleAnalytics(path.join(repoRoot, fullPath));
+        await addUmami(path.join(repoRoot, fullPath));
 
         tools.push({
             id: toolIdFromPath(fullPath),
@@ -218,11 +251,12 @@ async function generateIndexFile() {
     await fs.mkdir(path.dirname(toolsOutputPath), { recursive: true });
     await fs.writeFile(toolsOutputPath, toolsJsContent);
 
-    // Ensure GA is also present in the custom index.html
+    // Ensure analytics is also present in the custom index.html
     await addGoogleAnalytics(path.join(repoRoot, 'index.html'));
+    await addUmami(path.join(repoRoot, 'index.html'));
 
     console.log(`Generated ${toolsOutputPath} (${tools.length} tools)`);
-    console.log('All HTML files processed for Google Analytics successfully!');
+    console.log('All HTML files processed for analytics (GA + Umami) successfully!');
 }
 
 generateIndexFile();
