@@ -1,3 +1,15 @@
+// Analytics tracking helper (GA4 + Umami)
+function trackEvent(eventName, eventData = {}) {
+    if (typeof gtag === 'function') {
+        gtag('event', eventName, eventData);
+    }
+    if (typeof umami !== 'undefined' && typeof umami.track === 'function') {
+        umami.track(eventName, eventData);
+    } else if (window.umami && typeof window.umami.track === 'function') {
+        window.umami.track(eventName, eventData);
+    }
+}
+
 // DOM Elements
 const environmentSelect = document.getElementById('environment');
 const prNumberInput = document.getElementById('prNumber');
@@ -381,28 +393,24 @@ async function performAliveCheck(checkToken) {
             aliveStatusDiv.textContent = statusMessage;
             aliveStatusDiv.className = statusClass;
 
-            if (typeof gtag === 'function') {
-                gtag('event', 'server_reachable', {
-                    'event_category': 'engagement',
-                    'event_label': `Alive Check Status: ${statusMessage}`,
-                    'host': hostToCheck,
-                    'deep_link_url': currentDeepLinkUrl
-                });
-            }
+            trackEvent('server_reachable', {
+                'event_category': 'engagement',
+                'event_label': `Alive Check Status: ${statusMessage}`,
+                'host': hostToCheck,
+                'deep_link_url': currentDeepLinkUrl
+            });
         }
     } catch (error) {
         console.error('Alive check failed (Network Error):', error);
         if (checkToken === currentAliveCheckToken) {
             aliveStatusDiv.textContent = 'Status: Dead 💀 (Network Error)';
             aliveStatusDiv.className = 'mt-2 text-sm status-not-alive';
-            if (typeof gtag === 'function') {
-                gtag('event', 'server_unreachable', {
-                    'event_category': 'engagement',
-                    'event_label': 'Alive Check Failed (Network Error)',
-                    'host': hostToCheck,
-                    'deep_link_url': currentDeepLinkUrl
-                });
-            }
+            trackEvent('server_unreachable', {
+                'event_category': 'engagement',
+                'event_label': 'Alive Check Failed (Network Error)',
+                'host': hostToCheck,
+                'deep_link_url': currentDeepLinkUrl
+            });
         }
     }
 }
@@ -531,13 +539,11 @@ function generateAndDisplayQrCode() {
             correctLevel: QRCode.CorrectLevel.H
         });
 
-        if (typeof gtag === 'function') {
-            gtag('event', 'qr_code_generated', {
-                'event_category': 'engagement',
-                'event_label': 'QR Success',
-                'environment': selectedEnvironment,
-            });
-        }
+        trackEvent('qr_code_generated', {
+            'event_category': 'engagement',
+            'event_label': 'QR Success',
+            'environment': selectedEnvironment,
+        });
 
         if (!resetBtn.dataset.isResetting) {
             saveInputsToLocalStorage();
@@ -625,13 +631,11 @@ environmentSelect.addEventListener('change', () => {
 // Event listener for the fixed Start Game button
 startGameBtn.addEventListener('click', () => {
     if (currentDeepLinkUrl) {
-        if (typeof gtag === 'function') {
-            gtag('event', 'start_game_clicked', {
-                'event_category': 'engagement',
-                'event_label': 'Start Game Button', // Changed label as it's now unified
-                'deep_link_url': currentDeepLinkUrl
-            });
-        }
+        trackEvent('start_game_clicked', {
+            'event_category': 'engagement',
+            'event_label': 'Start Game Button',
+            'deep_link_url': currentDeepLinkUrl
+        });
         window.location.href = currentDeepLinkUrl;
     } else {
         console.warn("Please generate a valid QR code and URL first, or check for errors.");
@@ -658,13 +662,11 @@ copyUrlBtn.addEventListener('click', () => {
                 copyUrlBtn.disabled = false; // Re-enable button
             }, 2000); // Revert after 2 seconds
 
-            if (typeof gtag === 'function') {
-                gtag('event', 'copy_url_clicked', {
-                    'event_category': 'interaction',
-                    'event_label': 'Copy URL Button',
-                    'deep_link_url': currentDeepLinkUrl
-                });
-            }
+            trackEvent('copy_url_clicked', {
+                'event_category': 'interaction',
+                'event_label': 'Copy URL Button',
+                'deep_link_url': currentDeepLinkUrl
+            });
         } catch (err) {
             console.error('Failed to copy: ', err);
             // No visible message, just console log for error
@@ -676,25 +678,21 @@ copyUrlBtn.addEventListener('click', () => {
 });
 
 grafanaLink.addEventListener('click', (event) => {
-    if (typeof gtag === 'function') {
-        const prNum = prNumberInput.value.trim();
-        gtag('event', 'grafana_link_clicked', {
-            'event_category': 'interaction',
-            'event_label': 'View Grafana Logs',
-            'pr_number': prNum || 'N/A',
-            'environment': environmentSelect.value
-        });
-    }
+    const prNum = prNumberInput.value.trim();
+    trackEvent('grafana_link_clicked', {
+        'event_category': 'interaction',
+        'event_label': 'View Grafana Logs',
+        'pr_number': prNum || 'N/A',
+        'environment': environmentSelect.value
+    });
 });
 
 resetBtn.addEventListener('click', () => {
     resetBtn.dataset.isResetting = true;
-    if (typeof gtag === 'function') {
-        gtag('event', 'reset_settings_clicked', {
-            'event_category': 'interaction',
-            'event_label': 'Reset All Settings Button'
-        });
-    }
+    trackEvent('reset_settings_clicked', {
+        'event_category': 'interaction',
+        'event_label': 'Reset All Settings Button'
+    });
     resetToDefaultSettings();
     delete resetBtn.dataset.isResetting;
 });
@@ -702,13 +700,11 @@ resetBtn.addEventListener('click', () => {
 // Event listener for the main Start Game button
 startGameMainBtn.addEventListener('click', () => {
     if (currentDeepLinkUrl) {
-        if (typeof gtag === 'function') {
-            gtag('event', 'start_game_clicked', {
-                'event_category': 'engagement',
-                'event_label': 'Start Game Button (Main)',
-                'deep_link_url': currentDeepLinkUrl
-            });
-        }
+        trackEvent('start_game_clicked', {
+            'event_category': 'engagement',
+            'event_label': 'Start Game Button (Main)',
+            'deep_link_url': currentDeepLinkUrl
+        });
         window.location.href = currentDeepLinkUrl;
     } else {
         console.warn("Please generate a valid QR code and URL first, or check for errors.");

@@ -247,6 +247,18 @@
 
     <!-- JS Logic -->
     <script>
+        // Analytics tracking helper (GA4 + Umami)
+        function trackEvent(eventName, eventData = {}) {
+            if (typeof gtag === 'function') {
+                gtag('event', eventName, eventData);
+            }
+            if (typeof umami !== 'undefined' && typeof umami.track === 'function') {
+                umami.track(eventName, eventData);
+            } else if (window.umami && typeof window.umami.track === 'function') {
+                window.umami.track(eventName, eventData);
+            }
+        }
+
         // DOM Elements
         const environmentSelect = document.getElementById('environment');
         const prNumberInput = document.getElementById('prNumber');
@@ -619,12 +631,25 @@
 
                     aliveStatusDiv.textContent = statusMessage;
                     aliveStatusDiv.className = statusClass;
+
+                    trackEvent('server_reachable', {
+                        'event_category': 'engagement',
+                        'event_label': `Alive Check Status: ${statusMessage}`,
+                        'host': hostToCheck,
+                        'deep_link_url': currentDeepLinkUrl
+                    });
                 }
             } catch (error) {
                 console.error('Alive check failed (Network Error):', error);
                 if (checkToken === currentAliveCheckToken) {
                     aliveStatusDiv.textContent = 'Status: Dead 💀 (Network Error)';
                     aliveStatusDiv.className = 'font-mono text-[15px] text-dim uppercase line-through';
+                    trackEvent('server_unreachable', {
+                        'event_category': 'engagement',
+                        'event_label': 'Alive Check Failed (Network Error)',
+                        'host': hostToCheck,
+                        'deep_link_url': currentDeepLinkUrl
+                    });
                 }
             }
         }
@@ -745,6 +770,12 @@
                     correctLevel: QRCode.CorrectLevel.H
                 });
 
+                trackEvent('qr_code_generated', {
+                    'event_category': 'engagement',
+                    'event_label': 'QR Success',
+                    'environment': selectedEnv,
+                });
+
                 if (!resetBtn.dataset.isResetting) {
                     saveInputsToLocalStorage();
                 }
@@ -814,7 +845,13 @@
             document.removeEventListener('keydown', handleModalEscape);
         }
 
-        shareConfigBtn.addEventListener('click', openShareModal);
+        shareConfigBtn.addEventListener('click', () => {
+            trackEvent('share_config_clicked', {
+                'event_category': 'interaction',
+                'event_label': 'Share Config QR'
+            });
+            openShareModal();
+        });
         shareConfigCloseBtn.addEventListener('click', closeShareModal);
         shareConfigBackdrop.addEventListener('click', closeShareModal);
 
@@ -825,6 +862,11 @@
 
         startGameBtn.addEventListener('click', () => {
             if (currentDeepLinkUrl) {
+                trackEvent('start_game_clicked', {
+                    'event_category': 'engagement',
+                    'event_label': 'Start Game Button',
+                    'deep_link_url': currentDeepLinkUrl
+                });
                 window.location.href = currentDeepLinkUrl;
             }
         });
@@ -860,6 +902,12 @@
                         copyUrlBtn.textContent = originalButtonText;
                         copyUrlBtn.disabled = false;
                     }, 2000);
+
+                    trackEvent('copy_url_clicked', {
+                        'event_category': 'interaction',
+                        'event_label': 'Copy URL Button',
+                        'deep_link_url': currentDeepLinkUrl
+                    });
                 } catch (err) {
                     console.error('Failed to copy: ', err);
                 }
@@ -867,14 +915,33 @@
             }
         });
 
+        grafanaLink.addEventListener('click', () => {
+            const prNum = prNumberInput.value.trim();
+            trackEvent('grafana_link_clicked', {
+                'event_category': 'interaction',
+                'event_label': 'View Grafana Logs',
+                'pr_number': prNum || 'N/A',
+                'environment': environmentSelect.value
+            });
+        });
+
         resetBtn.addEventListener('click', () => {
             resetBtn.dataset.isResetting = true;
+            trackEvent('reset_settings_clicked', {
+                'event_category': 'interaction',
+                'event_label': 'Reset All Settings Button'
+            });
             resetToDefaultSettings();
             delete resetBtn.dataset.isResetting;
         });
 
         startGameMainBtn.addEventListener('click', () => {
             if (currentDeepLinkUrl) {
+                trackEvent('start_game_clicked', {
+                    'event_category': 'engagement',
+                    'event_label': 'Start Game Button (Main)',
+                    'deep_link_url': currentDeepLinkUrl
+                });
                 window.location.href = currentDeepLinkUrl;
             }
         });
